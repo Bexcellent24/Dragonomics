@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="Bloodstone">#68040B</color>
+    <color name="CrimsonBlaze">#E01C29</color>
+    <color name="GoldenEmber">#F3CC70</color>
+    <color name="FireBurst">#EF611B</color>
+    <color name="DeepAbyss">#203A45</color>
+    <color name="MidnightViolet">#180C24</color>
+
+</resources>
