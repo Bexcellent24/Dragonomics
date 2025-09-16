@@ -1,0 +1,13 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- Rounded corners -->
+    <corners android:radius="80dp" />
+
+    <!-- Outline color and thickness -->
+    <stroke
+        android:width="3dp"
+        android:color="@color/GoldenEmber" />
+
+    <!-- Optional background color -->
+    <solid android:color="@android:color/transparent" />
+</shape>

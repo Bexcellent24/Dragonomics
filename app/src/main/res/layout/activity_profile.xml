@@ -18,16 +18,21 @@
             android:orientation="vertical"
             android:paddingTop="10dp">
 
-            <TextView
-                android:id="@+id/txt_welcome"
+            <Button
+                android:id="@+id/btn_edit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="top|center_horizontal"
+                android:layout_weight="1"
                 android:fontFamily="@font/aref_ruqaa"
-                android:text="Welcome To"
+                android:gravity="center"
+                android:text="Edit"
+                android:textAllCaps="false"
                 android:textColor="@color/GoldenEmber"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:backgroundTint="@android:color/transparent"
+                app:cornerRadius="0dp"
+                app:rippleColor="@color/GoldenEmber" />
 
             <FrameLayout
                 android:id="@+id/header"
@@ -36,28 +41,31 @@
 
 
                 <ImageView
-                    android:id="@+id/img_home_logo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:adjustViewBounds="true"
-                    android:contentDescription="@string/app_name"
-                    android:maxHeight="180dp"
-                    android:padding="0dp"
-                    android:scaleType="centerInside"
-                    android:src="@drawable/home_page_logo" />
+                    android:id="@+id/img_profile"
+                    android:background="@drawable/rounded_image_border"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:scaleType="centerCrop"
+                    android:clipToOutline="true"
+                    android:layout_gravity="center"
+                    android:src="@drawable/img_profile"
+                    android:padding="1dp"
+
+                     />
             </FrameLayout>
 
             <TextView
-                android:id="@+id/txt_title"
+                android:id="@+id/txt_username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top|center_horizontal"
-                android:layout_marginTop="-20dp"
-                android:fontFamily="@font/battles_bridge_regular"
-                android:text="Dragonomics"
+                android:layout_marginBottom="30dp"
+                android:fontFamily="@font/aref_ruqaa"
+                android:paddingTop="5sp"
+                android:text="User Name"
                 android:textAlignment="center"
                 android:textColor="@color/GoldenEmber"
-                android:textSize="34sp" />
+                android:textSize="24sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -68,35 +76,80 @@
             android:orientation="horizontal">
 
             <TextView
-                android:id="@+id/txt_login_tab"
+                android:id="@+id/txt_min_month_goal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="@font/aref_ruqaa"
                 android:gravity="center"
-                android:text="@string/login_u"
+                android:padding="4sp"
+                android:text="Min Monthly Goal"
                 android:textAllCaps="false"
                 android:textColor="@color/GoldenEmber"
-                android:textSize="18sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 app:backgroundTint="@android:color/transparent"
                 app:cornerRadius="0dp" />
 
-            <Button
-                android:id="@+id/btn_signup_tab"
+            <TextView
+                android:id="@+id/txt_max_month_goal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:fontFamily="@font/aref_ruqaa"
                 android:gravity="center"
-                android:text="Sign Up"
+                android:padding="4sp"
+                android:text="Max Monthly Goal"
                 android:textAllCaps="false"
                 android:textColor="@color/GoldenEmber"
-                android:textSize="18sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 app:backgroundTint="@android:color/transparent"
-                app:cornerRadius="0dp"
-                app:rippleColor="@color/GoldenEmber" />
+                app:cornerRadius="0dp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:background="@color/DeepAbyss"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/txt_min_month_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/aref_ruqaa"
+                android:gravity="center"
+                android:padding="8sp"
+                android:text=""
+                android:textAllCaps="false"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@android:color/transparent"
+                android:background="@drawable/rounded_image_border"
+                app:cornerRadius="0dp" />
+
+            <TextView
+                android:id="@+id/txt_max_month_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/aref_ruqaa"
+                android:gravity="center"
+                android:padding="8sp"
+                android:text=""
+                android:textAllCaps="false"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:background="@drawable/rounded_image_border"
+                app:backgroundTint="@android:color/transparent"
+                app:cornerRadius="0dp"  />
 
         </LinearLayout>
 
