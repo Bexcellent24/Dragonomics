@@ -2,5 +2,6 @@
     <string name="app_name">Dragonomics</string>
     <string name="login_u"><u>Login</u></string>
     <string name="sign_in_u"><u>Sign Up</u></string>
-
+    <string name="quest_icon">Quest</string>
+    <string name="quest_complete">Complete</string>
 </resources>
