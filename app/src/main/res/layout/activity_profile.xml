@@ -16,7 +16,7 @@
             android:layout_height="wrap_content"
             android:background="@color/DeepAbyss"
             android:orientation="vertical"
-            android:paddingTop="10dp">
+            android:paddingTop="7dp">
 
             <Button
                 android:id="@+id/btn_edit"
@@ -42,16 +42,16 @@
 
                 <ImageView
                     android:id="@+id/img_profile"
-                    android:background="@drawable/rounded_image_border"
                     android:layout_width="120dp"
                     android:layout_height="120dp"
-                    android:scaleType="centerCrop"
-                    android:clipToOutline="true"
                     android:layout_gravity="center"
-                    android:src="@drawable/img_profile"
+                    android:background="@drawable/rounded_image_border"
+                    android:clipToOutline="true"
                     android:padding="1dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/img_profile"
 
-                     />
+                    />
             </FrameLayout>
 
             <TextView
@@ -115,107 +115,77 @@
             android:layout_weight="0"
             android:background="@color/DeepAbyss"
             android:gravity="center"
+            android:paddingBottom="14dp"
             android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/txt_min_month_amount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/Widget.AppCompat.EditText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp"
                 android:layout_weight="1"
+                android:autofillHints=""
+                android:background="@drawable/et_outline_gold"
                 android:fontFamily="@font/aref_ruqaa"
-                android:gravity="center"
-                android:padding="8sp"
-                android:text=""
-                android:textAllCaps="false"
+                android:hint="13,000"
+                android:importantForAutofill="no"
+                android:includeFontPadding="false"
+                android:inputType="number"
+                android:padding="10dp"
+                android:paddingBottom="0dp"
+                android:textAlignment="center"
                 android:textColor="@color/GoldenEmber"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:backgroundTint="@android:color/transparent"
-                android:background="@drawable/rounded_image_border"
-                app:cornerRadius="0dp" />
+                android:textColorHint="@color/GoldenEmber" />
 
             <TextView
                 android:id="@+id/txt_max_month_amount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                style="@style/Widget.AppCompat.EditText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp"
                 android:layout_weight="1"
+                android:autofillHints=""
+                android:background="@drawable/et_outline_gold"
                 android:fontFamily="@font/aref_ruqaa"
-                android:gravity="center"
-                android:padding="8sp"
-                android:text=""
-                android:textAllCaps="false"
+                android:hint="13,000"
+                android:importantForAutofill="no"
+                android:includeFontPadding="false"
+                android:inputType="number"
+                android:padding="10dp"
+                android:paddingBottom="0dp"
+                android:textAlignment="center"
                 android:textColor="@color/GoldenEmber"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:background="@drawable/rounded_image_border"
-                app:backgroundTint="@android:color/transparent"
-                app:cornerRadius="0dp"  />
+                android:textColorHint="@color/GoldenEmber" />
 
         </LinearLayout>
 
-        <LinearLayout
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginVertical="0dp"
-            android:background="@color/MidnightViolet"
-            android:gravity="center_vertical"
-            android:orientation="vertical"
-            android:paddingVertical="0dp"
-            android:paddingLeft="45dp"
-            android:paddingTop="0dp"
-            android:paddingRight="45dp">
+            android:background="@color/MidnightViolet">
 
-            <EditText
-                android:id="@+id/edt_name"
-                style="@style/Widget.AppCompat.AutoCompleteTextView"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="0dp"
-                android:layout_marginRight="0dp"
-                android:layout_marginBottom="40dp"
-                android:background="@color/white"
-                android:backgroundTint="@color/white"
-                android:fontFamily="@font/aref_ruqaa"
-                android:hint="Password"
-                android:inputType="textPassword"
-                android:padding="10dp"
-                android:textColor="@color/GoldenEmber"
-                android:textColorHint="@color/GoldenEmber" />
+                android:background="@color/MidnightViolet"
+                android:orientation="vertical">
 
-            <EditText
-                android:id="@+id/edt_email"
-                style="@style/Widget.AppCompat.AutoCompleteTextView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="0dp"
-                android:layout_marginRight="0dp"
-                android:background="@color/white"
-                android:backgroundTint="@color/white"
-                android:fontFamily="@font/aref_ruqaa"
-                android:hint="Email"
-                android:inputType="textPassword"
-                android:padding="10dp"
-                android:textColor="@color/GoldenEmber"
-                android:textColorHint="@color/GoldenEmber" />
+                <TextView
+                    android:id="@+id/txt_quest_header"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/breathe_fire_iii"
+                    android:padding="10dp"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="0dp"
+                    android:text="QUESTS"
+                    android:textColor="@color/GoldenEmber"
+                    android:textSize="24sp" />
+            </LinearLayout>
+        </ScrollView>
 
-            <CheckBox
-                android:id="@+id/chk_remember"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/aref_ruqaa"
-                android:text="Remember me"
-                android:textColor="@color/GoldenEmber" />
-
-            <Button
-                android:id="@+id/btn_login"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="60dp"
-                android:backgroundTint="@color/FireBurst"
-                android:fontFamily="@font/aref_ruqaa"
-                android:text="Login"
-                app:cornerRadius="5dp" />
-
-        </LinearLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,10 @@
+<!-- res/values/styles.xml -->
+<resources>
+
+    <!-- Pill-shaped card style -->
+    <style name="Shape.Pill" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">22dp</item> <!-- big = pill -->
+    </style>
+
+</resources>
