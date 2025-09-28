@@ -295,6 +295,7 @@
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
         android:src="@drawable/dragon_placeholder"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/xp_currencyRow" />
@@ -310,7 +311,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/dragon"
         app:srcCompat="@drawable/achievements"/>
-
 
     <!-- ....................SHOP OVERLAY (hidden by default) ....................... -->
     <FrameLayout
@@ -504,6 +504,23 @@
         </com.google.android.material.card.MaterialCardView>
     </FrameLayout>
 
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:background="@color/DeepAbyss"
+        app:itemIconSize="36dp"
+        app:itemIconTint="@null"
+        app:itemBackground="@android:color/transparent"
+        app:itemPaddingBottom="5dp"
+        app:itemRippleColor="@null"
+        app:itemTextColor="@color/GoldenEmber"
+        app:itemActiveIndicatorStyle="@null"
+        app:labelVisibilityMode="labeled"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,4 +4,8 @@
     <string name="sign_in_u"><u>Sign Up</u></string>
     <string name="quest_icon">Quest</string>
     <string name="quest_complete">Complete</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_expenses">Expenses</string>
+    <string name="nav_history">History</string>
+    <string name="nav_profile">Profile</string>
 </resources>

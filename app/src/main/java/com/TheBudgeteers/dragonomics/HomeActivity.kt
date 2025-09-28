@@ -3,19 +3,20 @@ package com.TheBudgeteers.dragonomics
 import android.graphics.Color
 import android.os.Bundle
 import android.util.TypedValue
+import android.view.MenuItem
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
+import com.TheBudgeteers.dragonomics.databinding.ActivityHomeBinding
+import com.google.android.material.navigation.NavigationView
 import com.google.android.material.tabs.TabLayout
 
 private const val DRAGON_BIG_DP = 450
@@ -25,42 +26,54 @@ private const val KEY_EXPANDED = "expanded"
 private const val KEY_ACH_OPEN = "ach_open"
 private const val KEY_SHOP_OPEN = "shop_open"
 
-class HomeActivity : AppCompatActivity() {
+class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private var expanded = false
+
+    private lateinit var binding: ActivityHomeBinding
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_home)
 
-        // ---------- base dashboard refs ----------
-        val root   = findViewById<ConstraintLayout>(R.id.dashboard)
-        val arrow  = findViewById<ImageButton>(R.id.toggleArrow)
-        val goal   = findViewById<View>(R.id.goalBar)
-        val dragon = findViewById<ImageView>(R.id.dragon)
+        binding = ActivityHomeBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        binding.bottomNavigationView.setOnItemSelectedListener { item ->
+            onNavigationItemSelected(item)
+        }
+
+        binding.bottomNavigationView.itemIconTintList = null
+
+        val root = binding.dashboard
+        val arrow = binding.toggleArrow
+        val goal = binding.goalBar
+        val dragon = binding.dragon
+
 
         // ---------- achievements overlay refs ----------
-        val achBtn     = findViewById<ImageButton>(R.id.achievementsImg)
-        val achOverlay = findViewById<View>(R.id.achievementsOverlay)
-        val achCard    = findViewById<View>(R.id.achievementsCard)
-        val achClose   = findViewById<ImageButton>(R.id.closeX)
+        val achBtn = binding.achievementsImg
+        val achOverlay = binding.achievementsOverlay
+        val achCard = binding.achievementsCard
+        val achClose = binding.closeX
 
         // ---------- shop overlay refs ----------
-        val shopBtn       = findViewById<ImageButton>(R.id.shopImg)
-        val shopOverlay   = findViewById<View>(R.id.shopOverlay)
-        val shopCard      = findViewById<View>(R.id.shopCard)
-        val shopCloseX    = findViewById<ImageButton>(R.id.shopCloseX)
-        val shopTabs      = findViewById<TabLayout>(R.id.shopTabs)
-        val shopCurrAmt   = findViewById<TextView>(R.id.shopCurrencyAmount)
-        val homeCurrText  = findViewById<TextView>(R.id.currencyTxt)
+        val shopBtn = binding.shopImg
+        val shopOverlay = binding.shopOverlay
+        val shopCard = binding.shopCard
+        val shopCloseX = binding.shopCloseX
+        val shopTabs = binding.shopTabs
+        val shopCurrAmt = binding.shopCurrencyAmount
+        val homeCurrText = binding.currencyTxt
 
         // ---------- ACHIEVEMENTS RecyclerView (RESTORED) ----------
-        val achRecycler = findViewById<RecyclerView>(R.id.achRecycler)
+        val achRecycler = binding.achRecycler
         achRecycler.setHasFixedSize(true)
         achRecycler.layoutManager = LinearLayoutManager(this)
         val achAdapter = AchievementsAdapter(emptyList())
         achRecycler.adapter = achAdapter
+
 
         // Demo data — swap for your real data source
         achAdapter.submit(
@@ -91,20 +104,20 @@ class HomeActivity : AppCompatActivity() {
 
         // ---------- restore state ----------
         expanded = savedInstanceState?.getBoolean(KEY_EXPANDED, false) ?: false
-        val achOpen  = savedInstanceState?.getBoolean(KEY_ACH_OPEN,  false) ?: false
+        val achOpen = savedInstanceState?.getBoolean(KEY_ACH_OPEN, false) ?: false
         val shopOpen = savedInstanceState?.getBoolean(KEY_SHOP_OPEN, false) ?: false
 
         if (expanded) applyExpanded(root, goal, arrow, dragon, animate = false)
-        else          applyCollapsed(root, goal, arrow, dragon, animate = false)
+        else applyCollapsed(root, goal, arrow, dragon, animate = false)
 
-        if (achOpen)  achOverlay.showFadeIn(immediate = true)
+        if (achOpen) achOverlay.showFadeIn(immediate = true)
         if (shopOpen) shopOverlay.showFadeIn(immediate = true)
 
         // ---------- arrow toggle ----------
         arrow.setOnClickListener {
             expanded = !expanded
             if (expanded) applyExpanded(root, goal, arrow, dragon, animate = true)
-            else          applyCollapsed(root, goal, arrow, dragon, animate = true)
+            else applyCollapsed(root, goal, arrow, dragon, animate = true)
         }
 
         // ---------- achievements open/close ----------
@@ -135,7 +148,7 @@ class HomeActivity : AppCompatActivity() {
         repeat(3) { i -> shopTabs.addTab(shopTabs.newTab().setIcon(tabIcons[i])) }
 
         val gold = ContextCompat.getColor(this, R.color.GoldenEmber)
-        val dim  = Color.parseColor("#546579")
+        val dim = Color.parseColor("#546579")
         fun tintTabs() {
             for (i in 0 until shopTabs.tabCount) {
                 val t = shopTabs.getTabAt(i)
@@ -143,7 +156,7 @@ class HomeActivity : AppCompatActivity() {
             }
         }
         shopTabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab)   = tintTabs()
+            override fun onTabSelected(tab: TabLayout.Tab) = tintTabs()
             override fun onTabUnselected(tab: TabLayout.Tab) = tintTabs()
             override fun onTabReselected(tab: TabLayout.Tab) {}
         })
@@ -154,20 +167,20 @@ class HomeActivity : AppCompatActivity() {
         onBackPressedDispatcher.addCallback(this) {
             when {
                 shopOverlay.visibility == View.VISIBLE -> shopOverlay.hideFadeOut()
-                achOverlay.visibility == View.VISIBLE  -> achOverlay.hideFadeOut()
+                achOverlay.visibility == View.VISIBLE -> achOverlay.hideFadeOut()
                 else -> finish()
             }
         }
+
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean(KEY_EXPANDED, expanded)
-        outState.putBoolean(KEY_ACH_OPEN,
-            findViewById<View>(R.id.achievementsOverlay).visibility == View.VISIBLE)
-        outState.putBoolean(KEY_SHOP_OPEN,
-            findViewById<View>(R.id.shopOverlay).visibility == View.VISIBLE)
+        outState.putBoolean(KEY_ACH_OPEN, binding.achievementsOverlay.visibility == View.VISIBLE)
+        outState.putBoolean(KEY_SHOP_OPEN, binding.shopOverlay.visibility == View.VISIBLE)
         super.onSaveInstanceState(outState)
     }
+
 
     // ---------------- helpers ----------------
 
@@ -224,5 +237,16 @@ class HomeActivity : AppCompatActivity() {
             visibility = View.GONE
             alpha = 1f
         }.start()
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.nav_home -> openIntent(this, "", HomeActivity::class.java)
+            R.id.nav_expenses -> openIntent(this, "", ExpensesActivity::class.java)
+            R.id.nav_history -> openIntent(this, "", HistoryActivity::class.java)
+            R.id.nav_profile -> openIntent(this, "", ProfileActivity::class.java)
+        }
+        return true
+
     }
 }
