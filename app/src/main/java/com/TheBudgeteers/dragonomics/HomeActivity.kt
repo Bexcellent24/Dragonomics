@@ -1,10 +1,12 @@
 package com.TheBudgeteers.dragonomics
 
 import android.graphics.Color
+import android.graphics.Rect
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup   // <-- added
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.activity.addCallback
@@ -12,7 +14,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.TheBudgeteers.dragonomics.databinding.ActivityHomeBinding
@@ -32,6 +36,29 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private lateinit var binding: ActivityHomeBinding
 
+    // --- shop state ---
+    private lateinit var shopAdapter: ShopAdapter
+    private var currency: Int = 0
+
+    // sample 4-per-tab items (using placeholder art for now)
+    private val hornsItems = listOf(
+        ShopItem("horns_twisted",  "Twisted Horns",  90, previewRes = R.drawable.placeholder_item),
+        ShopItem("horns_curly",    "Curly Horns",    90, previewRes = R.drawable.placeholder_item),
+        ShopItem("horns_chipped",  "Chipped Horns",   0, owned = true, previewRes = R.drawable.placeholder_item),
+        ShopItem("horns_straight", "Straight Horns", 90, previewRes = R.drawable.placeholder_item)
+    )
+    private val wingsItems = listOf(
+        ShopItem("wings_bat",     "Bat Wings",     120, previewRes = R.drawable.placeholder_item),
+        ShopItem("wings_feather", "Feathered",     150, previewRes = R.drawable.placeholder_item),
+        ShopItem("wings_ragged",  "Ragged",         60, owned = true, previewRes = R.drawable.placeholder_item),
+        ShopItem("wings_royal",   "Royal Wings",   200, previewRes = R.drawable.placeholder_item)
+    )
+    private val paletteItems = listOf(
+        ShopItem("pal_forest",  "Forest Scheme", 40, previewRes = R.drawable.placeholder_item),
+        ShopItem("pal_crimson", "Crimson Scheme",60, previewRes = R.drawable.placeholder_item),
+        ShopItem("pal_ember",   "Ember Scheme",   0, owned = true, previewRes = R.drawable.placeholder_item),
+        ShopItem("pal_ice",     "Ice Scheme",    50, previewRes = R.drawable.placeholder_item)
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,15 +70,12 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
             onNavigationItemSelected(item)
         }
-
         binding.bottomNavigationView.itemIconTintList = null
-
 
         val root = binding.dashboard
         val arrow = binding.toggleArrow
         val goal = binding.goalBar
         val dragon = binding.dragon
-
 
         // ---------- achievements overlay refs ----------
         val achBtn = binding.achievementsImg
@@ -67,16 +91,16 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val shopTabs = binding.shopTabs
         val shopCurrAmt = binding.shopCurrencyAmount
         val homeCurrText = binding.currencyTxt
+        val shopRecycler = binding.shopRecycler
 
-        // ---------- ACHIEVEMENTS RecyclerView (RESTORED) ----------
+        // ---------- ACHIEVEMENTS RecyclerView ----------
         val achRecycler = binding.achRecycler
         achRecycler.setHasFixedSize(true)
         achRecycler.layoutManager = LinearLayoutManager(this)
         val achAdapter = AchievementsAdapter(emptyList())
         achRecycler.adapter = achAdapter
 
-
-        // Demo data — swap for your real data source
+        // demo data
         achAdapter.submit(
             listOf(
                 Achievement(
@@ -131,11 +155,16 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         achCard.setOnClickListener { /* swallow */ }
 
         // ---------- shop open/close ----------
+        currency = homeCurrText.text.toString().toIntOrNull() ?: 0
+        shopCurrAmt.text = currency.toString()
+
         shopBtn.setOnClickListener {
-            shopCurrAmt.text = homeCurrText.text  // mirror current currency
+            shopCurrAmt.text = currency.toString()
             if (achOverlay.visibility == View.VISIBLE) achOverlay.hideFadeOut()
+            shopAdapter.submitList(paletteItems)
             shopOverlay.showFadeIn()
         }
+
         shopCloseX.setOnClickListener { shopOverlay.hideFadeOut() }
         shopOverlay.setOnClickListener { shopOverlay.hideFadeOut() }
         shopCard.setOnClickListener { /* swallow */ }
@@ -146,7 +175,12 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.drawable.horns_shop,
             R.drawable.wings_shop
         )
-        repeat(3) { i -> shopTabs.addTab(shopTabs.newTab().setIcon(tabIcons[i])) }
+        if (shopTabs.tabCount == 0) {
+            repeat(3) { i -> shopTabs.addTab(shopTabs.newTab().setIcon(tabIcons[i])) }
+        } else {
+            for (i in 0 until shopTabs.tabCount)
+                shopTabs.getTabAt(i)?.icon = ContextCompat.getDrawable(this, tabIcons[i])
+        }
 
         val gold = ContextCompat.getColor(this, R.color.GoldenEmber)
         val dim = Color.parseColor("#546579")
@@ -156,13 +190,42 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 t?.icon?.setTint(if (t?.isSelected == true) gold else dim)
             }
         }
+
+        // --- Shop Recycler (2x2 grid) ---
+        shopAdapter = ShopAdapter { clicked -> handleShopAction(clicked) }
+        binding.shopRecycler.adapter = shopAdapter
+        binding.shopRecycler.setHasFixedSize(true)
+        binding.shopRecycler.layoutManager = GridLayoutManager(this, 2)
+
+        val space = (resources.displayMetrics.density * 8).toInt()
+        shopRecycler.addItemDecoration(object : RecyclerView.ItemDecoration() {
+            override fun getItemOffsets(
+                outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State
+            ) { outRect.set(space, space, space, space) }
+        })
+
+        shopAdapter.submitList(paletteItems)
+        android.util.Log.d("Shop", "count = ${shopAdapter.itemCount}")
+
+        // Tab selection drives which 4 items are shown
         shopTabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab) = tintTabs()
-            override fun onTabUnselected(tab: TabLayout.Tab) = tintTabs()
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                tintTabs()
+                val which = when (tab.position) {
+                    0 -> ShopTab.PALETTE
+                    1 -> ShopTab.HORNS
+                    else -> ShopTab.WINGS
+                }
+                showTab(which)
+            }
+            override fun onTabUnselected(tab: TabLayout.Tab) { tintTabs() }
             override fun onTabReselected(tab: TabLayout.Tab) {}
         })
         shopTabs.selectTab(shopTabs.getTabAt(0))
         tintTabs()
+        showTab(ShopTab.PALETTE)
+
+        resizeShopTabIcons(sizeDp = 80, tabHeightDp = 80, horizPadDp = 10)
 
         // ---------- Back button behavior ----------
         onBackPressedDispatcher.addCallback(this) {
@@ -172,7 +235,6 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 else -> finish()
             }
         }
-
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -181,7 +243,6 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         outState.putBoolean(KEY_SHOP_OPEN, binding.shopOverlay.visibility == View.VISIBLE)
         super.onSaveInstanceState(outState)
     }
-
 
     // ---------------- helpers ----------------
 
@@ -240,6 +301,75 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }.start()
     }
 
+    private fun showTab(tab: ShopTab) {
+        val items = when (tab) {
+            ShopTab.PALETTE -> paletteItems
+            ShopTab.HORNS   -> hornsItems
+            ShopTab.WINGS   -> wingsItems
+        }
+        shopAdapter.submitList(items)
+        android.util.Log.d("Shop", "count = ${shopAdapter.itemCount}")
+    }
+
+    private fun handleShopAction(item: ShopItem) {
+        val list = when {
+            item.id.startsWith("pal_")   -> paletteItems.toMutableList()
+            item.id.startsWith("horns_") -> hornsItems.toMutableList()
+            else                         -> wingsItems.toMutableList()
+        }
+        val idx = list.indexOfFirst { it.id == item.id }
+        if (idx == -1) return
+
+        val current = list[idx]
+        when {
+            current.equipped -> return
+            current.owned -> {
+                for (i in list.indices) list[i] = list[i].copy(equipped = false)
+                list[idx] = current.copy(equipped = true)
+            }
+            else -> {
+                if (currency >= current.price) {
+                    currency -= current.price
+                    binding.shopCurrencyAmount.text = currency.toString()
+                    binding.currencyTxt.text = currency.toString()
+                    list[idx] = current.copy(owned = true)
+                } else {
+                    // optional: toast
+                }
+            }
+        }
+        shopAdapter.submitList(list)
+    }
+
+    // --- Option 2 helpers (resize built-in TabLayout icon views) ---
+
+    private fun Int.dp(): Int =
+        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this.toFloat(), resources.displayMetrics).toInt()
+
+    private fun resizeShopTabIcons(sizeDp: Int = 32, tabHeightDp: Int = 56, horizPadDp: Int = 10) {
+        binding.shopTabs.post {
+            val strip = binding.shopTabs.getChildAt(0) as? ViewGroup ?: return@post
+            val iconSize = sizeDp.dp()
+            val tabH = tabHeightDp.dp()
+            val padH = horizPadDp.dp()
+            for (i in 0 until strip.childCount) {
+                val tabView = strip.getChildAt(i) as? ViewGroup ?: continue
+                // Tab height + padding (touch target)
+                tabView.layoutParams = tabView.layoutParams.apply { height = tabH }
+                tabView.setPadding(padH, 0, padH, 0)
+                // Built-in icon ImageView
+                val iconView = tabView.findViewById<ImageView>(com.google.android.material.R.id.icon)
+                iconView?.layoutParams = iconView?.layoutParams?.apply {
+                    width = iconSize
+                    height = iconSize
+                }
+                iconView?.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                iconView?.requestLayout()
+            }
+            strip.requestLayout()
+        }
+    }
+
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.nav_home -> openIntent(this, "", HomeActivity::class.java)
@@ -248,6 +378,5 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_profile -> openIntent(this, "", ProfileActivity::class.java)
         }
         return true
-
     }
 }
