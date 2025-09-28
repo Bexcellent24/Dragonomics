@@ -46,6 +46,7 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         binding.bottomNavigationView.itemIconTintList = null
 
+
         val root = binding.dashboard
         val arrow = binding.toggleArrow
         val goal = binding.goalBar

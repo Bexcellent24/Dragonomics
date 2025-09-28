@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- selected item colour -->
-    <item android:color="@null" android:state_checked="true" />
-    <!-- optional pressed state -->
-    <item android:color="@null" android:state_pressed="true" />
-    <!-- default unselected colour -->
-    <item android:color="@null" />
+    <!-- Active / selected item -->
+    <item android:color="@color/FireBurst" android:state_checked="true" />
+
+    <!-- Default / inactive items -->
+    <item android:color="@color/GoldenEmber" android:state_checked="false" />
 </selector>
+

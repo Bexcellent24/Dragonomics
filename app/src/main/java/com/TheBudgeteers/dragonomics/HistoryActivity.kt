@@ -21,11 +21,14 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         binding = ActivityHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.bottomNavigationView.itemIconTintList = null
+        binding.bottomNavigationView.selectedItemId = R.id.nav_history
+
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
             onNavigationItemSelected(item)
         }
 
-        binding.bottomNavigationView.itemIconTintList = null
+
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {

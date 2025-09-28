@@ -21,11 +21,14 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         binding = ActivityExpensesBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        binding.bottomNavigationView.itemIconTintList = null
+        binding.bottomNavigationView.selectedItemId = R.id.nav_expenses
+
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
             onNavigationItemSelected(item)
         }
 
-        binding.bottomNavigationView.itemIconTintList = null
+
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {

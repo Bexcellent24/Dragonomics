@@ -514,7 +514,7 @@
         app:itemBackground="@android:color/transparent"
         app:itemPaddingBottom="5dp"
         app:itemRippleColor="@null"
-        app:itemTextColor="@color/GoldenEmber"
+        app:itemTextColor="@color/nav_item_color"
         app:itemActiveIndicatorStyle="@null"
         app:labelVisibilityMode="labeled"
         app:layout_constraintBottom_toBottomOf="parent"
