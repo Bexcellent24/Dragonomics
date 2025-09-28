@@ -1,27 +1,32 @@
 package com.TheBudgeteers.dragonomics
 
+import android.graphics.Color
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
+import com.google.android.material.tabs.TabLayout
 
 private const val DRAGON_BIG_DP = 450
 private const val DRAGON_SMALL_DP = 360
 private const val ROTATE_MS = 180L
 private const val KEY_EXPANDED = "expanded"
 private const val KEY_ACH_OPEN = "ach_open"
+private const val KEY_SHOP_OPEN = "shop_open"
 
 class HomeActivity : AppCompatActivity() {
 
-    // ---------- false = starts collapsed ----------
     private var expanded = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,20 +40,29 @@ class HomeActivity : AppCompatActivity() {
         val goal   = findViewById<View>(R.id.goalBar)
         val dragon = findViewById<ImageView>(R.id.dragon)
 
-        // ---------- overlay / achievements refs ----------
-        val achBtn   = findViewById<ImageButton>(R.id.achievementsImg)
-        val overlay  = findViewById<View>(R.id.achievementsOverlay)
-        val card     = findViewById<View>(R.id.achievementsCard)
-        val closeX   = findViewById<ImageButton>(R.id.closeX)
+        // ---------- achievements overlay refs ----------
+        val achBtn     = findViewById<ImageButton>(R.id.achievementsImg)
+        val achOverlay = findViewById<View>(R.id.achievementsOverlay)
+        val achCard    = findViewById<View>(R.id.achievementsCard)
+        val achClose   = findViewById<ImageButton>(R.id.closeX)
 
-        // ---------- RecyclerView ----------
-        val achRecycler = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.achRecycler)
+        // ---------- shop overlay refs ----------
+        val shopBtn       = findViewById<ImageButton>(R.id.shopImg)
+        val shopOverlay   = findViewById<View>(R.id.shopOverlay)
+        val shopCard      = findViewById<View>(R.id.shopCard)
+        val shopCloseX    = findViewById<ImageButton>(R.id.shopCloseX)
+        val shopTabs      = findViewById<TabLayout>(R.id.shopTabs)
+        val shopCurrAmt   = findViewById<TextView>(R.id.shopCurrencyAmount)
+        val homeCurrText  = findViewById<TextView>(R.id.currencyTxt)
+
+        // ---------- ACHIEVEMENTS RecyclerView (RESTORED) ----------
+        val achRecycler = findViewById<RecyclerView>(R.id.achRecycler)
         achRecycler.setHasFixedSize(true)
         achRecycler.layoutManager = LinearLayoutManager(this)
         val achAdapter = AchievementsAdapter(emptyList())
         achRecycler.adapter = achAdapter
 
-        // Achievement Data, like a JSON file essentially
+        // Demo data — swap for your real data source
         achAdapter.submit(
             listOf(
                 Achievement(
@@ -77,12 +91,14 @@ class HomeActivity : AppCompatActivity() {
 
         // ---------- restore state ----------
         expanded = savedInstanceState?.getBoolean(KEY_EXPANDED, false) ?: false
-        val achOpen = savedInstanceState?.getBoolean(KEY_ACH_OPEN, false) ?: false
+        val achOpen  = savedInstanceState?.getBoolean(KEY_ACH_OPEN,  false) ?: false
+        val shopOpen = savedInstanceState?.getBoolean(KEY_SHOP_OPEN, false) ?: false
 
         if (expanded) applyExpanded(root, goal, arrow, dragon, animate = false)
         else          applyCollapsed(root, goal, arrow, dragon, animate = false)
 
-        if (achOpen) overlay.showFadeIn(immediate = true)
+        if (achOpen)  achOverlay.showFadeIn(immediate = true)
+        if (shopOpen) shopOverlay.showFadeIn(immediate = true)
 
         // ---------- arrow toggle ----------
         arrow.setOnClickListener {
@@ -92,23 +108,64 @@ class HomeActivity : AppCompatActivity() {
         }
 
         // ---------- achievements open/close ----------
-        achBtn.setOnClickListener { overlay.showFadeIn() }
-        closeX.setOnClickListener { overlay.hideFadeOut() }
+        achBtn.setOnClickListener {
+            if (shopOverlay.visibility == View.VISIBLE) shopOverlay.hideFadeOut()
+            achOverlay.showFadeIn()
+        }
+        achClose.setOnClickListener { achOverlay.hideFadeOut() }
+        achOverlay.setOnClickListener { achOverlay.hideFadeOut() }
+        achCard.setOnClickListener { /* swallow */ }
 
-        // tap scrim to close; tap card to swallow (so scrim click doesn't trigger)
-        overlay.setOnClickListener { overlay.hideFadeOut() }
-        card.setOnClickListener {  }
+        // ---------- shop open/close ----------
+        shopBtn.setOnClickListener {
+            shopCurrAmt.text = homeCurrText.text  // mirror current currency
+            if (achOverlay.visibility == View.VISIBLE) achOverlay.hideFadeOut()
+            shopOverlay.showFadeIn()
+        }
+        shopCloseX.setOnClickListener { shopOverlay.hideFadeOut() }
+        shopOverlay.setOnClickListener { shopOverlay.hideFadeOut() }
+        shopCard.setOnClickListener { /* swallow */ }
 
-        // Back button: if overlay visible, close it first
+        // ---------- shop tabs (3 categories) ----------
+        val tabIcons = intArrayOf(
+            R.drawable.palette_shop,
+            R.drawable.horns_shop,
+            R.drawable.wings_shop
+        )
+        repeat(3) { i -> shopTabs.addTab(shopTabs.newTab().setIcon(tabIcons[i])) }
+
+        val gold = ContextCompat.getColor(this, R.color.GoldenEmber)
+        val dim  = Color.parseColor("#546579")
+        fun tintTabs() {
+            for (i in 0 until shopTabs.tabCount) {
+                val t = shopTabs.getTabAt(i)
+                t?.icon?.setTint(if (t?.isSelected == true) gold else dim)
+            }
+        }
+        shopTabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab)   = tintTabs()
+            override fun onTabUnselected(tab: TabLayout.Tab) = tintTabs()
+            override fun onTabReselected(tab: TabLayout.Tab) {}
+        })
+        shopTabs.selectTab(shopTabs.getTabAt(0))
+        tintTabs()
+
+        // ---------- Back button behavior ----------
         onBackPressedDispatcher.addCallback(this) {
-            if (overlay.visibility == View.VISIBLE) overlay.hideFadeOut() else finish()
+            when {
+                shopOverlay.visibility == View.VISIBLE -> shopOverlay.hideFadeOut()
+                achOverlay.visibility == View.VISIBLE  -> achOverlay.hideFadeOut()
+                else -> finish()
+            }
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean(KEY_EXPANDED, expanded)
-        val overlay = findViewById<View>(R.id.achievementsOverlay)
-        outState.putBoolean(KEY_ACH_OPEN, overlay.visibility == View.VISIBLE)
+        outState.putBoolean(KEY_ACH_OPEN,
+            findViewById<View>(R.id.achievementsOverlay).visibility == View.VISIBLE)
+        outState.putBoolean(KEY_SHOP_OPEN,
+            findViewById<View>(R.id.shopOverlay).visibility == View.VISIBLE)
         super.onSaveInstanceState(outState)
     }
 
@@ -123,7 +180,7 @@ class HomeActivity : AppCompatActivity() {
     ) {
         if (animate) TransitionManager.beginDelayedTransition(root, AutoTransition())
         goal.visibility = View.GONE
-        arrow.animate().rotation(180f).setDuration(ROTATE_MS).start() // points up
+        arrow.animate().rotation(180f).setDuration(ROTATE_MS).start()
         dragon.updateHeightDp(DRAGON_BIG_DP)
     }
 
@@ -136,7 +193,7 @@ class HomeActivity : AppCompatActivity() {
     ) {
         if (animate) TransitionManager.beginDelayedTransition(root, AutoTransition())
         goal.visibility = View.VISIBLE
-        arrow.animate().rotation(0f).setDuration(ROTATE_MS).start() // points down
+        arrow.animate().rotation(0f).setDuration(ROTATE_MS).start()
         dragon.updateHeightDp(DRAGON_SMALL_DP)
     }
 
