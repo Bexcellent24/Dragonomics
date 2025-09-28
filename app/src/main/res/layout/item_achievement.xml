@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginVertical="6dp"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeColor="#263346"
+    app:strokeWidth="1dp"
+    android:backgroundTint="@color/MidnightViolet">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="14dp">
+
+        <!-- Left medal -->
+        <ImageView
+            android:id="@+id/imgMedal"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/app_name"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:src="@drawable/gold_badge" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/txtTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/breathe_fire_iii"
+            android:textColor="@color/GoldenEmber"
+            android:textSize="22sp"
+            app:layout_constraintStart_toEndOf="@id/imgMedal"
+            app:layout_constraintEnd_toStartOf="@id/imgTick"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            android:layout_marginStart="12dp"
+            android:text="Dragon Master" />
+
+        <!-- Description -->
+        <TextView
+            android:id="@+id/txtDesc"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/aref_ruqaa"
+            android:textColor="@color/GoldenEmber"
+            android:textSize="14sp"
+            android:alpha="0.85"
+            app:layout_constraintStart_toStartOf="@id/txtTitle"
+            app:layout_constraintTop_toBottomOf="@id/txtTitle"
+            app:layout_constraintEnd_toStartOf="@id/imgTick"
+            android:text="Unlock all customizations for your dragon." />
+
+        <!-- Right tick -->
+        <ImageView
+            android:id="@+id/imgTick"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:contentDescription="@string/app_name"
+            android:scaleType="fitCenter"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:src="@drawable/tick" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>
