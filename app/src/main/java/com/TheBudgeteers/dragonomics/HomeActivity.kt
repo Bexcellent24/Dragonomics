@@ -1,5 +1,5 @@
 package com.TheBudgeteers.dragonomics
-
+import com.TheBudgeteers.dragonomics.R
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
