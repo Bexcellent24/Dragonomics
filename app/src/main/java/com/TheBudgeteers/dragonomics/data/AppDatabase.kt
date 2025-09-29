@@ -1,26 +1,38 @@
 package com.TheBudgeteers.dragonomics.data
 
+import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.TheBudgeteers.dragonomics.models.Nest
 import com.TheBudgeteers.dragonomics.models.Transaction
 
-
 // AppDatabase.kt
-// This is the main Room database class for the app.
-// It ties together all the entities (Transaction, Nest) and their DAOs (data access object).
-// Room uses this to generate the database and give access to the DAOs.
-// The TypeConverters allow storing custom data types like Date or NestType in the database.
+// Main Room database. Holds all tables (entities) and their DAOs.
+// Added a singleton so only one DB instance exists across the whole app.
 
-
-@Database(entities = [Transaction::class, Nest::class], version = 1) // tells Room which entities are in the DB
-@TypeConverters(Converters::class) // converts custom types for Room
+@Database(entities = [Transaction::class, Nest::class], version = 1)
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
-    // Accessor for transactions table
     abstract fun transactionDao(): TransactionDao
-
-    // Accessor for nests table
     abstract fun nestDao(): NestDao
+
+    companion object {
+        @Volatile
+        private var INSTANCE: AppDatabase? = null
+
+        fun getDatabase(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "dragonomics_db"
+                ).build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
 }

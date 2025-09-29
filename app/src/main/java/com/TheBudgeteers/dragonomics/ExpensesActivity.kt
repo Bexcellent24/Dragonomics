@@ -8,6 +8,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.TheBudgeteers.dragonomics.databinding.ActivityExpensesBinding
 import com.TheBudgeteers.dragonomics.databinding.ActivityHomeBinding
+import com.TheBudgeteers.dragonomics.ui.TransactionFragment
 import com.google.android.material.navigation.NavigationView
 
 class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -28,8 +29,14 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
             onNavigationItemSelected(item)
         }
 
-
+        // Load the TransactionFragment into the container
+        if (savedInstanceState == null) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainerTransactions, TransactionFragment())
+                .commit()
+        }
     }
+
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {

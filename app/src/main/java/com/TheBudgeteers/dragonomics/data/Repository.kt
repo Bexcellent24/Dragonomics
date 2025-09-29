@@ -3,6 +3,7 @@ package com.TheBudgeteers.dragonomics.data
 
 import com.TheBudgeteers.dragonomics.models.Transaction
 import com.TheBudgeteers.dragonomics.models.Nest
+import com.TheBudgeteers.dragonomics.models.TransactionWithNest
 
 // Repository.kt
 // This is the main data layer for the app.
@@ -37,4 +38,13 @@ class Repository(private val db: AppDatabase) {
 
     // Gets all transactions for a specific nest
     suspend fun getTransactionsByNestId(nestId: Long) = transactionDao.getByCategoryId(nestId)
+
+    suspend fun getTransactionsWithNests(): List<TransactionWithNest> {
+        val transactions = transactionDao.getAll()
+        return transactions.map { transaction ->
+            val categoryNest = nestDao.getById(transaction.categoryId)
+            val fromNest = transaction.fromCategoryId?.let { nestDao.getById(it) }
+            TransactionWithNest(transaction, categoryNest, fromNest)
+        }
+    }
 }
