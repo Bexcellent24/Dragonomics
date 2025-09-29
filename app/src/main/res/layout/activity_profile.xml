@@ -1,209 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/profile_main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".ProfileActivity">
 
+    <!-- 1) Profile header block -->
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:id="@+id/userProfile"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/DeepAbyss"
+        android:paddingTop="7dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/btn_edit"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@color/DeepAbyss"
-            android:orientation="vertical"
-            android:paddingTop="7dp">
-
-            <Button
-                android:id="@+id/btn_edit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="@font/aref_ruqaa"
-                android:gravity="center"
-                android:text="Edit"
-                android:textAllCaps="false"
-                android:textColor="@color/GoldenEmber"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                app:backgroundTint="@android:color/transparent"
-                app:cornerRadius="0dp"
-                app:rippleColor="@color/GoldenEmber" />
-
-            <FrameLayout
-                android:id="@+id/header"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-
-                <ImageView
-                    android:id="@+id/img_profile"
-                    android:layout_width="120dp"
-                    android:layout_height="120dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/rounded_image_border"
-                    android:clipToOutline="true"
-                    android:padding="1dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/img_profile"
-
-                    />
-            </FrameLayout>
-
-            <TextView
-                android:id="@+id/txt_username"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="top|center_horizontal"
-                android:layout_marginBottom="30dp"
-                android:fontFamily="@font/aref_ruqaa"
-                android:paddingTop="5sp"
-                android:text="User Name"
-                android:textAlignment="center"
-                android:textColor="@color/GoldenEmber"
-                android:textSize="24sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/DeepAbyss"
+            android:layout_marginTop="20dp"
+            android:fontFamily="@font/aref_ruqaa"
             android:gravity="center"
-            android:orientation="horizontal">
+            android:text="Edit"
+            android:textAllCaps="false"
+            android:textColor="@color/GoldenEmber"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:backgroundTint="@android:color/transparent"
+            app:cornerRadius="0dp"
+            app:rippleColor="@color/GoldenEmber" />
 
-            <TextView
-                android:id="@+id/txt_min_month_goal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="@font/aref_ruqaa"
-                android:gravity="center"
-                android:padding="4sp"
-                android:text="Min Monthly Goal"
-                android:textAllCaps="false"
-                android:textColor="@color/GoldenEmber"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:backgroundTint="@android:color/transparent"
-                app:cornerRadius="0dp" />
+        <FrameLayout
+            android:id="@+id/header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/txt_max_month_goal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:fontFamily="@font/aref_ruqaa"
-                android:gravity="center"
-                android:padding="4sp"
-                android:text="Max Monthly Goal"
-                android:textAllCaps="false"
-                android:textColor="@color/GoldenEmber"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                app:backgroundTint="@android:color/transparent"
-                app:cornerRadius="0dp" />
+            <ImageView
+                android:id="@+id/img_profile"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center"
+                android:background="@drawable/rounded_image_border"
+                android:clipToOutline="true"
+                android:padding="1dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/img_profile" />
+        </FrameLayout>
 
-        </LinearLayout>
-
-        <LinearLayout
+        <TextView
+            android:id="@+id/txt_username"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:background="@color/DeepAbyss"
+            android:layout_marginBottom="30dp"
+            android:fontFamily="@font/aref_ruqaa"
+            android:paddingTop="5dp"
+            android:text="User Name"
+            android:textAlignment="center"
+            android:textColor="@color/GoldenEmber"
+            android:textSize="24sp"/>
+    </LinearLayout>
+
+    <!-- 2) Labels row -->
+    <LinearLayout
+        android:id="@+id/max_minText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/DeepAbyss"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/userProfile"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/txt_min_month_goal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/aref_ruqaa"
             android:gravity="center"
-            android:paddingBottom="14dp"
-            android:orientation="horizontal">
+            android:padding="4dp"
+            android:text="Min Monthly Goal"
+            android:textAllCaps="false"
+            android:textColor="@color/GoldenEmber"
+            android:textSize="14sp"
+            android:textStyle="bold"/>
 
-            <TextView
-                android:id="@+id/txt_min_month_amount"
-                style="@style/Widget.AppCompat.EditText"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="30dp"
-                android:layout_marginRight="30dp"
-                android:layout_weight="1"
-                android:autofillHints=""
-                android:background="@drawable/et_outline_gold"
-                android:fontFamily="@font/aref_ruqaa"
-                android:hint="13,000"
-                android:importantForAutofill="no"
-                android:includeFontPadding="false"
-                android:inputType="number"
-                android:padding="10dp"
-                android:paddingBottom="0dp"
-                android:textAlignment="center"
-                android:textColor="@color/GoldenEmber"
-                android:textColorHint="@color/GoldenEmber" />
+        <TextView
+            android:id="@+id/txt_max_month_goal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/aref_ruqaa"
+            android:gravity="center"
+            android:padding="4dp"
+            android:text="Max Monthly Goal"
+            android:textAllCaps="false"
+            android:textColor="@color/GoldenEmber"
+            android:textSize="14sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
 
-            <TextView
-                android:id="@+id/txt_max_month_amount"
-                style="@style/Widget.AppCompat.EditText"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginLeft="30dp"
-                android:layout_marginRight="30dp"
-                android:layout_weight="1"
-                android:autofillHints=""
-                android:background="@drawable/et_outline_gold"
-                android:fontFamily="@font/aref_ruqaa"
-                android:hint="13,000"
-                android:importantForAutofill="no"
-                android:includeFontPadding="false"
-                android:inputType="number"
-                android:padding="10dp"
-                android:paddingBottom="0dp"
-                android:textAlignment="center"
-                android:textColor="@color/GoldenEmber"
-                android:textColorHint="@color/GoldenEmber" />
+    <!-- 3) Amounts row -->
+    <LinearLayout
+        android:id="@+id/max_minAmounts"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@color/DeepAbyss"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingBottom="14dp"
+        app:layout_constraintTop_toBottomOf="@id/max_minText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        </LinearLayout>
+        <TextView
+            android:id="@+id/txt_min_month_amount"
+            style="@style/Widget.AppCompat.EditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="30dp"
+            android:layout_weight="1"
+            android:background="@drawable/et_outline_gold"
+            android:fontFamily="@font/aref_ruqaa"
+            android:hint="13,000"
+            android:includeFontPadding="false"
+            android:inputType="number"
+            android:padding="10dp"
+            android:textAlignment="center"
+            android:textColor="@color/GoldenEmber"
+            android:textColorHint="@color/GoldenEmber"/>
 
-        <ScrollView
+        <TextView
+            android:id="@+id/txt_max_month_amount"
+            style="@style/Widget.AppCompat.EditText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="30dp"
+            android:layout_weight="1"
+            android:background="@drawable/et_outline_gold"
+            android:fontFamily="@font/aref_ruqaa"
+            android:hint="13,000"
+            android:includeFontPadding="false"
+            android:inputType="number"
+            android:padding="10dp"
+            android:textAlignment="center"
+            android:textColor="@color/GoldenEmber"
+            android:textColorHint="@color/GoldenEmber"/>
+    </LinearLayout>
+
+    <!-- 4) Quests header -->
+    <TextView
+        android:id="@+id/txt_quest_header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="QUESTS"
+        android:textColor="@color/GoldenEmber"
+        android:textSize="24sp"
+        android:fontFamily="@font/breathe_fire_iii"
+        android:paddingStart="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp"
+        android:background="@color/DeepAbyss"
+        app:layout_constraintTop_toBottomOf="@id/max_minAmounts"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- 5) Quests list fills space above bottom nav -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvQuests"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/MidnightViolet"
+        android:clipToPadding="false"
+        android:paddingBottom="12dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txt_quest_header"
+        tools:listitem="@layout/item_quest" />
+
+    <!-- 6) Bottom nav -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="0dp"
+        android:layout_height="90dp"
+        android:background="@color/DeepAbyss"
+        app:itemIconSize="36dp"
+        app:itemIconTint="@null"
+        app:itemBackground="@android:color/transparent"
+        app:itemTextColor="@color/nav_item_color"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- ===== Edit Profile Overlay (hidden by default) ===== -->
+    <FrameLayout
+        android:id="@+id/profileEditOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- scrim: tap to dismiss -->
+        <View
+            android:id="@+id/scrim"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/MidnightViolet">
+            android:background="#B3000000"  />
 
-            <LinearLayout
+        <!-- centered card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center">
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/editCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/MidnightViolet"
-                android:orientation="vertical">
+                android:layout_margin="24dp"
+                app:cardBackgroundColor="#272727"
+                app:cardCornerRadius="18dp"
+                app:strokeColor="@color/GoldenEmber"
+                app:strokeWidth="1dp">
 
-                <TextView
-                    android:id="@+id/txt_quest_header"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/breathe_fire_iii"
-                    android:padding="10dp"
-                    android:paddingTop="0dp"
-                    android:paddingBottom="0dp"
-                    android:text="QUESTS"
-                    android:textColor="@color/GoldenEmber"
-                    android:textSize="24sp" />
-            </LinearLayout>
-        </ScrollView>
-    </LinearLayout>
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:id="@+id/bottomNavigationView"
-            android:layout_width="match_parent"
-            android:layout_height="90dp"
-            android:background="@color/DeepAbyss"
-            app:itemIconSize="36dp"
-            app:itemIconTint="@null"
-            app:itemBackground="@android:color/transparent"
-            app:itemPaddingBottom="5dp"
-            app:itemRippleColor="@null"
-            app:itemTextColor="@color/nav_item_color"
-            app:itemActiveIndicatorStyle="@null"
-            app:labelVisibilityMode="labeled"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:menu="@menu/bottom_nav_menu" />
+                    android:orientation="vertical"
+                    android:padding="18dp">
 
+                    <!-- avatar -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp">
+
+                        <ImageView
+                            android:id="@+id/ivEditAvatar"
+                            android:layout_width="120dp"
+                            android:layout_height="120dp"
+                            android:layout_gravity="center"
+                            android:background="@drawable/rounded_image_border"
+                            android:clipToOutline="true"
+                            android:padding="1dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/img_profile"/>
+                    </FrameLayout>
+
+                    <!-- fields -->
+                    <EditText
+                        android:id="@+id/etFirstName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:hint="First Name"
+                        android:textColor="@color/GoldenEmber"
+                        android:textColorHint="@color/GoldenEmber"
+                        android:fontFamily="@font/aref_ruqaa"
+                        android:background="@drawable/et_outline_gold"
+                        android:padding="10dp"/>
+
+                    <EditText
+                        android:id="@+id/etLastName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:hint="Last Name"
+                        android:textColor="@color/GoldenEmber"
+                        android:textColorHint="@color/GoldenEmber"
+                        android:fontFamily="@font/aref_ruqaa"
+                        android:background="@drawable/et_outline_gold"
+                        android:padding="10dp"/>
+
+                    <EditText
+                        android:id="@+id/etMinGoal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:hint="Min Goal"
+                        android:inputType="number"
+                        android:textColor="@color/GoldenEmber"
+                        android:textColorHint="@color/GoldenEmber"
+                        android:fontFamily="@font/aref_ruqaa"
+                        android:background="@drawable/et_outline_gold"
+                        android:padding="10dp"/>
+
+                    <EditText
+                        android:id="@+id/etMaxGoal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
+                        android:hint="Max Goal"
+                        android:inputType="number"
+                        android:textColor="@color/GoldenEmber"
+                        android:textColorHint="@color/GoldenEmber"
+                        android:fontFamily="@font/aref_ruqaa"
+                        android:background="@drawable/et_outline_gold"
+                        android:padding="10dp"/>
+
+                    <!-- buttons row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnCancel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Cancel"
+                            android:textAllCaps="false"
+                            android:textColor="@android:color/white"
+                            app:backgroundTint="#C65656"/>
+
+                        <Space
+                            android:layout_width="12dp"
+                            android:layout_height="0dp"/>
+
+                        <Button
+                            android:id="@+id/btnSave"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Save"
+                            android:textAllCaps="false"
+                            android:textColor="@android:color/white"
+                            app:backgroundTint="@color/DeepAbyss"/>
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

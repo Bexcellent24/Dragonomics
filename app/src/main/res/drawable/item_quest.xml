@@ -9,74 +9,94 @@
     android:foreground="?attr/selectableItemBackground"
     app:cardUseCompatPadding="true"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/GoldenEmber"
+    app:cardBackgroundColor="@color/QuestTodo"
     app:strokeColor="@android:color/transparent"
     app:shapeAppearanceOverlay="@style/Shape.Pill">
 
-<androidx.constraintlayout.widget.ConstraintLayout
-android:layout_width="match_parent"
-android:layout_height="match_parent"
-android:paddingHorizontal="16dp">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingHorizontal="16dp">
 
-<!-- Left icon -->
-<ImageView
-    android:id="@+id/imgIcon"
-    android:layout_width="28dp"
-    android:layout_height="28dp"
-    android:contentDescription="@string/quest_icon"
-    android:src="@drawable/ic_flame"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintBottom_toBottomOf="parent"/>
+        <!-- Left icon -->
+        <ImageView
+            android:id="@+id/imgIcon"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:contentDescription="@string/quest_icon"
+            android:src="@drawable/ic_flame"
+            android:tint="@color/GoldenEmber"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
-<!-- Title / description -->
-<TextView
-    android:id="@+id/txtTitle"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:text="1 Day Streak"
-    android:textSize="20sp"
-    android:textColor="@color/GoldenEmber"
-    android:fontFamily="@font/aref_ruqaa"
-    app:layout_constraintStart_toEndOf="@id/imgIcon"
-    app:layout_constraintEnd_toStartOf="@id/trailingGroup"
-    app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintBottom_toBottomOf="parent"
-    android:layout_marginStart="12dp"/>
+        <!-- Title / description -->
+        <TextView
+            android:id="@+id/txtTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="1 Day Streak"
+            android:textSize="20sp"
+            android:textColor="@color/GoldenEmber"
+            android:fontFamily="@font/aref_ruqaa"
+            app:layout_constraintStart_toEndOf="@id/imgIcon"
+            app:layout_constraintEnd_toStartOf="@id/trailingGroup"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
-<!-- Trailing group (tick OR reward) -->
-<LinearLayout
-    android:id="@+id/trailingGroup"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintBottom_toBottomOf="parent">
+        <!-- Trailing group (reward OR tick) -->
+        <LinearLayout
+            android:id="@+id/trailingGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
 
-    <!-- Reward chip (shown when NOT complete) -->
-    <com.google.android.material.chip.Chip
-        android:id="@+id/chipReward"
-        style="@style/Widget.Material3.Chip.Assist"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="400XP"
-        android:textColor="@color/GoldenEmber"
-        app:chipBackgroundColor="@color/QuestBlueDark"
-        app:chipStrokeWidth="0dp"
-        app:chipIcon="@drawable/ic_dragon_coin"
-        app:chipIconVisible="true"/>
+            <!-- Reward (shown when NOT complete) -->
+            <LinearLayout
+                android:id="@+id/rewardGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:visibility="gone">
 
-    <!-- Tick (shown when complete) -->
-    <ImageView
-        android:id="@+id/imgTick"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_marginStart="12dp"
-        android:src="@drawable/ic_tick_filled"
-        android:contentDescription="@string/quest_complete"
-        android:visibility="gone"/>
-</LinearLayout>
+                <ImageView
+                    android:id="@+id/rewardIcon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/ic_coin"
+                    android:tint="@color/GoldenEmber"
+                    android:contentDescription="@null"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
-    </com.google.android.material.card.MaterialCardView>
+                <TextView
+                    android:id="@+id/rewardText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="20"
+                    android:textColor="@color/GoldenEmber"
+                    android:textSize="14sp"
+                    android:fontFamily="@font/aref_ruqaa"/>
+            </LinearLayout>
+
+            <!-- Tick (shown when complete) -->
+            <ImageView
+                android:id="@+id/imgTick"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_marginStart="12dp"
+                android:src="@drawable/ic_tick_filled"
+                android:tint="@color/GoldenEmber"
+                android:contentDescription="@string/quest_complete"
+                android:visibility="gone"/>
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

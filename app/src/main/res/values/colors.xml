@@ -8,7 +8,6 @@
     <color name="FireBurst">#EF611B</color>
     <color name="DeepAbyss">#203A45</color>
     <color name="MidnightViolet">#180C24</color>
-    <color name="quest_blue_dark">#233742</color>
-    <color name="QuestBlueDark">#233742</color>
-
+    <color name="QuestTodo">#2E3E4A</color>
+    <color name="QuestDone">#5A2A23</color>
 </resources>
