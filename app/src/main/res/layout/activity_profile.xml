@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     tools:context=".ProfileActivity">
 
-    <!-- 1) Profile header block -->
+    <!-- 1) Profile header -->
     <LinearLayout
         android:id="@+id/userProfile"
         android:layout_width="0dp"
@@ -26,14 +26,12 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:fontFamily="@font/aref_ruqaa"
-            android:gravity="center"
             android:text="Edit"
             android:textAllCaps="false"
             android:textColor="@color/GoldenEmber"
             android:textSize="18sp"
             android:textStyle="bold"
             app:backgroundTint="@android:color/transparent"
-            app:cornerRadius="0dp"
             app:rippleColor="@color/GoldenEmber" />
 
         <FrameLayout
@@ -59,14 +57,13 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="30dp"
             android:fontFamily="@font/aref_ruqaa"
-            android:paddingTop="5dp"
             android:text="User Name"
             android:textAlignment="center"
             android:textColor="@color/GoldenEmber"
             android:textSize="24sp"/>
     </LinearLayout>
 
-    <!-- 2) Labels row -->
+    <!-- 2) Static labels  -->
     <LinearLayout
         android:id="@+id/max_minText"
         android:layout_width="0dp"
@@ -87,7 +84,6 @@
             android:gravity="center"
             android:padding="4dp"
             android:text="Min Monthly Goal"
-            android:textAllCaps="false"
             android:textColor="@color/GoldenEmber"
             android:textSize="14sp"
             android:textStyle="bold"/>
@@ -101,13 +97,12 @@
             android:gravity="center"
             android:padding="4dp"
             android:text="Max Monthly Goal"
-            android:textAllCaps="false"
             android:textColor="@color/GoldenEmber"
             android:textSize="14sp"
             android:textStyle="bold"/>
     </LinearLayout>
 
-    <!-- 3) Amounts row -->
+    <!-- 3) Amounts -->
     <LinearLayout
         android:id="@+id/max_minAmounts"
         android:layout_width="0dp"
@@ -132,7 +127,6 @@
             android:fontFamily="@font/aref_ruqaa"
             android:hint="13,000"
             android:includeFontPadding="false"
-            android:inputType="number"
             android:padding="10dp"
             android:textAlignment="center"
             android:textColor="@color/GoldenEmber"
@@ -150,7 +144,6 @@
             android:fontFamily="@font/aref_ruqaa"
             android:hint="13,000"
             android:includeFontPadding="false"
-            android:inputType="number"
             android:padding="10dp"
             android:textAlignment="center"
             android:textColor="@color/GoldenEmber"
@@ -174,25 +167,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- 5) Quests list fills space above bottom nav -->
+    <!-- 5) Quests list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvQuests"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@color/MidnightViolet"
         android:clipToPadding="false"
-        android:paddingBottom="12dp"
+        android:paddingBottom="24dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/txt_quest_header"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
         tools:listitem="@layout/item_quest" />
 
     <!-- 6) Bottom nav -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="90dp"
         android:background="@color/DeepAbyss"
         app:itemIconSize="36dp"
@@ -200,12 +193,12 @@
         app:itemBackground="@android:color/transparent"
         app:itemTextColor="@color/nav_item_color"
         app:labelVisibilityMode="labeled"
+        app:itemPaddingBottom="5dp"
         app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- ===== Edit Profile Overlay (hidden by default) ===== -->
     <FrameLayout
         android:id="@+id/profileEditOverlay"
         android:layout_width="0dp"
@@ -216,14 +209,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- scrim: tap to dismiss -->
         <View
             android:id="@+id/scrim"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#B3000000"  />
+            android:background="#B3000000" />
 
-        <!-- centered card -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -239,114 +230,161 @@
                 app:strokeColor="@color/GoldenEmber"
                 app:strokeWidth="1dp">
 
-                <LinearLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:padding="18dp">
 
-                    <!-- avatar -->
-                    <FrameLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp">
+                    <!-- Close “X” (use a known vector asset) -->
+                    <ImageButton
+                        android:id="@+id/btnClosePanel"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Close"
+                        android:padding="6dp"
+                        android:tint="@color/GoldenEmber"
+                        android:src="@drawable/close_cross"
+                        android:scaleType="fitCenter"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
-                        <ImageView
-                            android:id="@+id/ivEditAvatar"
-                            android:layout_width="120dp"
-                            android:layout_height="120dp"
-                            android:layout_gravity="center"
-                            android:background="@drawable/rounded_image_border"
-                            android:clipToOutline="true"
-                            android:padding="1dp"
-                            android:scaleType="centerCrop"
-                            android:src="@drawable/img_profile"/>
-                    </FrameLayout>
-
-                    <!-- fields -->
-                    <EditText
-                        android:id="@+id/etFirstName"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:hint="First Name"
-                        android:textColor="@color/GoldenEmber"
-                        android:textColorHint="@color/GoldenEmber"
-                        android:fontFamily="@font/aref_ruqaa"
-                        android:background="@drawable/et_outline_gold"
-                        android:padding="10dp"/>
-
-                    <EditText
-                        android:id="@+id/etLastName"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:hint="Last Name"
-                        android:textColor="@color/GoldenEmber"
-                        android:textColorHint="@color/GoldenEmber"
-                        android:fontFamily="@font/aref_ruqaa"
-                        android:background="@drawable/et_outline_gold"
-                        android:padding="10dp"/>
-
-                    <EditText
-                        android:id="@+id/etMinGoal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:hint="Min Goal"
-                        android:inputType="number"
-                        android:textColor="@color/GoldenEmber"
-                        android:textColorHint="@color/GoldenEmber"
-                        android:fontFamily="@font/aref_ruqaa"
-                        android:background="@drawable/et_outline_gold"
-                        android:padding="10dp"/>
-
-                    <EditText
-                        android:id="@+id/etMaxGoal"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:hint="Max Goal"
-                        android:inputType="number"
-                        android:textColor="@color/GoldenEmber"
-                        android:textColorHint="@color/GoldenEmber"
-                        android:fontFamily="@font/aref_ruqaa"
-                        android:background="@drawable/et_outline_gold"
-                        android:padding="10dp"/>
-
-                    <!-- buttons row -->
+                    <!-- Avatar block (TOP-CENTER) -->
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:id="@+id/avatarBlock"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:gravity="end"
-                        android:orientation="horizontal">
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:layout_marginTop="6dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
 
-                        <Button
-                            android:id="@+id/btnCancel"
+                        <FrameLayout
+                            android:layout_width="120dp"
+                            android:layout_height="120dp">
+
+                            <ImageView
+                                android:id="@+id/ivAvatar"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:background="@drawable/avatar_ring"
+                                android:clipToOutline="true"
+                                android:contentDescription="Profile picture"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/img_profile" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:id="@+id/btnEditAvatar"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Cancel"
-                            android:textAllCaps="false"
-                            android:textColor="@android:color/white"
-                            app:backgroundTint="#C65656"/>
-
-                        <Space
-                            android:layout_width="12dp"
-                            android:layout_height="0dp"/>
-
-                        <Button
-                            android:id="@+id/btnSave"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Save"
-                            android:textAllCaps="false"
-                            android:textColor="@android:color/white"
-                            app:backgroundTint="@color/DeepAbyss"/>
+                            android:paddingTop="10dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:text="Edit"
+                            android:textColor="@color/GoldenEmber"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/aref_ruqaa" />
                     </LinearLayout>
 
-                </LinearLayout>
+                    <!-- Fields -->
+                    <LinearLayout
+                        android:id="@+id/fieldsColumn"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="vertical"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/avatarBlock">
+
+                        <EditText
+                            android:id="@+id/etFirstName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:background="@drawable/et_outline_gold"
+                            android:hint="First Name"
+                            android:padding="10dp"
+                            android:textColor="@color/GoldenEmber"
+                            android:textColorHint="@color/GoldenEmber"
+                            android:fontFamily="@font/aref_ruqaa" />
+
+                        <EditText
+                            android:id="@+id/etLastName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:background="@drawable/et_outline_gold"
+                            android:hint="Surname"
+                            android:padding="10dp"
+                            android:textColor="@color/GoldenEmber"
+                            android:textColorHint="@color/GoldenEmber"
+                            android:fontFamily="@font/aref_ruqaa" />
+
+                        <EditText
+                            android:id="@+id/etMinAmount"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            android:background="@drawable/et_outline_gold"
+                            android:hint="Enter Min Goal Amount"
+                            android:inputType="number"
+                            android:padding="10dp"
+                            android:textColor="@color/GoldenEmber"
+                            android:textColorHint="@color/FireBurst"
+                            android:fontFamily="@font/aref_ruqaa" />
+
+                        <EditText
+                            android:id="@+id/etMaxAmount"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="16dp"
+                            android:background="@drawable/et_outline_gold"
+                            android:hint="Enter Max Goal Amount"
+                            android:inputType="number"
+                            android:padding="10dp"
+                            android:textColor="@color/GoldenEmber"
+                            android:textColorHint="@color/FireBurst"
+                            android:fontFamily="@font/aref_ruqaa" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="end"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/btnCancel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Cancel"
+                                android:textAllCaps="false"
+                                android:textColor="@android:color/white"
+                                app:backgroundTint="#C65656" />
+
+                            <Space
+                                android:layout_width="12dp"
+                                android:layout_height="0dp" />
+
+                            <Button
+                                android:id="@+id/btnSave"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Save"
+                                android:textAllCaps="false"
+                                android:textColor="@android:color/white"
+                                app:backgroundTint="@color/DeepAbyss" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </FrameLayout>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

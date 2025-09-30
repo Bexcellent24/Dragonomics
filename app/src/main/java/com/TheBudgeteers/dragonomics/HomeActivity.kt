@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.util.TypedValue
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup   // <-- added
+import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.activity.addCallback
@@ -334,14 +334,14 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     binding.currencyTxt.text = currency.toString()
                     list[idx] = current.copy(owned = true)
                 } else {
-                    // optional: toast
+
                 }
             }
         }
         shopAdapter.submitList(list)
     }
 
-    // --- Option 2 helpers (resize built-in TabLayout icon views) ---
+    // --- Option 2 helpers ---
 
     private fun Int.dp(): Int =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this.toFloat(), resources.displayMetrics).toInt()

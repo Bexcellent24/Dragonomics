@@ -1,149 +1,238 @@
 package com.TheBudgeteers.dragonomics
 
+import android.content.Context
+import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
+import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
-import androidx.activity.addCallback
-import androidx.activity.OnBackPressedCallback
-
+import java.io.File
+import java.io.FileOutputStream
+import java.text.NumberFormat
+import java.util.Locale
 
 class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var bottomNav: BottomNavigationView
-    private lateinit var questsAdapter: QuestsAdapter
     private lateinit var rvQuests: RecyclerView
+    private lateinit var questsAdapter: QuestsAdapter
 
-    // overlay refs
-    private lateinit var overlay: View
-    private lateinit var editCard: View
-    private lateinit var scrim: View
-    private lateinit var btnEdit: Button
-    private lateinit var btnCancel: Button
-    private lateinit var btnSave: Button
-
-    // fields in overlay
-    private lateinit var etFirstName: EditText
-    private lateinit var etLastName: EditText
-    private lateinit var etMinGoal: EditText
-    private lateinit var etMaxGoal: EditText
-
-    // header views to update
+    // Header views
     private lateinit var tvUserName: TextView
-    private lateinit var tvMinAmount: TextView
-    private lateinit var tvMaxAmount: TextView
+    private lateinit var tvMinAmt: TextView
+    private lateinit var tvMaxAmt: TextView
+
+    // Overlay views
+    private lateinit var overlay: View
+    private lateinit var etFirst: EditText
+    private lateinit var etLast: EditText
+    private lateinit var etMin: EditText
+    private lateinit var etMax: EditText
+
+    // Avatar
+    private var avatarLocalUri: Uri? = null
+
+    // Prefs
+    private val prefs by lazy { getSharedPreferences("profile_prefs", Context.MODE_PRIVATE) }
+    private object Keys {
+        const val AVATAR_LOCAL = "avatar_local_uri"
+        const val FIRST = "first_name"
+        const val LAST  = "last_name"
+        const val MIN   = "min_amount"
+        const val MAX   = "max_amount"
+    }
+
+    /** Photo Picker → copy to app files */
+    private val pickImage = registerForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { pickerUri ->
+        if (pickerUri != null) {
+            val local = copyToAppStorage(pickerUri) ?: return@registerForActivityResult
+            avatarLocalUri = local
+            applyAvatar(local)
+            prefs.edit { putString(Keys.AVATAR_LOCAL, local.toString()) }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_profile)
 
-        // ---------- Bottom nav ----------
+        // ---- bind header views
+        tvUserName = findViewById(R.id.txt_username)
+        tvMinAmt   = findViewById(R.id.txt_min_month_amount)
+        tvMaxAmt   = findViewById(R.id.txt_max_month_amount)
+
+        // ---- bind overlay views
+        overlay = findViewById(R.id.profileEditOverlay)
+        etFirst  = findViewById(R.id.etFirstName)
+        etLast   = findViewById(R.id.etLastName)
+        etMin    = findViewById(R.id.etMinAmount)
+        etMax    = findViewById(R.id.etMaxAmount)
+
+        // Bottom nav
         bottomNav = findViewById(R.id.bottomNavigationView)
         bottomNav.itemIconTintList = null
         bottomNav.setOnItemSelectedListener { onNavigationItemSelected(it); true }
-        bottomNav.menu.findItem(R.id.nav_profile)?.apply {
-            isCheckable = false
-            isChecked = false
+        bottomNav.menu.findItem(R.id.nav_profile)?.apply { isCheckable = false; isChecked = false }
+
+        // Restore avatar from our own file uri
+        prefs.getString(Keys.AVATAR_LOCAL, null)?.let { saved ->
+            runCatching { Uri.parse(saved) }.getOrNull()?.let { local ->
+                runCatching { applyAvatar(local) }.onFailure {
+                    prefs.edit { remove(Keys.AVATAR_LOCAL) }
+                }
+                avatarLocalUri = local
+            }
         }
 
-        // ---------- Quests list ----------
+        // Populate header from prefs on launch
+        applyDisplayFromPrefs()
+
+        // Overlay wiring
+        findViewById<View>(R.id.btn_edit).setOnClickListener {
+            // Pre-fill from prefs
+            etFirst.setText(prefs.getString(Keys.FIRST, "") ?: "")
+            etLast.setText(prefs.getString(Keys.LAST, "") ?: "")
+            etMin.setText(prefs.getString(Keys.MIN, "") ?: "")
+            etMax.setText(prefs.getString(Keys.MAX, "") ?: "")
+            overlay.visibility = View.VISIBLE
+        }
+
+        findViewById<View>(R.id.btnClosePanel).setOnClickListener { closeOverlay() }
+        findViewById<View>(R.id.btnCancel).setOnClickListener { closeOverlay() }
+        findViewById<View>(R.id.btnSave).setOnClickListener {
+            val first = etFirst.text.toString().trim()
+            val last  = etLast.text.toString().trim()
+            val min   = etMin.text.toString().trim()
+            val max   = etMax.text.toString().trim()
+
+            prefs.edit {
+                putString(Keys.FIRST, first)
+                putString(Keys.LAST,  last)
+                putString(Keys.MIN,   min)
+                putString(Keys.MAX,   max)
+            }
+            applyDisplay(first, last, min, max)
+            closeOverlay()
+        }
+
+        findViewById<View>(R.id.btnEditAvatar).setOnClickListener {
+            pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
+
+        // Quests list
         rvQuests = findViewById(R.id.rvQuests)
-        rvQuests.layoutManager = LinearLayoutManager(this)
-        questsAdapter = QuestsAdapter {  }
+        if (rvQuests.layoutManager == null) rvQuests.layoutManager = LinearLayoutManager(this)
+        rvQuests.setHasFixedSize(true)
+
+        questsAdapter = QuestsAdapter {  overlay.visibility = View.VISIBLE }
         rvQuests.adapter = questsAdapter
 
-        questsAdapter.submitList(
-            listOf(
-                Quest("streak_1", "1 Day Streak", R.drawable.streak, null, true),
-                Quest("streak_7", "7 Day Streak", R.drawable.streak, "20", false),
-                Quest("nest_10k", "Put 10,000 a savings nest", R.drawable.saving_achievement, "400XP", false)
-            )
+        val demoQuests = listOf(
+            Quest(id="q1", title="1 day streak",                iconRes=R.drawable.streak,        rewardText="+10 XP", completed=false),
+            Quest(id="q2", title="Log 3 expenses",              iconRes=R.drawable.nest,          rewardText="+15 XP", completed=false),
+            Quest(id="q3", title="Hit your min goal this week", iconRes=R.drawable.incoming_nest, rewardText=null,     completed=true)
         )
+        questsAdapter.submitList(demoQuests)
+    }
 
-        // ---------- Header refs ----------
-        tvUserName  = findViewById(R.id.txt_username)
-        tvMinAmount = findViewById(R.id.txt_min_month_amount)
-        tvMaxAmount = findViewById(R.id.txt_max_month_amount)
+    private fun applyAvatar(uri: Uri) {
+        findViewById<ImageView>(R.id.ivAvatar)?.setImageURI(uri)    // small avatar (overlay)
+        findViewById<ImageView>(R.id.img_profile)?.setImageURI(uri) // big header (top)
+    }
 
-        // ---------- Overlay wiring ----------
-        btnEdit   = findViewById(R.id.btn_edit)
-        overlay   = findViewById(R.id.profileEditOverlay)
-        editCard  = findViewById(R.id.editCard)
-        scrim     = findViewById(R.id.scrim)
-        btnCancel = findViewById(R.id.btnCancel)
-        btnSave   = findViewById(R.id.btnSave)
+    private fun copyToAppStorage(source: Uri): Uri? {
+        return try {
+            val dir = File(filesDir, "avatars").apply { if (!exists()) mkdirs() }
+            val name = queryDisplayName(source).takeIf { !it.isNullOrBlank() }
+                ?: "avatar_${System.currentTimeMillis()}.jpg"
+            val dest = File(dir, name)
 
-        etFirstName = findViewById(R.id.etFirstName)
-        etLastName  = findViewById(R.id.etLastName)
-        etMinGoal   = findViewById(R.id.etMinGoal)
-        etMaxGoal   = findViewById(R.id.etMaxGoal)
-
-        btnEdit.setOnClickListener {
-            // prefill from current labels
-            val name = tvUserName.text?.toString()?.trim().orEmpty()
-            val parts = name.split(" ").filter { it.isNotBlank() }
-            etFirstName.setText(parts.getOrNull(0) ?: "")
-            etLastName.setText(parts.drop(1).joinToString(" "))
-
-            etMinGoal.setText(tvMinAmount.text?.toString()?.trim().orEmpty())
-            etMaxGoal.setText(tvMaxAmount.text?.toString()?.trim().orEmpty())
-
-            showEditOverlay(true)
-        }
-
-        scrim.setOnClickListener { showEditOverlay(false) }
-        btnCancel.setOnClickListener { showEditOverlay(false) }
-
-        btnSave.setOnClickListener {
-            val first = etFirstName.text.toString().trim()
-            val last  = etLastName.text.toString().trim()
-            val minG  = etMinGoal.text.toString().trim()
-            val maxG  = etMaxGoal.text.toString().trim()
-
-            tvUserName.text = listOf(first, last).filter { it.isNotEmpty() }.joinToString(" ").ifEmpty { "User Name" }
-            if (minG.isNotEmpty()) tvMinAmount.text = minG
-            if (maxG.isNotEmpty()) tvMaxAmount.text = maxG
-
-            showEditOverlay(false)
-        }
-
-        // Back button closes overlay first
-        onBackPressedDispatcher.addCallback(this) {
-            if (overlay.visibility == View.VISIBLE) showEditOverlay(false) else finish()
+            contentResolver.openInputStream(source)?.use { input ->
+                FileOutputStream(dest).use { out -> input.copyTo(out) }
+            }
+            Uri.fromFile(dest)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 
-    private fun showEditOverlay(show: Boolean) {
-        if (show) {
-            overlay.alpha = 0f
-            overlay.visibility = View.VISIBLE
-            editCard.scaleX = 0.96f
-            editCard.scaleY = 0.96f
-            overlay.animate().alpha(1f).setDuration(150).start()
-            editCard.animate().scaleX(1f).scaleY(1f).setDuration(150).start()
-        } else {
-            overlay.animate().alpha(0f).setDuration(150).withEndAction {
-                overlay.visibility = View.GONE
-                overlay.alpha = 1f
-            }.start()
+
+    private fun queryDisplayName(uri: Uri): String? {
+        val projection = arrayOf(OpenableColumns.DISPLAY_NAME)
+        return runCatching {
+            contentResolver.query(uri, projection, null, null, null)?.use { c ->
+                if (c.moveToFirst()) c.getString(0) else null
+            }
+        }.getOrNull()
+    }
+
+    // ---- display helpers ----
+    private fun applyDisplayFromPrefs() {
+        val first = prefs.getString(Keys.FIRST, "") ?: ""
+        val last  = prefs.getString(Keys.LAST,  "") ?: ""
+        val min   = prefs.getString(Keys.MIN,   "") ?: ""
+        val max   = prefs.getString(Keys.MAX,   "") ?: ""
+        applyDisplay(first, last, min, max)
+    }
+
+    private fun applyDisplay(first: String, last: String, minRaw: String, maxRaw: String) {
+
+        val displayName = when {
+            first.isNotEmpty() && last.isNotEmpty() -> "$first $last"
+            first.isNotEmpty() -> first
+            last.isNotEmpty()  -> last
+            else -> "User Name"
+        }
+        tvUserName.text = displayName
+
+        // amounts
+        tvMinAmt.text = formatAmountOrFallback(minRaw, tvMinAmt.hint?.toString() ?: "13,000")
+        tvMaxAmt.text = formatAmountOrFallback(maxRaw, tvMaxAmt.hint?.toString() ?: "13,000")
+    }
+
+    private fun formatAmountOrFallback(value: String, fallback: String): String {
+        if (value.isBlank()) return fallback
+        return runCatching {
+            val n = value.replace(",", "").toLong()
+            NumberFormat.getNumberInstance(Locale.getDefault()).format(n)
+        }.getOrElse { value } // if not a number, show raw
+    }
+
+    private fun closeOverlay() {
+        overlay.visibility = View.GONE
+        hideKeyboard()
+    }
+
+    private fun hideKeyboard() {
+        currentFocus?.let { v ->
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(v.windowToken, 0)
         }
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.nav_home     -> openIntent(this, "", HomeActivity::class.java)
+            R.id.nav_home -> openIntent(this, "", HomeActivity::class.java)
             R.id.nav_expenses -> openIntent(this, "", ExpensesActivity::class.java)
-            R.id.nav_history  -> openIntent(this, "", HistoryActivity::class.java)
-            R.id.nav_profile  -> { /* already here */ }
+            R.id.nav_history -> openIntent(this, "", HistoryActivity::class.java)
+            R.id.nav_profile -> openIntent(this, "", ProfileActivity::class.java)
         }
         return true
     }
