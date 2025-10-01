@@ -17,10 +17,9 @@ data class Nest(
     val budget: Double?, // monthly budget for this nest (null if income nest)
     val icon: String, // icon reference or path for the nest
     val colour: String, // hex colour for UI styling of this nest
-    val type: NestType // tells if nest is income or expense
+    val type: NestType, // tells if nest is income or expense
 )
 
-// type of nest — income or expense
 enum class NestType {
     INCOME,
     EXPENSE

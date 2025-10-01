@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:padding="16dp"
+    android:layout_margin="10dp"
+    android:background="@color/Grey">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/txtDialogTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:fontFamily="@font/breathe_fire_iii"
+            android:gravity="center"
+            android:paddingBottom="8dp"
+            android:text="New Nest"
+            android:textColor="@color/GoldenEmber"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <!-- Row: name and amount -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_marginBottom="8dp">
+
+            <EditText
+                android:id="@+id/edtName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/aref_ruqaa"
+                android:hint="Name"
+                android:textColor="@color/GoldenEmber"
+                android:textColorHint="@color/GoldenEmber" />
+
+            <EditText
+                android:id="@+id/edtAmount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/aref_ruqaa"
+                android:hint="Budget"
+                android:inputType="numberDecimal"
+                android:textColor="@color/GoldenEmber"
+                android:textColorHighlight="@color/GoldenEmber"
+                android:textColorHint="@color/GoldenEmber" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/toggleContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:id="@+id/btnOutgoing"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="6dp"
+                android:text="Outgoing"
+                android:fontFamily="@font/aref_ruqaa"
+                android:textColor="@color/GoldenEmber"
+                android:layout_margin="5dp"
+                android:background="@drawable/toggle_selected_background"
+                android:clickable="true"
+                android:focusable="true"/>
+
+            <TextView
+                android:id="@+id/btnIncoming"
+                android:layout_width="80dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="6dp"
+                android:layout_margin="5dp"
+                android:text="Incoming"
+                android:fontFamily="@font/aref_ruqaa"
+                android:textColor="@color/GoldenEmber"
+                android:background="@drawable/toggle_selected_background"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+
+        <!-- Icons grid -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerIcons"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:overScrollMode="never"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Colour row -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerColours"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:overScrollMode="never"
+            android:layout_marginBottom="10dp"/>
+
+        <!-- Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginTop="12dp">
+
+            <Button
+                android:id="@+id/btnCancel"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#C33358"
+                android:fontFamily="@font/aref_ruqaa"
+                android:text="Cancel"
+                android:textColor="@color/GoldenEmber"
+                android:textColorLink="@color/CrimsonBlaze"
+                app:icon="@drawable/delete_catagory"
+                app:iconPadding="0dp"
+                app:iconSize="40dp"
+                app:iconTint="@null"/>
+
+            <Button
+                android:id="@+id/btnCreate"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:backgroundTint="#31586A"
+                android:enabled="false"
+                android:fontFamily="@font/aref_ruqaa"
+                android:text="Create Nest"
+                android:textColor="@color/GoldenEmber" />
+
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

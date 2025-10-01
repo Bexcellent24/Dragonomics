@@ -1,4 +1,4 @@
-package com.TheBudgeteers.dragonomics.data
+package com.TheBudgeteers.dragonomics.models
 
 import androidx.room.Entity
 import androidx.room.Index

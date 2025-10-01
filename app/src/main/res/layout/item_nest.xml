@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="200dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    android:elevation="4dp"
+    android:padding="12dp"
+    android:background="@drawable/nest_card_border"
+    app:cardCornerRadius="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:background="@color/DeepAbyss">
+
+        <!-- Title row with mood icon -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Nest name -->
+            <TextView
+                android:id="@+id/txtNestName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/breathe_fire_iii"
+                android:gravity="center"
+                android:text="Groceries"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- Mood icon sticking out top corner -->
+            <ImageView
+                android:id="@+id/imgMood"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="end|top"
+                android:contentDescription="Nest mood icon"
+                android:translationX="8dp"
+                android:translationY="-8dp" />
+        </FrameLayout>
+
+        <!-- Budget row -->
+        <TextView
+            android:id="@+id/txtBudget"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="@font/aref_ruqaa"
+            android:gravity="center"
+            android:text="R300"
+            android:textColor="@color/GoldenEmber"
+            android:textSize="13sp" />
+
+        <!-- Budget vs spent -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <!-- Remaining section -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/labelRemaining"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/aref_ruqaa"
+                    android:text="Remaining: "
+                    android:textColor="@color/GoldenEmber"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/amountRemaining"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/aref_ruqaa"
+                    android:text="R500"
+                    android:textColor="@color/GoldenEmber"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Spent section -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/labelSpent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/aref_ruqaa"
+                    android:text="Spent: "
+                    android:textColor="@color/GoldenEmber"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/amountSpent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/aref_ruqaa"
+                    android:text="R2000"
+                    android:textColor="@color/GoldenEmber"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Progress bar with padding -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:max="100"
+                android:progress="50"
+                android:progressDrawable="@drawable/custom_progress_bar" />
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

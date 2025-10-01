@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:gravity="center_vertical">
+
+    <!-- Main content bar (tinted per nest colour) -->
+    <LinearLayout
+        android:id="@+id/layoutNestBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="6dp"
+        android:background="@drawable/nest_item_background">
+
+        <!-- Nest name -->
+        <TextView
+            android:id="@+id/txtNestName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Nest Name"
+            android:textSize="16sp"
+            android:textColor="@color/GoldenEmber"
+            android:fontFamily="@font/aref_ruqaa" />
+
+        <!-- Budget -->
+        <TextView
+            android:id="@+id/txtBudget"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:background="@drawable/budget_box"
+            android:text="R300"
+            android:textSize="14sp"
+            android:textColor="@color/GoldenEmber"
+            android:fontFamily="@font/aref_ruqaa" />
+    </LinearLayout>
+
+    <!-- Nest icon (outside the coloured bar) -->
+    <ImageView
+        android:id="@+id/imgNestIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/incoming_nest"
+        android:contentDescription="Nest Icon" />
+</LinearLayout>

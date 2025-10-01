@@ -7,6 +7,7 @@ import com.TheBudgeteers.dragonomics.models.Mood
 import com.TheBudgeteers.dragonomics.models.Nest
 import com.TheBudgeteers.dragonomics.models.NestType
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 
 // NestViewModel.kt
@@ -45,13 +46,38 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
     }
 
     // Gets both progress and mood for a nest by ID
-    fun getNestProgressAndMood(nestId: Long, callback: (Double, Mood) -> Unit) {
+    fun getNestProgressAndMoodWithSpent(nestId: Long, callback: (Double, Mood, Double) -> Unit) {
         viewModelScope.launch {
-            val nest = repository.getNestById(nestId) // get nest details
-            val spent = repository.getTransactionsByNestId(nestId).sumOf { it.amount } // sum transactions
-            val progress = calculateNestProgress(nest, spent) // calculate budget progress
-            val mood = calculateMood(progress) // calculate mood
-            callback(progress, mood) // return values to UI
+            val nest = repository.getNestById(nestId)
+            val transactions = repository.getTransactionsByNestId(nestId)
+            val spent = transactions.sumOf { it.amount }
+            val progress = calculateNestProgress(nest, spent)
+            val mood = calculateMood(progress)
+            callback(progress, mood, spent)
         }
     }
+
+    fun addNest(nest: Nest, onDone: (() -> Unit)? = null) {
+        viewModelScope.launch {
+            repository.addNest(nest) // you’ll need this method in Repository
+            onDone?.invoke()
+        }
+    }
+
+    suspend fun getNestsByType(type: NestType): List<Nest> {
+        return repository.getNests().filter { it.type == type }
+    }
+
+    fun getIncomeNestBudget(nestId: Long): Double {
+        var budget = 0.0
+        runBlocking {
+            budget = repository.getTotalIncomeForNest(nestId)
+        }
+        return budget
+    }
+
+    fun getSpentAmountFlow(nestId: Long) =
+        repository.getSpentAmountFromNestFlow(nestId)
+
+    fun getNestsByTypeLive(type: NestType) = repository.getNestsFlowByType(type)
 }

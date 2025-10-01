@@ -1,0 +1,211 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/transaction_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true"
+    android:padding="12dp"
+    android:background="@color/Grey">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Title Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <EditText
+                android:id="@+id/edtTransactionTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Title"
+                android:fontFamily="@font/aref_ruqaa"
+                android:textColor="@color/GoldenEmber"
+                android:textColorHint="@color/GoldenEmber"
+                android:background="@drawable/edit_text_background"
+                android:padding="8dp"/>
+
+            <EditText
+                android:id="@+id/edtTransactionAmount"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:hint="Amount"
+                android:fontFamily="@font/aref_ruqaa"
+                android:textColor="@color/GoldenEmber"
+                android:textColorHint="@color/GoldenEmber"
+                android:inputType="numberDecimal"
+                android:background="@drawable/edit_text_background"
+                android:padding="8dp"/>
+
+            <ImageButton
+                android:id="@+id/btnDate"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginLeft="5dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Select Date"
+                android:padding="1dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/calandar" />
+
+            <ImageButton
+                android:id="@+id/btnPhoto"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginLeft="5dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Attach Photo"
+                android:padding="1dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/add_pic" />
+        </LinearLayout>
+
+        <!-- Description -->
+        <EditText
+            android:id="@+id/edtTransactionDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Description"
+            android:fontFamily="@font/aref_ruqaa"
+            android:textColor="@color/GoldenEmber"
+            android:textColorHint="@color/GoldenEmber"
+            android:background="@drawable/edit_text_background"
+            android:padding="8dp"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Income / Expense Toggle -->
+        <LinearLayout
+            android:id="@+id/toggleContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/btnExpense"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="Expense"
+                android:fontFamily="@font/aref_ruqaa"
+                android:textColor="@color/GoldenEmber"
+                android:gravity="center"
+                android:padding="6dp"
+                android:layout_margin="5dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@drawable/toggle_selected_background"/>
+
+            <TextView
+                android:id="@+id/btnIncome"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:text="Income"
+                android:fontFamily="@font/aref_ruqaa"
+                android:textColor="@color/GoldenEmber"
+                android:gravity="center"
+                android:padding="6dp"
+                android:layout_margin="5dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:background="@drawable/toggle_selected_background"/>
+        </LinearLayout>
+
+        <!-- Category Icons -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerTransactionCategories"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:layout_marginBottom="4dp"
+            android:overScrollMode="never"/>
+
+        <!-- Selected Category Name -->
+        <TextView
+            android:id="@+id/txtSelectedCategory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Selected Category"
+            android:fontFamily="@font/aref_ruqaa"
+            android:textColor="@color/GoldenEmber"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- From Category Icons (Expenses Only) -->
+        <LinearLayout
+            android:id="@+id/fromNestOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/txtFromCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="From Category"
+                android:fontFamily="@font/breathe_fire_iii"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"
+                android:layout_marginTop="8dp"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerFromCategories"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:overScrollMode="never"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/txtSelectedFromCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Selected Category"
+                android:fontFamily="@font/aref_ruqaa"
+                android:textColor="@color/GoldenEmber"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp"/>
+
+        </LinearLayout>
+
+        <!-- Action Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnCancelTransaction"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#C33358"
+                android:fontFamily="@font/aref_ruqaa"
+                android:text="Cancel"
+                android:textColor="@color/GoldenEmber"
+                app:icon="@drawable/delete_catagory"
+                app:iconPadding="0dp"
+                app:iconSize="40dp"
+                app:iconTint="@null" />
+
+            <Button
+                android:id="@+id/btnCreateTransaction"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:backgroundTint="#31586A"
+                android:enabled="false"
+                android:fontFamily="@font/aref_ruqaa"
+                android:text="Create"
+                android:textColor="@color/GoldenEmber" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

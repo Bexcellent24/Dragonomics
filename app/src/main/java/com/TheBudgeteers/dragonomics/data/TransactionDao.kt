@@ -4,6 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.TheBudgeteers.dragonomics.models.Transaction
+import com.TheBudgeteers.dragonomics.models.TransactionWithNest
+import kotlinx.coroutines.flow.Flow
 
 // TransactionDao.kt
 // This is the DAO (Data Access Object) for transactions.
@@ -28,4 +30,14 @@ interface TransactionDao {
     // Gets all transactions for a specific nest/category
     @Query("SELECT * FROM transactions WHERE categoryId = :nestId")
     suspend fun getByCategoryId(nestId: Long): List<Transaction>
+
+
+    @Query("SELECT * FROM transactions ORDER BY date DESC")
+    fun getAllFlow(): Flow<List<Transaction>>
+
+    @Query("SELECT SUM(amount) FROM transactions WHERE categoryId = :nestId")
+    suspend fun getTotalIncomeForNest(nestId: Long): Double?
+
+    @Query("SELECT SUM(amount) FROM transactions WHERE fromCategoryId = :nestId")
+    fun getSpentAmountFromNestFlow(nestId: Long): kotlinx.coroutines.flow.Flow<Double?>
 }

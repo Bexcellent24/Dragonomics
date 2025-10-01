@@ -4,6 +4,8 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import com.TheBudgeteers.dragonomics.models.Nest
+import com.TheBudgeteers.dragonomics.models.NestType
+import kotlinx.coroutines.flow.Flow
 
 
 // NestDao.kt
@@ -25,4 +27,16 @@ interface NestDao {
     // Gets a specific nest by its ID
     @Query("SELECT * FROM nests WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): Nest
+
+    @Query("SELECT * FROM nests")
+    fun getAllFlow(): kotlinx.coroutines.flow.Flow<List<Nest>>
+
+    @Query("""
+    SELECT DISTINCT nests.* 
+    FROM nests 
+    LEFT JOIN transactions ON transactions.categoryId = nests.id 
+    WHERE nests.type = :type
+""")
+    fun getAllFlowByType(type: String): kotlinx.coroutines.flow.Flow<List<Nest>>
+
 }

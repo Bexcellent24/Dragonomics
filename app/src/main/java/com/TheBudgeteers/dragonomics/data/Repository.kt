@@ -3,7 +3,11 @@ package com.TheBudgeteers.dragonomics.data
 
 import com.TheBudgeteers.dragonomics.models.Transaction
 import com.TheBudgeteers.dragonomics.models.Nest
+import com.TheBudgeteers.dragonomics.models.NestType
 import com.TheBudgeteers.dragonomics.models.TransactionWithNest
+import com.TheBudgeteers.dragonomics.models.UserEntity
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 // Repository.kt
 // This is the main data layer for the app.
@@ -50,6 +54,29 @@ class Repository(private val db: AppDatabase) {
         }
     }
 
+    fun getSpentAmountFromNestFlow(nestId: Long) =
+        transactionDao.getSpentAmountFromNestFlow(nestId)
+
+    suspend fun getTotalIncomeForNest(nestId: Long): Double {
+        return transactionDao.getTotalIncomeForNest(nestId) ?: 0.0
+    }
+
+    fun getReactiveNestsFlowByType(type: NestType) =
+        nestDao.getAllFlowByType(type.name)
+
+    // Flow version: automatically emits whenever data changes
+    fun getNestsFlow() = nestDao.getAllFlow()
+    fun getNestsFlowByType(type: com.TheBudgeteers.dragonomics.models.NestType) =
+        nestDao.getAllFlow().map { list -> list.filter { it.type == type } }
+
+    fun getTransactionsWithNestsFlow(): Flow<List<TransactionWithNest>> =
+        transactionDao.getAllFlow().map { transactions ->
+            transactions.map { transaction ->
+                val categoryNest = nestDao.getById(transaction.categoryId)
+                val fromNest = transaction.fromCategoryId?.let { nestDao.getById(it) }
+                TransactionWithNest(transaction, categoryNest, fromNest)
+            }
+        }
 
 
 
@@ -76,4 +103,6 @@ class Repository(private val db: AppDatabase) {
         val ok = PasswordHasher.verify(password.toCharArray(), user.salt, user.passwordHash)
         return if (ok) Result.success(user) else Result.failure(Exception("Invalid credentials"))
     }
+
+
 }

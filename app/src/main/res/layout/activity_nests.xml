@@ -1,10 +1,139 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/dashboard"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".NestsActivity">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:background="@color/MidnightViolet">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- HEADER BAR -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical"
+        android:background="@color/MidnightViolet">
+
+        <TextView
+            android:id="@+id/txtNestsTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Nests"
+            android:textSize="24sp"
+            android:gravity="center"
+            android:layout_marginLeft="50dp"
+            android:fontFamily="@font/breathe_fire_iii"
+            android:textColor="@color/GoldenEmber"
+            android:textStyle="bold"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ImageButton
+                android:id="@+id/btnResetNests"
+                style="@android:style/Widget.DeviceDefault.ImageButton"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Reset Nests"
+                android:scaleType="centerInside"
+                android:src="@drawable/delete_nests" />
+
+            <TextView
+                android:id="@+id/txtResetNests"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reset Nests"
+                android:fontFamily="@font/aref_ruqaa"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="10sp"
+                android:gravity="center"/>
+        </LinearLayout>
+    </LinearLayout>
+
+
+    <!-- Outgoing Nests Placeholder -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Outgoing Nests"
+        android:textSize="16sp"
+        android:textColor="@color/GoldenEmber"
+        android:padding="15dp"
+        android:fontFamily="@font/breathe_fire_iii"/>
+
+    <FrameLayout
+        android:id="@+id/fragmentOutgoingNests"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2" />
+
+    <!-- Incoming Nests Placeholder -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Incoming Nests"
+        android:textSize="16sp"
+        android:textColor="@color/GoldenEmber"
+        android:padding="12dp"
+        android:fontFamily="@font/breathe_fire_iii"/>
+
+    <FrameLayout
+        android:id="@+id/fragmentIncomingNests"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- ADD NEST BUTTON -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_gravity="start|bottom"
+        android:layout_margin="10dp"
+        android:background="@color/MidnightViolet">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAddNest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="Add Nest"
+            android:src="@drawable/new_nest"
+            app:backgroundTint="@color/MidnightViolet"
+            app:maxImageSize="60dp"
+            app:tint="@null" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add Nest"
+            android:textColor="@color/GoldenEmber"
+            android:fontFamily="@font/aref_ruqaa"
+            android:textSize="10sp"
+            android:gravity="center"/>
+    </LinearLayout>
+
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:background="@color/DeepAbyss"
+        app:itemActiveIndicatorStyle="@null"
+        app:itemBackground="@android:color/transparent"
+        app:itemIconSize="36dp"
+        app:itemIconTint="@null"
+        app:itemPaddingBottom="5dp"
+        app:itemRippleColor="@null"
+        app:itemTextColor="@color/nav_item_color"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu" />
+
+</LinearLayout>

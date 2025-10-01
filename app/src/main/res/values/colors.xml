@@ -10,4 +10,14 @@
     <color name="MidnightViolet">#180C24</color>
     <color name="QuestTodo">#2E3E4A</color>
     <color name="QuestDone">#5A2A23</color>
+    <color name="nest_button_default">#00000000</color>
+    <color name="nest_button_selected">#431e1d</color>
+    <color name="option1">#53171c</color>
+    <color name="option2">#9b252c</color>
+    <color name="option3">#523295</color>
+    <color name="option4">#a44e24</color>
+    <color name="option5">#8b98ad</color>
+    <color name="option6">#231c2a</color>
+    <color name="Grey">#333333</color>
+
 </resources>

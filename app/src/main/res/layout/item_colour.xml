@@ -1,0 +1,10 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/colour_item_root"
+    android:layout_width="45dp"
+    android:layout_height="45dp"
+    android:padding="1dp"
+    android:layout_margin="8dp"
+    android:background="@drawable/colour_box"
+    android:clickable="true"
+    android:focusable="true">
+</FrameLayout>

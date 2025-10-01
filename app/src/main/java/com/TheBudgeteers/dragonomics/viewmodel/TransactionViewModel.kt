@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.TheBudgeteers.dragonomics.data.Repository
 import com.TheBudgeteers.dragonomics.models.Transaction
 import com.TheBudgeteers.dragonomics.models.TransactionWithNest
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 
@@ -35,4 +36,8 @@ class TransactionViewModel(private val repository: Repository) : ViewModel() {
             callback(repository.getTransactionsWithNests())
         }
     }
+
+    val transactionsWithNestsFlow: Flow<List<TransactionWithNest>> =
+        repository.getTransactionsWithNestsFlow()
+
 }
