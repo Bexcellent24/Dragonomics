@@ -23,8 +23,8 @@ import com.TheBudgeteers.dragonomics.databinding.ActivityHomeBinding
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.tabs.TabLayout
 
-private const val DRAGON_BIG_DP = 450
-private const val DRAGON_SMALL_DP = 360
+private const val DRAGON_BIG_DP = 360
+private const val DRAGON_SMALL_DP = 250
 private const val ROTATE_MS = 180L
 private const val KEY_EXPANDED = "expanded"
 private const val KEY_ACH_OPEN = "ach_open"
@@ -40,7 +40,7 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var shopAdapter: ShopAdapter
     private var currency: Int = 0
 
-    // sample 4-per-tab items (using placeholder art for now)
+    // sample 4-per-tab items
     private val hornsItems = listOf(
         ShopItem("horns_twisted",  "Twisted Horns",  90, previewRes = R.drawable.placeholder_item),
         ShopItem("horns_curly",    "Curly Horns",    90, previewRes = R.drawable.placeholder_item),
@@ -100,7 +100,7 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val achAdapter = AchievementsAdapter(emptyList())
         achRecycler.adapter = achAdapter
 
-        // demo data
+
         achAdapter.submit(
             listOf(
                 Achievement(
@@ -169,15 +169,19 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         shopOverlay.setOnClickListener { shopOverlay.hideFadeOut() }
         shopCard.setOnClickListener { /* swallow */ }
 
-        // ---------- shop tabs (3 categories) ----------
+        // ---------- shop tabs ----------
         val tabIcons = intArrayOf(
             R.drawable.palette_shop,
             R.drawable.horns_shop,
             R.drawable.wings_shop
         )
-        if (shopTabs.tabCount == 0) {
+
+        if (shopTabs.tabCount == 0)
+        {
             repeat(3) { i -> shopTabs.addTab(shopTabs.newTab().setIcon(tabIcons[i])) }
-        } else {
+        }
+        else
+        {
             for (i in 0 until shopTabs.tabCount)
                 shopTabs.getTabAt(i)?.icon = ContextCompat.getDrawable(this, tabIcons[i])
         }
@@ -191,7 +195,7 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
         }
 
-        // --- Shop Recycler (2x2 grid) ---
+        // --- Shop Recycler---
         shopAdapter = ShopAdapter { clicked -> handleShopAction(clicked) }
         binding.shopRecycler.adapter = shopAdapter
         binding.shopRecycler.setHasFixedSize(true)
@@ -227,7 +231,7 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
         resizeShopTabIcons(sizeDp = 80, tabHeightDp = 80, horizPadDp = 10)
 
-        // ---------- Back button behavior ----------
+        // ---------- Back button ----------
         onBackPressedDispatcher.addCallback(this) {
             when {
                 shopOverlay.visibility == View.VISIBLE -> shopOverlay.hideFadeOut()
@@ -341,7 +345,7 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         shopAdapter.submitList(list)
     }
 
-    // --- Option 2 helpers ---
+    // --- Option 2 ---
 
     private fun Int.dp(): Int =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this.toFloat(), resources.displayMetrics).toInt()

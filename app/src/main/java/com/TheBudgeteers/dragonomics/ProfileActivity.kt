@@ -1,6 +1,8 @@
 package com.TheBudgeteers.dragonomics
 
 import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.provider.OpenableColumns
@@ -15,10 +17,14 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.text.NumberFormat
@@ -45,8 +51,11 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
     // Avatar
     private var avatarLocalUri: Uri? = null
 
-    // Prefs
-    private val prefs by lazy { getSharedPreferences("profile_prefs", Context.MODE_PRIVATE) }
+    // Session / per-user prefs
+    private lateinit var session: SessionStore
+    private lateinit var prefs: SharedPreferences
+    private var currentUserId: Long = -1L
+
     private object Keys {
         const val AVATAR_LOCAL = "avatar_local_uri"
         const val FIRST = "first_name"
@@ -55,7 +64,10 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         const val MAX   = "max_amount"
     }
 
-    /** Photo Picker → copy to app files */
+    private fun profilePrefsFor(userId: Long): SharedPreferences =
+        getSharedPreferences("profile_prefs_u_$userId", Context.MODE_PRIVATE)
+
+    /** Photo Picker → copy to per-user app files */
     private val pickImage = registerForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { pickerUri ->
@@ -63,7 +75,9 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             val local = copyToAppStorage(pickerUri) ?: return@registerForActivityResult
             avatarLocalUri = local
             applyAvatar(local)
-            prefs.edit { putString(Keys.AVATAR_LOCAL, local.toString()) }
+            if (::prefs.isInitialized) {
+                prefs.edit { putString(Keys.AVATAR_LOCAL, local.toString()) }
+            }
         }
     }
 
@@ -90,7 +104,44 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         bottomNav.setOnItemSelectedListener { onNavigationItemSelected(it); true }
         bottomNav.menu.findItem(R.id.nav_profile)?.apply { isCheckable = false; isChecked = false }
 
-        // Restore avatar from our own file uri
+        // Header actions (Edit / Logout)
+        wireHeaderActions()
+
+        // Quests list
+        rvQuests = findViewById(R.id.rvQuests)
+        if (rvQuests.layoutManager == null) rvQuests.layoutManager = LinearLayoutManager(this)
+        rvQuests.setHasFixedSize(true)
+
+        questsAdapter = QuestsAdapter { overlay.visibility = View.VISIBLE }
+        rvQuests.adapter = questsAdapter
+
+        val demoQuests = listOf(
+            Quest(id="q1", title="1 day streak",                iconRes=R.drawable.streak,        rewardText="+10 XP", completed=false),
+            Quest(id="q2", title="Log 3 expenses",              iconRes=R.drawable.nest,          rewardText="+15 XP", completed=false),
+            Quest(id="q3", title="Hit your min goal this week", iconRes=R.drawable.incoming_nest, rewardText=null,     completed=true)
+        )
+        questsAdapter.submitList(demoQuests)
+
+        // Resolve current session user and init per-user UI
+        session = SessionStore(this)
+
+        lifecycleScope.launch {
+            val id = session.userId.firstOrNull()
+            if (id == null) {
+                // if (!BuildConfig.DEBUG) {
+                //     startActivity(Intent(this@ProfileActivity, LoginActivity::class.java))
+                //     finish()
+                // }
+                return@launch
+            }
+            currentUserId = id
+            prefs = profilePrefsFor(id)
+            initPerUserUi()
+        }
+    }
+
+    private fun initPerUserUi() {
+        // Restore avatar from THIS user's saved uri
         prefs.getString(Keys.AVATAR_LOCAL, null)?.let { saved ->
             runCatching { Uri.parse(saved) }.getOrNull()?.let { local ->
                 runCatching { applyAvatar(local) }.onFailure {
@@ -100,12 +151,11 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             }
         }
 
-        // Populate header from prefs on launch
+        // Populate header from THIS user's prefs
         applyDisplayFromPrefs()
 
         // Overlay wiring
         findViewById<View>(R.id.btn_edit).setOnClickListener {
-            // Pre-fill from prefs
             etFirst.setText(prefs.getString(Keys.FIRST, "") ?: "")
             etLast.setText(prefs.getString(Keys.LAST, "") ?: "")
             etMin.setText(prefs.getString(Keys.MIN, "") ?: "")
@@ -134,21 +184,25 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         findViewById<View>(R.id.btnEditAvatar).setOnClickListener {
             pickImage.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
+    }
 
-        // Quests list
-        rvQuests = findViewById(R.id.rvQuests)
-        if (rvQuests.layoutManager == null) rvQuests.layoutManager = LinearLayoutManager(this)
-        rvQuests.setHasFixedSize(true)
-
-        questsAdapter = QuestsAdapter {  overlay.visibility = View.VISIBLE }
-        rvQuests.adapter = questsAdapter
-
-        val demoQuests = listOf(
-            Quest(id="q1", title="1 day streak",                iconRes=R.drawable.streak,        rewardText="+10 XP", completed=false),
-            Quest(id="q2", title="Log 3 expenses",              iconRes=R.drawable.nest,          rewardText="+15 XP", completed=false),
-            Quest(id="q3", title="Hit your min goal this week", iconRes=R.drawable.incoming_nest, rewardText=null,     completed=true)
-        )
-        questsAdapter.submitList(demoQuests)
+    /** Replace old toolbar menu with explicit Logout button wiring */
+    private fun wireHeaderActions() {
+        findViewById<View>(R.id.btn_logout)?.setOnClickListener {
+            lifecycleScope.launch {
+                // Clear session and go to Login, wiping back stack
+                SessionStore(this@ProfileActivity).setUser(null)
+                val i = Intent(this@ProfileActivity, LoginActivity::class.java).apply {
+                    addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                                Intent.FLAG_ACTIVITY_CLEAR_TASK or
+                                Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    )
+                }
+                startActivity(i)
+                finish()
+            }
+        }
     }
 
     private fun applyAvatar(uri: Uri) {
@@ -158,7 +212,8 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
     private fun copyToAppStorage(source: Uri): Uri? {
         return try {
-            val dir = File(filesDir, "avatars").apply { if (!exists()) mkdirs() }
+            if (currentUserId <= 0) return null
+            val dir = File(filesDir, "users/u_$currentUserId/avatars").apply { if (!exists()) mkdirs() }
             val name = queryDisplayName(source).takeIf { !it.isNullOrBlank() }
                 ?: "avatar_${System.currentTimeMillis()}.jpg"
             val dest = File(dir, name)
@@ -169,10 +224,9 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             Uri.fromFile(dest)
         } catch (e: Exception) {
             e.printStackTrace()
-            null
+            return null
         }
     }
-
 
     private fun queryDisplayName(uri: Uri): String? {
         val projection = arrayOf(OpenableColumns.DISPLAY_NAME)
@@ -193,7 +247,6 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
     }
 
     private fun applyDisplay(first: String, last: String, minRaw: String, maxRaw: String) {
-
         val displayName = when {
             first.isNotEmpty() && last.isNotEmpty() -> "$first $last"
             first.isNotEmpty() -> first
@@ -212,7 +265,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         return runCatching {
             val n = value.replace(",", "").toLong()
             NumberFormat.getNumberInstance(Locale.getDefault()).format(n)
-        }.getOrElse { value } // if not a number, show raw
+        }.getOrElse { value }
     }
 
     private fun closeOverlay() {
@@ -229,10 +282,10 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.nav_home -> openIntent(this, "", HomeActivity::class.java)
+            R.id.nav_home     -> openIntent(this, "", HomeActivity::class.java)
             R.id.nav_expenses -> openIntent(this, "", ExpensesActivity::class.java)
-            R.id.nav_history -> openIntent(this, "", HistoryActivity::class.java)
-            R.id.nav_profile -> openIntent(this, "", ProfileActivity::class.java)
+            R.id.nav_history  -> openIntent(this, "", HistoryActivity::class.java)
+            R.id.nav_profile  -> openIntent(this, "", ProfileActivity::class.java)
         }
         return true
     }

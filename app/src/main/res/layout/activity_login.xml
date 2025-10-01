@@ -6,9 +6,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- 1) Header height = 42% of screen -->
-
-    <!-- 2) Header container (optional bg/wave) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -37,9 +34,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <!-- 3) Logo scales INSIDE the header area -->
-
-                <!-- Optional overlay title -->
 
                 <ImageView
                     android:id="@+id/img_profile"
@@ -63,7 +57,7 @@
                 android:text="Dragonomics"
                 android:textAlignment="center"
                 android:textColor="@color/GoldenEmber"
-                android:textSize="34sp" />
+                android:textSize="30sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -89,7 +83,7 @@
                 app:cornerRadius="0dp" />
 
             <Button
-                android:id="@+id/btn_signup_tab"
+                android:id="@+id/btnGoToSignUp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -119,7 +113,7 @@
             android:paddingRight="45dp">
 
             <EditText
-                android:id="@+id/edt_name"
+                android:id="@+id/etUsername"
                 style="@style/Widget.AppCompat.AutoCompleteTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -129,14 +123,14 @@
                 android:background="@color/white"
                 android:backgroundTint="@color/white"
                 android:fontFamily="@font/aref_ruqaa"
-                android:hint="Password"
-                android:inputType="textPassword"
+                android:hint="Username"
+                android:inputType="text|textNoSuggestions"
                 android:padding="10dp"
                 android:textColor="@color/GoldenEmber"
                 android:textColorHint="@color/GoldenEmber" />
 
             <EditText
-                android:id="@+id/edt_email"
+                android:id="@+id/etPassword"
                 style="@style/Widget.AppCompat.AutoCompleteTextView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -145,7 +139,7 @@
                 android:background="@color/white"
                 android:backgroundTint="@color/white"
                 android:fontFamily="@font/aref_ruqaa"
-                android:hint="Email"
+                android:hint="Password"
                 android:inputType="textPassword"
                 android:padding="10dp"
                 android:textColor="@color/GoldenEmber"
@@ -159,8 +153,19 @@
                 android:text="Remember me"
                 android:textColor="@color/GoldenEmber" />
 
+            <TextView
+                android:id="@+id/tvError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:text=""
+                android:textColor="@color/FireBurst"
+                android:textSize="14sp"
+                android:visibility="gone"
+                android:fontFamily="@font/aref_ruqaa" />
+
             <Button
-                android:id="@+id/btn_login"
+                android:id="@+id/btnLogin"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="60dp"
@@ -169,9 +174,18 @@
                 android:text="Login"
                 app:cornerRadius="5dp" />
 
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyle"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@id/btnGoToSignUp"
+                app:layout_constraintStart_toStartOf="@id/btnGoToSignUp"
+                app:layout_constraintEnd_toEndOf="@id/btnGoToSignUp"
+                android:layout_marginTop="16dp"/>
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 4) Content area fills the rest -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

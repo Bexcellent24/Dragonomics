@@ -10,18 +10,17 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
-        android:layout_height="90dp"
+        android:layout_height="wrap_content"
         android:background="@color/DeepAbyss"
-        app:itemIconSize="36dp"
+        android:paddingTop="0dp"
+        android:paddingBottom="0dp"
+        app:itemIconSize="28dp"
         app:itemIconTint="@null"
         app:itemBackground="@android:color/transparent"
-        app:itemPaddingBottom="5dp"
-        app:itemRippleColor="@null"
         app:itemTextColor="@color/nav_item_color"
-        app:itemActiveIndicatorStyle="@null"
         app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        app:layout_constraintEnd_toEndOf="parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

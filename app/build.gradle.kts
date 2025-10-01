@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
-    kotlin("kapt")
+    //kotlin("kapt")
 }
 
 android {
@@ -33,6 +33,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidbrowserhelper)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -46,6 +47,9 @@ dependencies {
     ksp("androidx.room:room-compiler:2.6.1")
 
     implementation("com.google.code.gson:gson:2.11.0")
+
+    //To remember users
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
     // DO NOT include Room kapt/annotationProcessor lines anymore
 }

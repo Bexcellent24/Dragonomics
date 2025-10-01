@@ -17,6 +17,8 @@ class Repository(private val db: AppDatabase) {
     val transactionDao = db.transactionDao()
     val nestDao = db.nestDao()
 
+    val users = db.userDao()
+
     // Adds a transaction to the database
     suspend fun addTransaction(transaction: Transaction) = transactionDao.insert(transaction)
 
@@ -46,5 +48,32 @@ class Repository(private val db: AppDatabase) {
             val fromNest = transaction.fromCategoryId?.let { nestDao.getById(it) }
             TransactionWithNest(transaction, categoryNest, fromNest)
         }
+    }
+
+
+
+
+    // ---------- USERS LOGIN / SIGN UP ----------
+    suspend fun signUpUser(username: String, email: String, password: String): Result<Long> {
+        val u = username.trim(); val e = email.trim(); val p = password.toCharArray()
+        if (u.isBlank() || e.isBlank() || p.isEmpty())
+            return Result.failure(IllegalArgumentException("All fields required"))
+
+        if (users.findByUsername(u) != null)
+            return Result.failure(IllegalStateException("Username taken"))
+
+        val salt = PasswordHasher.newSalt()
+        val hash = PasswordHasher.hash(p, salt)
+        p.fill('*')
+
+        val id = users.insert(UserEntity(username = u, email = e, passwordHash = hash, salt = salt))
+        return Result.success(id)
+    }
+
+    suspend fun loginUser(username: String, password: String): Result<UserEntity> {
+        val user = users.findByUsername(username.trim())
+            ?: return Result.failure(Exception("Invalid credentials"))
+        val ok = PasswordHasher.verify(password.toCharArray(), user.salt, user.passwordHash)
+        return if (ok) Result.success(user) else Result.failure(Exception("Invalid credentials"))
     }
 }
