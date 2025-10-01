@@ -23,8 +23,8 @@ import com.TheBudgeteers.dragonomics.databinding.ActivityHomeBinding
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.tabs.TabLayout
 
-private const val DRAGON_BIG_DP = 360
-private const val DRAGON_SMALL_DP = 250
+private const val DRAGON_BIG_DP = 250
+private const val DRAGON_SMALL_DP = 200
 private const val ROTATE_MS = 180L
 private const val KEY_EXPANDED = "expanded"
 private const val KEY_ACH_OPEN = "ach_open"

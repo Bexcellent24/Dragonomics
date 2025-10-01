@@ -291,7 +291,7 @@
     <ImageView
         android:id="@+id/dragon"
         android:layout_width="0dp"
-        android:layout_height="500dp"
+        android:layout_height="200dp"
         android:layout_marginTop="20dp"
         android:adjustViewBounds="true"
         android:scaleType="fitCenter"
