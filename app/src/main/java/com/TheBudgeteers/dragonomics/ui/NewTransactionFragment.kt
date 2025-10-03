@@ -37,7 +37,7 @@ import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
-import androidx.core.os.bundleOf // <-- ADDED for setFragmentResult payload
+import androidx.core.os.bundleOf
 
 class NewTransactionFragment : DialogFragment() {
 
@@ -186,25 +186,12 @@ class NewTransactionFragment : DialogFragment() {
     private val takePictureLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-                // Photo was taken successfully
-                // currentPhotoPath is already set in createImageFile()
+                // Photo captured successfully. currentPhotoPath was set in createImageFile().
                 Toast.makeText(requireContext(), "Photo captured!", Toast.LENGTH_SHORT).show()
             } else {
-                // Photo capture was cancelled or failed
+                // Capture canceled/failed — clear stored values.
                 currentPhotoPath = null
                 photoUri = null
-=======
-                photoUri?.let { currentPhotoPath = it.toString() }
->>>>>>> Stashed changes
-=======
-                photoUri?.let { currentPhotoPath = it.toString() }
->>>>>>> Stashed changes
-=======
-                photoUri?.let { currentPhotoPath = it.toString() }
->>>>>>> Stashed changes
             }
         }
 
@@ -214,24 +201,8 @@ class NewTransactionFragment : DialogFragment() {
             val timeStamp: String =
                 SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val storageDir: File = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-            File.createTempFile(
-                "JPEG_${timeStamp}_",
-                ".jpg",
-                storageDir
-            ).apply {
-                // FIXED: Save the actual file path, not the URI
-=======
             File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir).apply {
->>>>>>> Stashed changes
-=======
-            File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir).apply {
->>>>>>> Stashed changes
-=======
-            File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir).apply {
->>>>>>> Stashed changes
+                // Save the **real file system path** for DB storage
                 currentPhotoPath = absolutePath
             }
         } catch (ex: IOException) {
@@ -297,7 +268,7 @@ class NewTransactionFragment : DialogFragment() {
             title = title,
             amount = amount,
             date = selectedDate,
-            photoPath = currentPhotoPath,  // This now contains the actual file path
+            photoPath = currentPhotoPath,  // real file path if photo was taken
             description = edtDescription.text.toString().trim(),
             categoryId = selectedCategory!!.id,
             fromCategoryId = if (isExpense) selectedFromCategory!!.id else null
@@ -309,25 +280,14 @@ class NewTransactionFragment : DialogFragment() {
 
         vm.addTransaction(transaction)
 
-        // ===== NEW: tell host activity we saved and whether a photo was attached =====
+        // Notify host (e.g., ExpensesActivity) for XP/mood bonuses, etc.
         val addedPhoto = currentPhotoPath != null
         parentFragmentManager.setFragmentResult(
             "tx_saved",
             bundleOf("addedPhoto" to addedPhoto)
         )
-        // ============================================================================
 
         Toast.makeText(requireContext(), "Transaction created successfully", Toast.LENGTH_SHORT).show()
         dismiss()
     }
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 }
-=======
-}
->>>>>>> Stashed changes

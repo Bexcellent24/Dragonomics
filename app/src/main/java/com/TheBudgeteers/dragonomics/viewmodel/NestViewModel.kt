@@ -8,7 +8,6 @@ import com.TheBudgeteers.dragonomics.models.Mood
 import com.TheBudgeteers.dragonomics.models.Nest
 import com.TheBudgeteers.dragonomics.models.NestType
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -70,47 +69,31 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+    // ---- Queries / flows ----
+
     suspend fun getNestsByType(type: NestType): List<Nest> =
         repository.getNests().filter { it.type == type }
-
+/*
     fun getIncomeNestBudget(nestId: Long): Double {
         var budget = 0.0
         runBlocking {
             budget = repository.getTotalIncomeForNest(nestId)
         }
         return budget
-    }
+    }*/
 
->>>>>>> Stashed changes
     fun getSpentAmountFlow(nestId: Long) =
         repository.getSpentAmountFromNestFlow(nestId)
 
-    fun getNestsByTypeLive(type: NestType) = repository.getNestsFlowByType(type)
+    fun getNestsByTypeLive(type: NestType) =
+        repository.getNestsFlowByType(type)
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
+    /** Optional helper (keep only if your Repository exposes getSpentAmountsInRange). */
     fun getSpentAmountsInRange(start: Long, end: Long): Flow<Map<Long, Double>> {
-        println("getSpentAmountsInRange called with start=$start, end=$end")
         return repository.getSpentAmountsInRange(start, end)
-            .map { list ->
-                val map = list.associate { it.nestId to it.spent }
-                println("Spent amounts in range ($start - $end): $map")
-                map
-            }
-=======
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
+            .map { list -> list.associate { it.nestId to it.spent } }
+    }
+
     // ---- Overall mood for Home ----
 
     enum class Weighting { EQUAL, BUDGET, SPENT }
@@ -175,12 +158,5 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         Mood.NEGATIVE -> com.TheBudgeteers.dragonomics.R.drawable.angry_mood
     }.let { resolved ->
         if (resolved != 0) resolved else com.TheBudgeteers.dragonomics.R.drawable.happy_mood
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
     }
 }

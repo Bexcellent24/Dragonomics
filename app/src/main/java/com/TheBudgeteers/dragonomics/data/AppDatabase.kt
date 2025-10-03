@@ -7,29 +7,15 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.TheBudgeteers.dragonomics.models.Nest
 import com.TheBudgeteers.dragonomics.models.Transaction
-
-import androidx.room.Entity
-import androidx.room.Index
-import androidx.room.PrimaryKey
 import com.TheBudgeteers.dragonomics.models.UserEntity
 
-// AppDatabase.kt
-// Main Room database. Holds all tables (entities) and their DAOs.
-// Added a singleton so only one DB instance exists across the whole app.
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-@Database(entities = [Transaction::class, Nest::class, UserEntity::class], version = 5)
-=======
-@Database(entities = [Transaction::class, Nest::class, UserEntity::class], version = 3)
->>>>>>> Stashed changes
-=======
-@Database(entities = [Transaction::class, Nest::class, UserEntity::class], version = 3)
->>>>>>> Stashed changes
-=======
-@Database(entities = [Transaction::class, Nest::class, UserEntity::class], version = 3)
->>>>>>> Stashed changes
+// If you have a Converters class (e.g., for dates/uris), keep this.
+// Otherwise remove @TypeConverters and the import.
+@Database(
+    entities = [Transaction::class, Nest::class, UserEntity::class],
+    version = 5,                 // <— keep this in sync with your latest schema
+    exportSchema = false
+)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
@@ -48,7 +34,9 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "dragonomics_db"
                 )
-                    .fallbackToDestructiveMigration() // wipes DB if schema mismatches
+                    // Dev-friendly; wipes DB on schema mismatch.
+                    // Replace with proper Migrations when ready.
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance
@@ -56,4 +44,3 @@ abstract class AppDatabase : RoomDatabase() {
         }
     }
 }
-
