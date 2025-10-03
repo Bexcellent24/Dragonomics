@@ -19,7 +19,11 @@ import com.TheBudgeteers.dragonomics.models.UserEntity
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 @Database(entities = [Transaction::class, Nest::class, UserEntity::class], version = 5)
+=======
+@Database(entities = [Transaction::class, Nest::class, UserEntity::class], version = 3)
+>>>>>>> Stashed changes
 =======
 @Database(entities = [Transaction::class, Nest::class, UserEntity::class], version = 3)
 >>>>>>> Stashed changes
