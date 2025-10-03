@@ -5,18 +5,15 @@ import android.view.MenuItem
 import android.widget.LinearLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.TheBudgeteers.dragonomics.data.NestLayoutType
 import com.TheBudgeteers.dragonomics.data.RepositoryProvider
 import com.TheBudgeteers.dragonomics.databinding.ActivityExpensesBinding
-import com.TheBudgeteers.dragonomics.databinding.ActivityHomeBinding
 import com.TheBudgeteers.dragonomics.models.NestType
 import com.TheBudgeteers.dragonomics.testing.TestDataSeeder
 import com.TheBudgeteers.dragonomics.ui.NestFragment
 import com.TheBudgeteers.dragonomics.ui.NewTransactionFragment
+import com.TheBudgeteers.dragonomics.ui.StatsFragment
 import com.TheBudgeteers.dragonomics.ui.TransactionFragment
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.launch
@@ -48,6 +45,11 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
             onNavigationItemSelected(item)
         }
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.month_summary, StatsFragment.newInstance(toggleEnabled = false))
+            .commit()
+
         binding.btnEditNests.setOnClickListener {
             openIntent(this, "", NestsActivity::class.java)
         }

@@ -4,5 +4,5 @@ class Enums {
 }
 
 enum class NestLayoutType {
-    GRID, LIST
+    GRID, LIST, HISTORY
 }

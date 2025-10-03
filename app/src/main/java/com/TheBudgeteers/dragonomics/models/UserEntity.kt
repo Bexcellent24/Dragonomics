@@ -13,5 +13,8 @@ data class UserEntity(
     val username: String,
     val email: String,
     val passwordHash: String,
-    val salt: String
+    val salt: String,
+
+    val minGoal: Double? = null,
+    val maxGoal: Double? = null
 )

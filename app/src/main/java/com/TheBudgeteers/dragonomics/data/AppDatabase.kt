@@ -17,7 +17,7 @@ import com.TheBudgeteers.dragonomics.models.UserEntity
 // Main Room database. Holds all tables (entities) and their DAOs.
 // Added a singleton so only one DB instance exists across the whole app.
 
-@Database(entities = [Transaction::class, Nest::class, UserEntity::class], version = 2)
+@Database(entities = [Transaction::class, Nest::class, UserEntity::class], version = 5)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 

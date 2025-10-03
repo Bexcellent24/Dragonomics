@@ -1,48 +1,30 @@
 package com.TheBudgeteers.dragonomics.data
 
-
 import com.TheBudgeteers.dragonomics.models.Transaction
 import com.TheBudgeteers.dragonomics.models.Nest
+import com.TheBudgeteers.dragonomics.models.NestSpent
 import com.TheBudgeteers.dragonomics.models.NestType
 import com.TheBudgeteers.dragonomics.models.TransactionWithNest
 import com.TheBudgeteers.dragonomics.models.UserEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-// Repository.kt
-// This is the main data layer for the app.
-// It connects the DAOs (TransactionDao, NestDao) to the ViewModels.
-// Keeps database logic in one place so ViewModels don’t have to worry about queries.
-// Acts as a single point to fetch, insert and manage data.
-
 class Repository(private val db: AppDatabase) {
 
-    // Shortcuts to DAOs
     val transactionDao = db.transactionDao()
     val nestDao = db.nestDao()
-
     val users = db.userDao()
 
-    // Adds a transaction to the database
     suspend fun addTransaction(transaction: Transaction) = transactionDao.insert(transaction)
 
-    // Gets all transactions
     suspend fun getTransactions() = transactionDao.getAll()
 
-    // Gets transactions between two timestamps
-    suspend fun getTransactionsBetween(start: Long, end: Long) =
-        transactionDao.getByDateRange(start, end)
-
-    // Adds a new nest to the database
     suspend fun addNest(nest: Nest) = nestDao.insert(nest)
 
-    // Gets all nests
     suspend fun getNests() = nestDao.getAll()
 
-    // Gets a specific nest by its ID
     suspend fun getNestById(id: Long) = nestDao.getById(id)
 
-    // Gets all transactions for a specific nest
     suspend fun getTransactionsByNestId(nestId: Long) = transactionDao.getByCategoryId(nestId)
 
     suspend fun getTransactionsWithNests(): List<TransactionWithNest> {
@@ -57,16 +39,10 @@ class Repository(private val db: AppDatabase) {
     fun getSpentAmountFromNestFlow(nestId: Long) =
         transactionDao.getSpentAmountFromNestFlow(nestId)
 
-    suspend fun getTotalIncomeForNest(nestId: Long): Double {
-        return transactionDao.getTotalIncomeForNest(nestId) ?: 0.0
-    }
-
     fun getReactiveNestsFlowByType(type: NestType) =
         nestDao.getAllFlowByType(type.name)
 
-    // Flow version: automatically emits whenever data changes
-    fun getNestsFlow() = nestDao.getAllFlow()
-    fun getNestsFlowByType(type: com.TheBudgeteers.dragonomics.models.NestType) =
+    fun getNestsFlowByType(type: NestType) =
         nestDao.getAllFlow().map { list -> list.filter { it.type == type } }
 
     fun getTransactionsWithNestsFlow(): Flow<List<TransactionWithNest>> =
@@ -78,7 +54,53 @@ class Repository(private val db: AppDatabase) {
             }
         }
 
+    fun getUserFlow(userId: Long): Flow<UserEntity?> {
+        return users.getUserFlow(userId)
+    }
 
+    fun getMonthlyStatsFlow(start: Long, end: Long): Flow<MonthlyStats> {
+        return transactionDao.getByDateRangeFlow(start, end).map { transactions ->
+            var income = 0.0
+            var expenses = 0.0
+
+            transactions.forEach { t ->
+                val nest = nestDao.getById(t.categoryId)
+                if (nest.type == NestType.INCOME) {
+                    income += t.amount
+                } else if (nest.type == NestType.EXPENSE) {
+                    expenses += t.amount
+                }
+            }
+
+            MonthlyStats(
+                income = income,
+                expenses = expenses,
+                remaining = income - expenses
+            )
+        }
+    }
+
+    fun getTransactionsBetweenFlow(start: Long, end: Long): Flow<List<Transaction>> {
+        return transactionDao.getByDateRangeFlow(start, end)
+    }
+
+    fun getSpentAmountForNestInRange(nestId: Long, start: Long, end: Long): Flow<Double> {
+        return transactionDao.getSpentForNestInRange(nestId, start, end)
+    }
+
+    fun getSpentAmountsInRange(start: Long, end: Long): Flow<List<NestSpent>> {
+        return transactionDao.getSpentAmountsInRangeFlow(start, end)
+    }
+
+    fun getTransactionsWithNestBetweenFlow(start: Long, end: Long): Flow<List<TransactionWithNest>> {
+        return transactionDao.getByDateRangeFlow(start, end).map { transactions ->
+            transactions.map { transaction ->
+                val categoryNest = nestDao.getById(transaction.categoryId)
+                val fromNest = transaction.fromCategoryId?.let { nestDao.getById(it) }
+                TransactionWithNest(transaction, categoryNest, fromNest)
+            }
+        }
+    }
 
     // ---------- USERS LOGIN / SIGN UP ----------
     suspend fun signUpUser(username: String, email: String, password: String): Result<Long> {
@@ -103,6 +125,4 @@ class Repository(private val db: AppDatabase) {
         val ok = PasswordHasher.verify(password.toCharArray(), user.salt, user.passwordHash)
         return if (ok) Result.success(user) else Result.failure(Exception("Invalid credentials"))
     }
-
-
 }

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="4dp"
+    android:layout_margin="4dp"
+    android:background="@color/DeepAbyss">
+
+    <ImageView
+        android:id="@+id/imgNestIcon"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_margin="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtNestName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nest Name"
+        android:textSize="15sp"
+        android:textColor="@color/GoldenEmber"
+        android:fontFamily="@font/aref_ruqaa"
+        android:ellipsize="end"
+        android:singleLine="true"
+        app:layout_constraintStart_toEndOf="@id/imgNestIcon"
+        app:layout_constraintTop_toTopOf="@id/imgNestIcon"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/txtSpentInRange"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:fontFamily="@font/aref_ruqaa"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:background="@color/MidnightViolet"
+        android:textAlignment="center"
+        app:layout_constraintStart_toStartOf="@id/imgNestIcon"
+        app:layout_constraintTop_toBottomOf="@id/imgNestIcon"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

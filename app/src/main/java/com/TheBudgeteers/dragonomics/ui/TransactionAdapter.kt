@@ -48,7 +48,8 @@ class TransactionAdapter(
 
         // Colour amount box: green for income, red for expense
         val bg = holder.txtAmount.background as GradientDrawable
-        bg.setColor(if (item.categoryNest.type == NestType.INCOME) Color.GREEN else Color.RED)
+        bg.setColor(if (item.categoryNest.type == NestType.INCOME) Color.parseColor("#3E8644") else Color.parseColor("#9C2124"))
+
     }
 
 

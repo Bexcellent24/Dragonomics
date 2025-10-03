@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.TheBudgeteers.dragonomics.models.UserEntity
+import kotlinx.coroutines.flow.Flow
 
 // This is the DAO (Data Access Object) for users.
 // It defines how we compare and query user input checks in the database.
@@ -16,4 +17,7 @@ interface UserDao {
 
     @Query("SELECT * FROM users WHERE username = :username LIMIT 1")
     suspend fun findByUsername(username: String): UserEntity?
+
+    @Query("SELECT * FROM users WHERE id = :id LIMIT 1")
+    fun getUserFlow(id: Long): Flow<UserEntity?>
 }

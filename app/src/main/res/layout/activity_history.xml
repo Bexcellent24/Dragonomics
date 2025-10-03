@@ -1,12 +1,155 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:bind="http://schemas.android.com/tools"
     android:id="@+id/dashboard"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".HistoryActivity">
+    android:orientation="vertical"
+    android:layout_gravity="center"
+    android:background="@color/DeepAbyss">
 
+    <!-- Top Controls Row -->
+    <LinearLayout
+        android:id="@+id/topControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="8dp"
+        android:layout_marginTop="30dp">
+
+        <ImageView
+            android:id="@+id/prevMonthButton"
+            android:layout_width="0dp"
+            android:layout_height="25dp"
+            android:layout_weight="0.1"
+            android:src="@drawable/ic_arrow_left"
+            android:contentDescription="Previous Month" />
+
+        <TextView
+            android:id="@+id/currentMonthText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:padding="4dp"
+            android:text="October"
+            android:textSize="16sp"
+            android:fontFamily="@font/breathe_fire_iii"
+            android:textColor="@color/GoldenEmber"
+            android:gravity="center" />
+
+        <ImageView
+            android:id="@+id/nextMonthButton"
+            android:layout_width="0dp"
+            android:layout_height="25dp"
+            android:layout_weight="0.1"
+            android:layout_marginRight="5dp"
+            android:src="@drawable/ic_arrow_right"
+            android:contentDescription="Next Month" />
+
+        <include
+            android:id="@+id/startDateButton"
+            layout="@layout/start_date_button" />
+
+        <include
+            android:id="@+id/endDateButton"
+            layout="@layout/end_date_button" />
+    </LinearLayout>
+
+
+    <!-- Pie Chart + Income/Expenses -->
+    <FrameLayout
+        android:id="@+id/pieChartContainer"
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:layout_margin="16dp">
+
+        <!-- Pie Chart Placeholder -->
+        <ImageView
+            android:id="@+id/pieChartPlaceholder"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:cropToPadding="false"
+            android:scaleType="centerInside"
+            android:layout_marginRight="10dp"
+            android:src="@drawable/chart" />
+
+        <!-- Overlay for Income/Expenses -->
+        <LinearLayout
+            android:id="@+id/incomeExpensesContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <!-- Income Label -->
+            <TextView
+                android:id="@+id/incomeLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Income"
+                android:fontFamily="@font/breathe_fire_iii"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- Income Amount -->
+            <TextView
+                android:id="@+id/incomeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R0"
+                android:fontFamily="@font/aref_ruqaa"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- Expenses Label -->
+            <TextView
+                android:id="@+id/expensesLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Expenses"
+                android:fontFamily="@font/breathe_fire_iii"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp" />
+
+            <!-- Expenses Amount -->
+            <TextView
+                android:id="@+id/expensesText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="R0"
+                android:fontFamily="@font/aref_ruqaa"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/history_fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/transactionsRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="3"
+        android:clipToPadding="false"
+        android:padding="8dp"
+        android:background="@color/MidnightViolet"/>
+
+
+    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
@@ -19,8 +162,5 @@
         app:itemBackground="@android:color/transparent"
         app:itemTextColor="@color/nav_item_color"
         app:labelVisibilityMode="labeled"
-        app:menu="@menu/bottom_nav_menu"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+        app:menu="@menu/bottom_nav_menu" />
+</LinearLayout>

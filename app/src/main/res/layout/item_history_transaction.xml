@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/historyTransactionRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:background="#222134"
+    android:gravity="center_vertical">
+
+    <!-- Left Icon & Arrow -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/imgFromCategory"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/ci_coin_stack"/>
+
+        <ImageView
+            android:id="@+id/imgArrow"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/arrow"/>
+
+        <ImageView
+            android:id="@+id/imgCategoryIcon"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ci_fuel"/>
+    </LinearLayout>
+
+    <!-- Title & Description -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/txtTransactionTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Transaction Title"
+            android:textStyle="bold"
+            android:fontFamily="@font/aref_ruqaa"
+            android:textColor="@color/GoldenEmber"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/txtTransactionDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Transaction Description"
+            android:textSize="14sp"
+            android:fontFamily="@font/aref_ruqaa"
+            android:textColor="@color/GoldenEmber" />
+
+    </LinearLayout>
+
+    <!-- Photo Icon -->
+    <ImageView
+        android:id="@+id/imgPhotoIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/add_pic"
+        />
+
+    <!-- Amount Box -->
+    <TextView
+        android:id="@+id/txtTransactionAmount"
+        android:layout_width="75dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/history_amount_box"
+        android:gravity="center"
+        android:text="R0"
+        android:fontFamily="@font/aref_ruqaa"
+        android:textStyle="bold"
+        android:textColor="@color/GoldenEmber" />
+
+</LinearLayout>

@@ -6,6 +6,9 @@ import com.TheBudgeteers.dragonomics.data.Repository
 import com.TheBudgeteers.dragonomics.models.Mood
 import com.TheBudgeteers.dragonomics.models.Nest
 import com.TheBudgeteers.dragonomics.models.NestType
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -64,20 +67,18 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    suspend fun getNestsByType(type: NestType): List<Nest> {
-        return repository.getNests().filter { it.type == type }
-    }
-
-    fun getIncomeNestBudget(nestId: Long): Double {
-        var budget = 0.0
-        runBlocking {
-            budget = repository.getTotalIncomeForNest(nestId)
-        }
-        return budget
-    }
-
     fun getSpentAmountFlow(nestId: Long) =
         repository.getSpentAmountFromNestFlow(nestId)
 
     fun getNestsByTypeLive(type: NestType) = repository.getNestsFlowByType(type)
+
+    fun getSpentAmountsInRange(start: Long, end: Long): Flow<Map<Long, Double>> {
+        println("getSpentAmountsInRange called with start=$start, end=$end")
+        return repository.getSpentAmountsInRange(start, end)
+            .map { list ->
+                val map = list.associate { it.nestId to it.spent }
+                println("Spent amounts in range ($start - $end): $map")
+                map
+            }
+    }
 }

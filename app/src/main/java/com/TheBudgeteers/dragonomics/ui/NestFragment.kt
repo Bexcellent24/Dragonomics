@@ -16,6 +16,8 @@ import com.TheBudgeteers.dragonomics.data.AppDatabase
 import com.TheBudgeteers.dragonomics.data.NestLayoutType
 import com.TheBudgeteers.dragonomics.data.Repository
 import com.TheBudgeteers.dragonomics.models.NestType
+import com.TheBudgeteers.dragonomics.viewmodel.HistoryViewModel
+import com.TheBudgeteers.dragonomics.viewmodel.HistoryViewModelFactory
 import com.TheBudgeteers.dragonomics.viewmodel.NestViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.NestViewModelFactory
 import kotlinx.coroutines.launch
@@ -60,6 +62,7 @@ class NestFragment : Fragment() {
         recyclerView.layoutManager = when (layoutType) {
             NestLayoutType.GRID -> GridLayoutManager(requireContext(), 2)
             NestLayoutType.LIST -> LinearLayoutManager(requireContext())
+            NestLayoutType.HISTORY -> GridLayoutManager(requireContext(), 4)
         }
 
         return view
@@ -72,10 +75,37 @@ class NestFragment : Fragment() {
         val factory = NestViewModelFactory(repository)
         nestViewModel = ViewModelProvider(this, factory).get(NestViewModel::class.java)
 
-        // Create adapter once
-        adapter = NestAdapter(nestViewModel, layoutType, viewLifecycleOwner.lifecycleScope) { clickedNest ->
-            Toast.makeText(requireContext(), "Clicked ${clickedNest.name}", Toast.LENGTH_SHORT).show()
+        // Create adapter with date flows if this is a HISTORY layout
+        adapter = if (layoutType == NestLayoutType.HISTORY) {
+            // Get HistoryViewModel from the Activity
+            val historyViewModel = ViewModelProvider(
+                requireActivity(),
+                HistoryViewModelFactory(repository)
+            ).get(HistoryViewModel::class.java)
+
+            // Pass the date flows to the adapter
+            NestAdapter(
+                nestViewModel,
+                layoutType,
+                viewLifecycleOwner.lifecycleScope,
+                historyViewModel.startDate,
+                historyViewModel.endDate
+            ) { clickedNest ->
+                Toast.makeText(requireContext(), "Clicked ${clickedNest.name}", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            // For GRID and LIST layouts, don't pass date flows (null values)
+            NestAdapter(
+                nestViewModel,
+                layoutType,
+                viewLifecycleOwner.lifecycleScope,
+                null,
+                null
+            ) { clickedNest ->
+                Toast.makeText(requireContext(), "Clicked ${clickedNest.name}", Toast.LENGTH_SHORT).show()
+            }
         }
+
         recyclerView.adapter = adapter
 
         // Collect flow and update adapter's data
@@ -89,6 +119,4 @@ class NestFragment : Fragment() {
             // No manual refresh needed, flow will emit automatically if DB changes
         }
     }
-
 }
-

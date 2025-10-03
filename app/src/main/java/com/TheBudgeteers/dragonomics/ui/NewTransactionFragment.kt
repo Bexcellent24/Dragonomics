@@ -63,8 +63,6 @@ class NewTransactionFragment : DialogFragment() {
     private var photoUri: Uri? = null
     private var currentPhotoPath: String? = null
 
-
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -86,7 +84,6 @@ class NewTransactionFragment : DialogFragment() {
         btnCreate = view.findViewById(R.id.btnCreateTransaction)
         recyclerFromCategories = view.findViewById(R.id.recyclerFromCategories)
 
-
         setupToggleButtons()
         setupCategoryGrid()
 
@@ -96,8 +93,6 @@ class NewTransactionFragment : DialogFragment() {
         val repository = Repository(AppDatabase.getDatabase(requireContext()))
         nestViewModel = ViewModelProvider(this, NestViewModelFactory(repository))
             .get(NestViewModel::class.java)
-
-
 
         btnDate.setOnClickListener { showDatePicker() }
 
@@ -147,8 +142,6 @@ class NewTransactionFragment : DialogFragment() {
 
         loadCategories(expense)
     }
-
-
 
     private fun loadCategories(expense: Boolean) {
         val type = if (expense) NestType.EXPENSE else NestType.INCOME
@@ -202,15 +195,19 @@ class NewTransactionFragment : DialogFragment() {
                 Toast.makeText(requireContext(), "Camera permission required", Toast.LENGTH_SHORT).show()
             }
         }
+
     private val takePictureLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
-                photoUri?.let {
-                    currentPhotoPath = it.toString()
-                }
+                // Photo was taken successfully
+                // currentPhotoPath is already set in createImageFile()
+                Toast.makeText(requireContext(), "Photo captured!", Toast.LENGTH_SHORT).show()
+            } else {
+                // Photo capture was cancelled or failed
+                currentPhotoPath = null
+                photoUri = null
             }
         }
-
 
     @Throws(IOException::class)
     private fun createImageFile(): File? {
@@ -222,6 +219,7 @@ class NewTransactionFragment : DialogFragment() {
                 ".jpg",
                 storageDir
             ).apply {
+                // FIXED: Save the actual file path, not the URI
                 currentPhotoPath = absolutePath
             }
         } catch (ex: IOException) {
@@ -230,7 +228,6 @@ class NewTransactionFragment : DialogFragment() {
             null
         }
     }
-
 
     private fun takePhotoWithPermissionCheck() {
         requestPermissionLauncher.launch(android.Manifest.permission.CAMERA)
@@ -250,7 +247,6 @@ class NewTransactionFragment : DialogFragment() {
         }
     }
 
-
     private fun setupCategoryGrid() {
         recyclerCategories.layoutManager = GridLayoutManager(requireContext(), 6)
     }
@@ -262,7 +258,6 @@ class NewTransactionFragment : DialogFragment() {
 
         btnCreate.isEnabled = hasTitle && hasCategory && hasFromCategory
     }
-
 
     private fun createTransaction() {
         val title = edtTitle.text.toString().trim()
@@ -294,9 +289,9 @@ class NewTransactionFragment : DialogFragment() {
             title = title,
             amount = amount,
             date = selectedDate,
-            photoPath = currentPhotoPath,
+            photoPath = currentPhotoPath,  // This now contains the actual file path
             description = edtDescription.text.toString().trim(),
-            categoryId = selectedCategory!!.id, // safe because we checked above
+            categoryId = selectedCategory!!.id,
             fromCategoryId = if (isExpense) selectedFromCategory!!.id else null
         )
 
@@ -309,5 +304,4 @@ class NewTransactionFragment : DialogFragment() {
         Toast.makeText(requireContext(), "Transaction created successfully", Toast.LENGTH_SHORT).show()
         dismiss()
     }
-
 }
