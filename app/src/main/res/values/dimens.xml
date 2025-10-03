@@ -2,4 +2,18 @@
 <resources>
     <dimen name="colour_cell_size">64dp</dimen>
     <dimen name="colour_cell_spacing">8dp</dimen>
+
+    <!-- XP BAR STUFF -->
+
+    <!-- Horizontal padding so the fill sits inside the rounded frame -->
+    <dimen name="xp_window_inset_start">20dp</dimen>
+    <dimen name="xp_window_inset_end">18dp</dimen>
+
+    <!-- Vertical padding - these control the "offset" -->
+    <dimen name="xp_window_inset_top">13dp</dimen>
+    <dimen name="xp_window_inset_bottom">15dp</dimen>
+
+    <!-- Line thickness & corners: match the clear window height -->
+    <dimen name="xp_window_thickness">12dp</dimen>
+    <dimen name="xp_window_corner">6dp</dimen>
 </resources>

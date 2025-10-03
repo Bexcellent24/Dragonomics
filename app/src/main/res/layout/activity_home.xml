@@ -250,12 +250,40 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageView
-            android:id="@+id/xpImg"
-            android:layout_width="80dp"
-            android:layout_height="40dp"
-            android:scaleType="fitCenter"
-            app:srcCompat="@drawable/xp_bar"/>
+        <FrameLayout
+            android:id="@+id/xpBarFrame"
+            android:layout_width="120dp"
+            android:layout_height="40dp">
+
+            <!-- Progress line: exact height, pinned from TOP, with asymmetric insets -->
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/xpProgress"
+                style="@style/Widget.Material3.LinearProgressIndicator"
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_gravity="top"
+                android:layout_marginStart="22dp"
+                android:layout_marginTop="21dp"
+                android:layout_marginEnd="20dp"
+                android:max="100"
+                android:progress="0"
+                app:indicatorColor="@color/GoldenEmber"
+                app:trackColor="@android:color/transparent"
+                app:trackCornerRadius="5dp"
+                app:trackThickness="10dp" />
+
+            <!-- Overlay frame must stretch exactly to container -->
+            <ImageView
+                android:id="@+id/xpImg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                app:srcCompat="@drawable/xp_bar" />
+        </FrameLayout>
+
+
+
+
 
         <TextView
             android:id="@+id/xpTxt"

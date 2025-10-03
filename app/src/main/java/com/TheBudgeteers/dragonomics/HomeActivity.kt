@@ -1,5 +1,5 @@
 package com.TheBudgeteers.dragonomics
-import com.TheBudgeteers.dragonomics.R
+
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
@@ -14,6 +14,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,8 +23,15 @@ import androidx.transition.TransitionManager
 import com.TheBudgeteers.dragonomics.databinding.ActivityHomeBinding
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.tabs.TabLayout
+import com.TheBudgeteers.dragonomics.gamify.DragonGameProvider
+import com.TheBudgeteers.dragonomics.gamify.DragonGame
+import com.TheBudgeteers.dragonomics.gamify.DragonGameEvents
+import com.TheBudgeteers.dragonomics.gamify.DragonRules
+import com.TheBudgeteers.dragonomics.gamify.DragonMoodManager
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
-private const val DRAGON_BIG_DP = 250
+private const val DRAGON_BIG_DP = 280
 private const val DRAGON_SMALL_DP = 200
 private const val ROTATE_MS = 180L
 private const val KEY_EXPANDED = "expanded"
@@ -33,14 +41,15 @@ private const val KEY_SHOP_OPEN = "shop_open"
 class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private var expanded = false
-
     private lateinit var binding: ActivityHomeBinding
 
-    // --- shop state ---
+    // Game state (Option A: lateinit)
+    private lateinit var dragonGame: DragonGame
+
+    // --- shop state
     private lateinit var shopAdapter: ShopAdapter
     private var currency: Int = 0
 
-    // sample 4-per-tab items
     private val hornsItems = listOf(
         ShopItem("horns_twisted",  "Twisted Horns",  90, previewRes = R.drawable.placeholder_item),
         ShopItem("horns_curly",    "Curly Horns",    90, previewRes = R.drawable.placeholder_item),
@@ -64,12 +73,25 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // 1) Inflate UI first
         binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.bottomNavigationView.setOnItemSelectedListener { item ->
-            onNavigationItemSelected(item)
+        // 2) Initialize dragonGame BEFORE any collectors or UI refreshes that use it
+        dragonGame = DragonGameProvider.get(this)
+        dragonGame.onDailyLogin()
+
+        // 3) Now it’s safe to collect state changes and refresh UI from them
+        lifecycleScope.launch {
+            DragonGameEvents.stateChanged.collectLatest { s ->
+                if (s != null) {
+                    refreshDragonUi()
+                    refreshDragonMoodIcon()
+                }
+            }
         }
+
+        binding.bottomNavigationView.setOnItemSelectedListener { item -> onNavigationItemSelected(item) }
         binding.bottomNavigationView.itemIconTintList = null
 
         val root = binding.dashboard
@@ -100,6 +122,9 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val achAdapter = AchievementsAdapter(emptyList())
         achRecycler.adapter = achAdapter
 
+        // First render now that everything’s initialized
+        refreshDragonUi()
+        refreshDragonMoodIcon()
 
         achAdapter.submit(
             listOf(
@@ -155,7 +180,8 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         achCard.setOnClickListener { /* swallow */ }
 
         // ---------- shop open/close ----------
-        currency = homeCurrText.text.toString().toIntOrNull() ?: 0
+        var currencyLocal = homeCurrText.text.toString().toIntOrNull() ?: 0
+        currency = currencyLocal
         shopCurrAmt.text = currency.toString()
 
         shopBtn.setOnClickListener {
@@ -176,12 +202,9 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.drawable.wings_shop
         )
 
-        if (shopTabs.tabCount == 0)
-        {
+        if (shopTabs.tabCount == 0) {
             repeat(3) { i -> shopTabs.addTab(shopTabs.newTab().setIcon(tabIcons[i])) }
-        }
-        else
-        {
+        } else {
             for (i in 0 until shopTabs.tabCount)
                 shopTabs.getTabAt(i)?.icon = ContextCompat.getDrawable(this, tabIcons[i])
         }
@@ -239,6 +262,15 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 else -> finish()
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        DragonMoodManager.getOverallMood(this)?.let { nestMood ->
+            dragonGame.setOverallMood(nestMood.toDragonMood())
+        }
+        refreshDragonUi()
+        refreshDragonMoodIcon()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -338,14 +370,12 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     binding.currencyTxt.text = currency.toString()
                     list[idx] = current.copy(owned = true)
                 } else {
-
+                    // not enough currency; toast/snackbar if desired
                 }
             }
         }
         shopAdapter.submitList(list)
     }
-
-    // --- Option 2 ---
 
     private fun Int.dp(): Int =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this.toFloat(), resources.displayMetrics).toInt()
@@ -358,10 +388,8 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             val padH = horizPadDp.dp()
             for (i in 0 until strip.childCount) {
                 val tabView = strip.getChildAt(i) as? ViewGroup ?: continue
-                // Tab height + padding (touch target)
                 tabView.layoutParams = tabView.layoutParams.apply { height = tabH }
                 tabView.setPadding(padH, 0, padH, 0)
-                // Built-in icon ImageView
                 val iconView = tabView.findViewById<ImageView>(com.google.android.material.R.id.icon)
                 iconView?.layoutParams = iconView?.layoutParams?.apply {
                     width = iconSize
@@ -373,6 +401,55 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             strip.requestLayout()
         }
     }
+
+    // ---------- DRAGON UI + EVENT HELPERS ----------
+
+    private fun refreshDragonUi() {
+        if (!::dragonGame.isInitialized) return
+        val s = dragonGame.state
+        binding.dragon.setImageResource(DragonRules.dragonImageFor(s.level))
+        val percent = (s.xpIntoLevel * 100) / DragonRules.XP_PER_LEVEL
+        binding.xpTxt.text = "XP  L${s.level}  ${s.xpIntoLevel}/${DragonRules.XP_PER_LEVEL}"
+        binding.xpProgress.setProgress(percent, /*animate=*/true)
+    }
+
+    private fun refreshDragonMoodIcon() {
+        if (!::dragonGame.isInitialized) return
+        val iconRes = DragonRules.moodIconFor(dragonGame.state.mood)
+        binding.MoodImg.setImageResource(iconRes)
+    }
+
+    fun onUserLoggedExpense(addedPhoto: Boolean) {
+        dragonGame.onExpenseLogged(addedPhoto)
+        refreshDragonUi()
+        refreshDragonMoodIcon()
+    }
+
+    fun onBudgetRecalculated(
+        under80: Boolean,
+        between80And100: Boolean,
+        over: Boolean,
+        betweenMinAndMax: Boolean,
+        aboveMax: Boolean
+    ) {
+        dragonGame.onBudgetEvaluated(
+            under80Percent = under80,
+            between80And100 = between80And100,
+            overBudget = over,
+            betweenMinAndMaxGoal = betweenMinAndMax,
+            aboveMaxGoal = aboveMax
+        )
+        refreshDragonUi()
+        refreshDragonMoodIcon()
+    }
+
+    // models.Mood -> DragonRules.Mood mapper
+    private fun com.TheBudgeteers.dragonomics.models.Mood.toDragonMood(): DragonRules.Mood =
+        when (this) {
+            com.TheBudgeteers.dragonomics.models.Mood.POSITIVE -> DragonRules.Mood.HAPPY
+            com.TheBudgeteers.dragonomics.models.Mood.NEUTRAL  -> DragonRules.Mood.NEUTRAL
+            com.TheBudgeteers.dragonomics.models.Mood.NEGATIVE -> DragonRules.Mood.ANGRY
+        }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {

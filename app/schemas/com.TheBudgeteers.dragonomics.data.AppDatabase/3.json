@@ -2,7 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
+<<<<<<< Updated upstream
     "identityHash": "f22796a22d2d97178e2fc0d7028b73e7",
+=======
+    "identityHash": "11270ca776b7f9abe87fa3d724a31009",
+>>>>>>> Stashed changes
     "entities": [
       {
         "tableName": "transactions",
@@ -118,7 +122,11 @@
       },
       {
         "tableName": "users",
+<<<<<<< Updated upstream
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `username` TEXT NOT NULL, `email` TEXT NOT NULL, `passwordHash` TEXT NOT NULL, `salt` TEXT NOT NULL, `minGoal` REAL, `maxGoal` REAL)",
+=======
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `username` TEXT NOT NULL, `email` TEXT NOT NULL, `passwordHash` TEXT NOT NULL, `salt` TEXT NOT NULL)",
+>>>>>>> Stashed changes
         "fields": [
           {
             "fieldPath": "id",
@@ -149,6 +157,7 @@
             "columnName": "salt",
             "affinity": "TEXT",
             "notNull": true
+<<<<<<< Updated upstream
           },
           {
             "fieldPath": "minGoal",
@@ -161,6 +170,8 @@
             "columnName": "maxGoal",
             "affinity": "REAL",
             "notNull": false
+=======
+>>>>>>> Stashed changes
           }
         ],
         "primaryKey": {
@@ -186,7 +197,11 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+<<<<<<< Updated upstream
       "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f22796a22d2d97178e2fc0d7028b73e7')"
+=======
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '11270ca776b7f9abe87fa3d724a31009')"
+>>>>>>> Stashed changes
     ]
   }
 }

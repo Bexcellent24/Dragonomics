@@ -28,7 +28,6 @@ import kotlinx.coroutines.launch
 import android.app.DatePickerDialog
 import java.util.Calendar
 import java.util.Date
-import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.widget.Toast
@@ -38,6 +37,7 @@ import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.core.os.bundleOf // <-- ADDED for setFragmentResult payload
 
 class NewTransactionFragment : DialogFragment() {
 
@@ -95,7 +95,6 @@ class NewTransactionFragment : DialogFragment() {
             .get(NestViewModel::class.java)
 
         btnDate.setOnClickListener { showDatePicker() }
-
         btnPhoto.setOnClickListener { takePhotoWithPermissionCheck() }
 
         btnCreate.isEnabled = true
@@ -105,8 +104,7 @@ class NewTransactionFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // Set Expense selected by default when the fragment is shown
-        toggleType(true)
+        toggleType(true) // default to Expense
     }
 
     override fun onStart() {
@@ -118,12 +116,8 @@ class NewTransactionFragment : DialogFragment() {
     }
 
     private fun setupToggleButtons() {
-        btnExpense.setOnClickListener {
-            toggleType(true)
-        }
-        btnIncome.setOnClickListener {
-            toggleType(false)
-        }
+        btnExpense.setOnClickListener { toggleType(true) }
+        btnIncome.setOnClickListener { toggleType(false) }
     }
 
     private fun toggleType(expense: Boolean) {
@@ -133,19 +127,13 @@ class NewTransactionFragment : DialogFragment() {
         btnIncome.isSelected = !expense
 
         fromNestOptions.visibility = if (expense) View.VISIBLE else View.GONE
-
-        if (expense) {
-            loadFromCategories()
-        } else {
-            selectedFromCategory = null
-        }
+        if (expense) loadFromCategories() else selectedFromCategory = null
 
         loadCategories(expense)
     }
 
     private fun loadCategories(expense: Boolean) {
         val type = if (expense) NestType.EXPENSE else NestType.INCOME
-
         viewLifecycleOwner.lifecycleScope.launch {
             nestViewModel.getNestsByTypeLive(type).collect { categories ->
                 recyclerCategories.layoutManager = GridLayoutManager(requireContext(), 6)
@@ -183,7 +171,6 @@ class NewTransactionFragment : DialogFragment() {
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         )
-
         datePickerDialog.show()
     }
 
@@ -199,6 +186,7 @@ class NewTransactionFragment : DialogFragment() {
     private val takePictureLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
+<<<<<<< Updated upstream
                 // Photo was taken successfully
                 // currentPhotoPath is already set in createImageFile()
                 Toast.makeText(requireContext(), "Photo captured!", Toast.LENGTH_SHORT).show()
@@ -206,20 +194,28 @@ class NewTransactionFragment : DialogFragment() {
                 // Photo capture was cancelled or failed
                 currentPhotoPath = null
                 photoUri = null
+=======
+                photoUri?.let { currentPhotoPath = it.toString() }
+>>>>>>> Stashed changes
             }
         }
 
     @Throws(IOException::class)
     private fun createImageFile(): File? {
         return try {
-            val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            val timeStamp: String =
+                SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val storageDir: File = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+<<<<<<< Updated upstream
             File.createTempFile(
                 "JPEG_${timeStamp}_",
                 ".jpg",
                 storageDir
             ).apply {
                 // FIXED: Save the actual file path, not the URI
+=======
+            File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir).apply {
+>>>>>>> Stashed changes
                 currentPhotoPath = absolutePath
             }
         } catch (ex: IOException) {
@@ -255,7 +251,6 @@ class NewTransactionFragment : DialogFragment() {
         val hasTitle = edtTitle.text.toString().isNotBlank()
         val hasCategory = selectedCategory != null
         val hasFromCategory = !isExpense || (isExpense && selectedFromCategory != null)
-
         btnCreate.isEnabled = hasTitle && hasCategory && hasFromCategory
     }
 
@@ -268,17 +263,14 @@ class NewTransactionFragment : DialogFragment() {
             Toast.makeText(requireContext(), "Please enter a title", Toast.LENGTH_SHORT).show()
             return
         }
-
         if (selectedCategory == null) {
             Toast.makeText(requireContext(), "Please select a category", Toast.LENGTH_SHORT).show()
             return
         }
-
         if (isExpense && selectedFromCategory == null) {
             Toast.makeText(requireContext(), "Please select a 'From' category", Toast.LENGTH_SHORT).show()
             return
         }
-
         if (amount <= 0) {
             edtAmount.error = "Amount must be greater than zero"
             Toast.makeText(requireContext(), "Please enter a valid amount", Toast.LENGTH_SHORT).show()
@@ -301,7 +293,19 @@ class NewTransactionFragment : DialogFragment() {
 
         vm.addTransaction(transaction)
 
+        // ===== NEW: tell host activity we saved and whether a photo was attached =====
+        val addedPhoto = currentPhotoPath != null
+        parentFragmentManager.setFragmentResult(
+            "tx_saved",
+            bundleOf("addedPhoto" to addedPhoto)
+        )
+        // ============================================================================
+
         Toast.makeText(requireContext(), "Transaction created successfully", Toast.LENGTH_SHORT).show()
         dismiss()
     }
+<<<<<<< Updated upstream
 }
+=======
+}
+>>>>>>> Stashed changes
