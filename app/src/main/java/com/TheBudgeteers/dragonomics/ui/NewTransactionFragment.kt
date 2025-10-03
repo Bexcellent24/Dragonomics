@@ -187,6 +187,7 @@ class NewTransactionFragment : DialogFragment() {
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 // Photo was taken successfully
                 // currentPhotoPath is already set in createImageFile()
                 Toast.makeText(requireContext(), "Photo captured!", Toast.LENGTH_SHORT).show()
@@ -194,6 +195,9 @@ class NewTransactionFragment : DialogFragment() {
                 // Photo capture was cancelled or failed
                 currentPhotoPath = null
                 photoUri = null
+=======
+                photoUri?.let { currentPhotoPath = it.toString() }
+>>>>>>> Stashed changes
 =======
                 photoUri?.let { currentPhotoPath = it.toString() }
 >>>>>>> Stashed changes
@@ -207,12 +211,16 @@ class NewTransactionFragment : DialogFragment() {
                 SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val storageDir: File = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             File.createTempFile(
                 "JPEG_${timeStamp}_",
                 ".jpg",
                 storageDir
             ).apply {
                 // FIXED: Save the actual file path, not the URI
+=======
+            File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir).apply {
+>>>>>>> Stashed changes
 =======
             File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir).apply {
 >>>>>>> Stashed changes
@@ -305,6 +313,9 @@ class NewTransactionFragment : DialogFragment() {
         dismiss()
     }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
 }
 =======
 }

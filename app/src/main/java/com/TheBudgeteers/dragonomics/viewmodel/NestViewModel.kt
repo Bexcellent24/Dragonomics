@@ -71,7 +71,10 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
     }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
     suspend fun getNestsByType(type: NestType): List<Nest> =
         repository.getNests().filter { it.type == type }
 
@@ -90,6 +93,7 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
     fun getNestsByTypeLive(type: NestType) = repository.getNestsFlowByType(type)
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     fun getSpentAmountsInRange(start: Long, end: Long): Flow<Map<Long, Double>> {
         println("getSpentAmountsInRange called with start=$start, end=$end")
         return repository.getSpentAmountsInRange(start, end)
@@ -99,6 +103,8 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
                 map
             }
 =======
+=======
+>>>>>>> Stashed changes
     // ---- Overall mood for Home ----
 
     enum class Weighting { EQUAL, BUDGET, SPENT }
@@ -163,6 +169,9 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         Mood.NEGATIVE -> com.TheBudgeteers.dragonomics.R.drawable.angry_mood
     }.let { resolved ->
         if (resolved != 0) resolved else com.TheBudgeteers.dragonomics.R.drawable.happy_mood
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     }
 }
