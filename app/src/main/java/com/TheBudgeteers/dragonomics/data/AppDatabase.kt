@@ -7,15 +7,18 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.TheBudgeteers.dragonomics.models.Nest
 import com.TheBudgeteers.dragonomics.models.Transaction
+import com.TheBudgeteers.dragonomics.models.QuestEntity
 import com.TheBudgeteers.dragonomics.models.UserEntity
 
-// If you have a Converters class (e.g., for dates/uris), keep this.
-// Otherwise remove @TypeConverters and the import.
+// AppDatabase.kt
+// Main Room database. Holds all tables (entities) and their DAOs.
+// Added a singleton so only one DB instance exists across the whole app.
+
 @Database(
-    entities = [Transaction::class, Nest::class, UserEntity::class],
-    version = 5,                 // <— keep this in sync with your latest schema
-    exportSchema = false
+    entities = [Transaction::class, Nest::class, UserEntity::class, QuestEntity::class],
+    version = 8
 )
+
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 

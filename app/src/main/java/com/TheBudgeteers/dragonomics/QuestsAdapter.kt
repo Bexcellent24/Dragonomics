@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.TheBudgeteers.dragonomics.models.Quest
 import com.google.android.material.card.MaterialCardView
 
 class QuestsAdapter(

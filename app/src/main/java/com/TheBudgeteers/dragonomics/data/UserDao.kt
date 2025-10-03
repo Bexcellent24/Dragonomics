@@ -20,4 +20,10 @@ interface UserDao {
 
     @Query("SELECT * FROM users WHERE id = :id LIMIT 1")
     fun getUserFlow(id: Long): Flow<UserEntity?>
+
+    @Query("SELECT * FROM users WHERE id = :id LIMIT 1")
+    suspend fun getUserById(id: Long): UserEntity?
+
+    @Query("UPDATE users SET minGoal = :minGoal, maxGoal = :maxGoal WHERE id = :userId")
+    suspend fun updateGoals(userId: Long, minGoal: Double?, maxGoal: Double?)
 }

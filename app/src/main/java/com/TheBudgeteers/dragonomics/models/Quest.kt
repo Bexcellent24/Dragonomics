@@ -1,4 +1,4 @@
-package com.TheBudgeteers.dragonomics
+package com.TheBudgeteers.dragonomics.models
 
 data class Quest(
     val id: String,

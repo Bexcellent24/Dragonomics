@@ -125,4 +125,12 @@ class Repository(private val db: AppDatabase) {
         val ok = PasswordHasher.verify(password.toCharArray(), user.salt, user.passwordHash)
         return if (ok) Result.success(user) else Result.failure(Exception("Invalid credentials"))
     }
+
+    suspend fun updateUserGoals(userId: Long, minGoal: Double?, maxGoal: Double?) {
+        users.updateGoals(userId, minGoal, maxGoal)
+    }
+
+    suspend fun getUserById(userId: Long): UserEntity? {
+        return users.getUserById(userId)
+    }
 }
