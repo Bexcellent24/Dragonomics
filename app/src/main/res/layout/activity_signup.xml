@@ -132,13 +132,14 @@
                 android:layout_marginRight="0dp"
                 android:layout_marginBottom="0dp"
                 android:background="@color/white"
-                android:backgroundTint="@color/white"
+                android:backgroundTint="@color/QuestTodo"
                 android:fontFamily="@font/aref_ruqaa"
                 android:hint="Your Name"
                 android:inputType="text|textNoSuggestions"
                 android:padding="10dp"
                 android:textColor="@color/GoldenEmber"
-                android:textColorHint="@color/GoldenEmber" />
+                android:textColorHint="@color/GoldenEmber"
+                android:textStyle="bold" />
 
             <EditText
                 android:id="@+id/etEmail"
@@ -153,13 +154,14 @@
                 android:layout_marginRight="0dp"
                 android:layout_marginBottom="0dp"
                 android:background="@color/white"
-                android:backgroundTint="@color/white"
+                android:backgroundTint="@color/QuestTodo"
                 android:fontFamily="@font/aref_ruqaa"
                 android:hint="Your Email"
                 android:inputType="text|textNoSuggestions"
                 android:padding="10dp"
                 android:textColor="@color/GoldenEmber"
-                android:textColorHint="@color/GoldenEmber" />
+                android:textColorHint="@color/GoldenEmber"
+                android:textStyle="bold" />
 
             <EditText
                 android:id="@+id/etPassword"
@@ -171,13 +173,14 @@
                 android:layout_marginLeft="0dp"
                 android:layout_marginRight="0dp"
                 android:background="@color/white"
-                android:backgroundTint="@color/white"
+                android:backgroundTint="@color/QuestTodo"
                 android:fontFamily="@font/aref_ruqaa"
                 android:hint="Enter Your Password"
                 android:inputType="textPassword"
                 android:padding="10dp"
                 android:textColor="@color/GoldenEmber"
-                android:textColorHint="@color/GoldenEmber" />
+                android:textColorHint="@color/GoldenEmber"
+                android:textStyle="bold" />
 
             <EditText
                 android:id="@+id/etConfirmPassword"
@@ -189,13 +192,14 @@
                 android:layout_marginLeft="0dp"
                 android:layout_marginRight="0dp"
                 android:background="@color/white"
-                android:backgroundTint="@color/white"
+                android:backgroundTint="@color/QuestTodo"
                 android:fontFamily="@font/aref_ruqaa"
                 android:hint="Confirm Your Password"
                 android:inputType="textPassword"
                 android:padding="10dp"
                 android:textColor="@color/GoldenEmber"
-                android:textColorHint="@color/GoldenEmber" />
+                android:textColorHint="@color/GoldenEmber"
+                android:textStyle="bold" />
 
 
             <Button
@@ -206,6 +210,9 @@
                 android:backgroundTint="@color/FireBurst"
                 android:fontFamily="@font/aref_ruqaa"
                 android:text="Sign Up"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
                 app:cornerRadius="5dp" />
 
             <ProgressBar

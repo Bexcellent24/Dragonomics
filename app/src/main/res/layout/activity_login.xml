@@ -120,14 +120,15 @@
                 android:layout_marginLeft="0dp"
                 android:layout_marginRight="0dp"
                 android:layout_marginBottom="40dp"
-                android:background="@color/white"
-                android:backgroundTint="@color/white"
+                android:background="@color/QuestTodo"
+                android:backgroundTint="@color/QuestTodo"
                 android:fontFamily="@font/aref_ruqaa"
                 android:hint="Username"
                 android:inputType="text|textNoSuggestions"
                 android:padding="10dp"
                 android:textColor="@color/GoldenEmber"
-                android:textColorHint="@color/GoldenEmber" />
+                android:textColorHint="@color/GoldenEmber"
+                android:textStyle="bold" />
 
             <EditText
                 android:id="@+id/etPassword"
@@ -137,13 +138,14 @@
                 android:layout_marginLeft="0dp"
                 android:layout_marginRight="0dp"
                 android:background="@color/white"
-                android:backgroundTint="@color/white"
+                android:backgroundTint="@color/QuestTodo"
                 android:fontFamily="@font/aref_ruqaa"
                 android:hint="Password"
                 android:inputType="textPassword"
                 android:padding="10dp"
                 android:textColor="@color/GoldenEmber"
-                android:textColorHint="@color/GoldenEmber" />
+                android:textColorHint="@color/GoldenEmber"
+                android:textStyle="bold" />
 
             <CheckBox
                 android:id="@+id/chk_remember"
