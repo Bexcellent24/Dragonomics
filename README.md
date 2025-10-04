@@ -6,13 +6,13 @@ Draconomics helps users build stronger financial habits by raising and evolving 
 
 ## 📖 Features
 
-💸 **Expense Tracking:** Add, edit, and view transactions by category.
-📊 **Analytics:** Visual charts display monthly spending patterns and category breakdowns.
-🐲 **Dragon Growth System:** The dragon’s mood and evolution reflect how well you manage your budget.
-🎨 **Customization:** Unlock new colours, wings, and horns through achievements and progress.
-🏆 **Achievements & Rewards:** Earn XP and unlock items by meeting budgeting goals.
-🔐 **Persistent Data:** All expenses, progress, and dragon states are saved locally via Room database.
-🪵 **Logging:** Key actions (expense creation, mood updates, XP calculations) are logged for debugging and code transparency.
+- 💸 **Expense Tracking:** Add, edit, and view transactions by category.
+- 📊 **Analytics:** Visual charts display monthly spending patterns and category breakdowns.
+- 🐲 **Dragon Growth System:** The dragon’s mood and evolution reflect how well you manage your budget.
+- 🎨 **Customization:** Unlock new colours, wings, and horns through achievements and progress.
+- 🏆 **Achievements & Rewards:** Earn XP and unlock items by meeting budgeting goals.
+- 🔐 **Persistent Data:** All expenses, progress, and dragon states are saved locally via Room database.
+- 🪵 **Logging:** Key actions (expense creation, mood updates, XP calculations) are logged for debugging and code transparency.
 
 ## 🎯 Purpose
 
