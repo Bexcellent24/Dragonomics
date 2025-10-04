@@ -16,6 +16,7 @@ import com.TheBudgeteers.dragonomics.viewmodel.DragonViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.ShopViewModel
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.launch
+import com.TheBudgeteers.dragonomics.gamify.DragonRules  // <-- for enum entries
 
 class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
@@ -51,10 +52,26 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private fun initializeDragonDisplay() {
         lifecycleScope.launch {
             dragonViewModel.uiState.collect { state ->
+                // Dragon sprite + XP
                 binding.dragon.setImageResource(state.dragonImageRes)
-                binding.MoodImg.setImageResource(state.moodIconRes)
-                binding.xpTxt.text = "XP  L${state.level}  ${state.xpIntoLevel}/${com.TheBudgeteers.dragonomics.gamify.DragonRules.XP_PER_LEVEL}"
+                binding.xpTxt.text =
+                    "XP  L${state.level}  ${state.xpIntoLevel}/${com.TheBudgeteers.dragonomics.gamify.DragonRules.XP_PER_LEVEL}"
                 binding.xpProgress.setProgress(state.xpProgress, true)
+
+                // Mood image
+                binding.MoodImg.setImageResource(state.moodIconRes)
+
+                // Mood text (derive from same source of truth)
+                val label = when (state.mood) {
+                    DragonRules.Mood.HAPPY   -> "Happy"
+                    DragonRules.Mood.NEUTRAL -> "Neutral"
+                    DragonRules.Mood.ANGRY   -> "Angry"
+                }
+                binding.moodTxt.text = label
+
+                // a11y + optional later reads
+                binding.MoodImg.contentDescription = "Mood: $label"
+                binding.MoodImg.tag = state.mood
             }
         }
 
@@ -67,11 +84,17 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun setupButtons() {
         binding.achievementsImg.setOnClickListener {
-            AchievementsDialogFragment().show(supportFragmentManager, AchievementsDialogFragment.TAG)
+            AchievementsDialogFragment().show(
+                supportFragmentManager,
+                AchievementsDialogFragment.TAG
+            )
         }
 
         binding.shopImg.setOnClickListener {
-            ShopDialogFragment().show(supportFragmentManager, ShopDialogFragment.TAG)
+            ShopDialogFragment().show(
+                supportFragmentManager,
+                ShopDialogFragment.TAG
+            )
         }
     }
 
@@ -84,7 +107,6 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun setupBackButton() {
         onBackPressedDispatcher.addCallback(this) {
-            // Check if any dialog is showing
             val shopDialog = supportFragmentManager.findFragmentByTag(ShopDialogFragment.TAG)
             val achDialog = supportFragmentManager.findFragmentByTag(AchievementsDialogFragment.TAG)
 
@@ -103,11 +125,15 @@ class HomeActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
     }
 
-    private fun com.TheBudgeteers.dragonomics.models.Mood.toDragonMood(): com.TheBudgeteers.dragonomics.gamify.DragonRules.Mood {
+    private fun com.TheBudgeteers.dragonomics.models.Mood.toDragonMood():
+            com.TheBudgeteers.dragonomics.gamify.DragonRules.Mood {
         return when (this) {
-            com.TheBudgeteers.dragonomics.models.Mood.POSITIVE -> com.TheBudgeteers.dragonomics.gamify.DragonRules.Mood.HAPPY
-            com.TheBudgeteers.dragonomics.models.Mood.NEUTRAL -> com.TheBudgeteers.dragonomics.gamify.DragonRules.Mood.NEUTRAL
-            com.TheBudgeteers.dragonomics.models.Mood.NEGATIVE -> com.TheBudgeteers.dragonomics.gamify.DragonRules.Mood.ANGRY
+            com.TheBudgeteers.dragonomics.models.Mood.POSITIVE ->
+                com.TheBudgeteers.dragonomics.gamify.DragonRules.Mood.HAPPY
+            com.TheBudgeteers.dragonomics.models.Mood.NEUTRAL  ->
+                com.TheBudgeteers.dragonomics.gamify.DragonRules.Mood.NEUTRAL
+            com.TheBudgeteers.dragonomics.models.Mood.NEGATIVE ->
+                com.TheBudgeteers.dragonomics.gamify.DragonRules.Mood.ANGRY
         }
     }
 
