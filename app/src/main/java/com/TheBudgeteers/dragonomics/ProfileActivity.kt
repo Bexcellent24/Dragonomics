@@ -19,6 +19,7 @@ import com.TheBudgeteers.dragonomics.data.RepositoryProvider
 import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.databinding.ActivityProfileBinding
 import com.TheBudgeteers.dragonomics.models.Quest
+import com.TheBudgeteers.dragonomics.ui.QuestsAdapter
 import com.TheBudgeteers.dragonomics.viewmodel.ProfileViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.ProfileViewModelFactory
 import com.google.android.material.navigation.NavigationView

@@ -41,6 +41,7 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.8.2")
 
     implementation("androidx.fragment:fragment-ktx:1.8.2")
+    implementation(libs.androidx.runtime.saved.instance.state)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

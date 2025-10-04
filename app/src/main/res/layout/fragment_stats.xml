@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+    <!-- stats fragment -->
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/stats_container"
         android:layout_width="match_parent"
@@ -158,7 +159,7 @@
                 android:id="@+id/progressBar"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
-                android:layout_height="20dp"
+                android:layout_height="35dp"
                 android:layout_marginTop="8dp"
                 android:progressDrawable="@drawable/stats_prgress_bar"
                 android:progress="50"/>

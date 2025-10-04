@@ -1,4 +1,7 @@
-package com.TheBudgeteers.dragonomics
+package com.TheBudgeteers.dragonomics.models
+
+import androidx.annotation.DrawableRes
+import com.TheBudgeteers.dragonomics.R
 
 // Shop models
 enum class ShopTab { PALETTE, HORNS, WINGS }
@@ -9,5 +12,5 @@ data class ShopItem(
     val price: Int,
     val owned: Boolean = false,
     val equipped: Boolean = false,
-    @androidx.annotation.DrawableRes val previewRes: Int = R.drawable.currency
+    @DrawableRes val previewRes: Int = R.drawable.currency
 )

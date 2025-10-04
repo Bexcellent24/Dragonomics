@@ -12,7 +12,8 @@ constraintlayout = "2.2.1"
 room = "2.6.1"
 ksp = "2.0.21-1.0.25"
 androidbrowserhelper = "2.6.2"
-volley = "1.2.1"   # match your Kotlin
+volley = "1.2.1"
+runtimeSavedInstanceState = "1.0.0-alpha11"   # match your Kotlin
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -28,6 +29,7 @@ androidx-room-ktx      = { group = "androidx.room", name = "room-ktx",      vers
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidbrowserhelper = { group = "com.google.androidbrowserhelper", name = "androidbrowserhelper", version.ref = "androidbrowserhelper" }
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
+androidx-runtime-saved-instance-state = { group = "androidx.compose.runtime", name = "runtime-saved-instance-state", version.ref = "runtimeSavedInstanceState" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
