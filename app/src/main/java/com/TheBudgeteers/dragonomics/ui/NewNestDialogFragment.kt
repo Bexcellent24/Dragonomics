@@ -8,6 +8,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -53,15 +54,23 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
         setupColourRow()
         setupToggleButtons()
         setupButtons()
-        setupValidationTriggers()
+
 
         return view
+    }
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
     }
 
     private fun setupIconGrid() {
         val adapter = IconAdapter(iconList) { iconName ->
             selectedIcon = iconName
-            updateCreateButtonState()
+
         }
         recyclerIcons.layoutManager = GridLayoutManager(requireContext(), 6)
         recyclerIcons.setHasFixedSize(true)
@@ -72,7 +81,7 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
     private fun setupColourRow() {
         val adapter = ColourAdapter(colourList) { colourHex ->
             selectedColour = colourHex
-            updateCreateButtonState()
+
         }
         val layoutManager = GridLayoutManager(requireContext(), 6)
         recyclerColours.layoutManager = layoutManager
@@ -89,13 +98,14 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
 
     private fun setIncome(income: Boolean) {
         isIncome = income
-
         btnIncoming.isSelected = income
         btnOutgoing.isSelected = !income
 
-        edtAmount.isEnabled = !income
-        if (income) edtAmount.setText("")
-        updateCreateButtonState()
+
+        edtAmount.visibility = if (income) View.GONE else View.VISIBLE
+        if (income) edtAmount.text.clear()
+
+
     }
 
     private fun setupButtons() {
@@ -103,33 +113,58 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
         btnCreate.setOnClickListener { createNestAndDismiss() }
     }
 
-    private fun setupValidationTriggers() {
-        val watcher = object : android.text.TextWatcher {
-            override fun afterTextChanged(s: android.text.Editable?) { updateCreateButtonState() }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        }
-        edtName.addTextChangedListener(watcher)
-        edtAmount.addTextChangedListener(watcher)
-    }
 
-    private fun updateCreateButtonState() {
-        val hasName = edtName.text.toString().trim().isNotEmpty()
-        val hasColour = !selectedColour.isNullOrEmpty()
-        val hasIcon = !selectedIcon.isNullOrEmpty()
-        val amountOk = if (isIncome) true else {
-            val amt = edtAmount.text.toString().trim()
-            amt.isNotEmpty() && try { amt.toDouble() >= 0.0 } catch (e: Exception) { false }
-        }
-        btnCreate.isEnabled = hasName && hasColour && hasIcon && amountOk
-    }
 
     private fun createNestAndDismiss() {
         val name = edtName.text.toString().trim()
-        val amount = edtAmount.text.toString().trim().toDoubleOrNull()
-        val icon = selectedIcon ?: return
-        val colour = selectedColour ?: return
+        val icon = selectedIcon
+        val colour = selectedColour
+
+        // Reset previous errors
+        edtName.error = null
+        edtAmount.error = null
+
+        // Validation checks with field errors and Toasts
+        if (name.isEmpty()) {
+            edtName.error = "Please enter a name"
+            Toast.makeText(requireContext(), "Please enter a name for your nest", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (icon.isNullOrEmpty()) {
+            Toast.makeText(requireContext(), "Please select an icon", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        if (colour.isNullOrEmpty()) {
+            Toast.makeText(requireContext(), "Please select a colour", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val type = if (isIncome) NestType.INCOME else NestType.EXPENSE
+        var amount: Double? = null
+
+        if (!isIncome) {
+            val amountText = edtAmount.text.toString().trim()
+            if (amountText.isEmpty()) {
+                edtAmount.error = "Please enter a budget amount"
+                Toast.makeText(requireContext(), "Please enter a budget amount", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            try {
+                amount = amountText.toDouble()
+                if (amount < 0) {
+                    edtAmount.error = "Amount cannot be negative"
+                    Toast.makeText(requireContext(), "Amount cannot be negative", Toast.LENGTH_SHORT).show()
+                    return
+                }
+            } catch (e: NumberFormatException) {
+                edtAmount.error = "Invalid number format"
+                Toast.makeText(requireContext(), "Please enter a valid number for the amount", Toast.LENGTH_SHORT).show()
+                return
+            }
+        }
 
         val nest = Nest(
             name = name,
@@ -144,10 +179,11 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
         val vm = ViewModelProvider(this, factory).get(NestViewModel::class.java)
 
         vm.addNest(nest) {
-            // Use FragmentResult so NestFragment knows to refresh
             parentFragmentManager.setFragmentResult("new_nest_created", Bundle.EMPTY)
-            dismiss()
+            Toast.makeText(requireContext(), "Nest created successfully", Toast.LENGTH_SHORT).show()
+            view?.postDelayed({ dismiss() }, 200)
         }
     }
+
 
 }

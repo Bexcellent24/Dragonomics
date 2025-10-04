@@ -139,7 +139,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
                 android:backgroundTint="#31586A"
-                android:enabled="false"
                 android:fontFamily="@font/aref_ruqaa"
                 android:text="Create Nest"
                 android:textColor="@color/GoldenEmber" />
