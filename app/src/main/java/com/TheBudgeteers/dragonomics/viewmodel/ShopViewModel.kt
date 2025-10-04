@@ -10,6 +10,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+// interface for the home kt. this is to get the string and Id
+interface AccessoryEquipListener {
+    // accessoryType will be like  "horns", "wings", or "palette"
+    // itemId will be the unique ID, like "horns_chipped"
+    fun onAccessoryEquipped(accessoryType: String, itemId: String)
+}
+
+// Data class defining the structure of the Shop's UI state.
 data class ShopState(
     val currency: Int = 0,
     val hornsItems: List<ShopItem> = emptyList(),
@@ -19,12 +27,16 @@ data class ShopState(
     val purchaseResult: PurchaseResult? = null
 )
 
+// Sealed class to represent the outcome of a purchase attempt.
 sealed class PurchaseResult {
     object Success : PurchaseResult()
     object InsufficientFunds : PurchaseResult()
 }
 
 class ShopViewModel : ViewModel() {
+
+    // Listener will be set by HomeActivity in initializeViewModels
+    private var equipListener: AccessoryEquipListener? = null
 
     private val _state = MutableStateFlow(ShopState())
     val state: StateFlow<ShopState> = _state.asStateFlow()
@@ -34,27 +46,34 @@ class ShopViewModel : ViewModel() {
         loadCurrency()
     }
 
+    // Setter for the listener (called by HomeActivity)
+    public fun setEquipListener(listener: AccessoryEquipListener) {
+        this.equipListener = listener
+    }
+
     private fun loadShopItems() {
         viewModelScope.launch {
+            // NOTE: Using placeholder items and resources
+            // IMPORTANT: Equipped status needs to be tracked.
             val horns = listOf(
-                ShopItem("horns_twisted", "Twisted Horns", 90, previewRes = R.drawable.placeholder_item),
-                ShopItem("horns_curly", "Curly Horns", 90, previewRes = R.drawable.placeholder_item),
-                ShopItem("horns_chipped", "Chipped Horns", 0, owned = true, previewRes = R.drawable.placeholder_item),
-                ShopItem("horns_straight", "Straight Horns", 90, previewRes = R.drawable.placeholder_item)
+                ShopItem("horns_twisted", "Twisted Horns", 90, previewRes = R.drawable.placeholder_item, equipped = false),
+                ShopItem("horns_curly", "Curly Horns", 90, previewRes = R.drawable.placeholder_item, equipped = false),
+                ShopItem("horns_chipped", "Chipped Horns", 0, owned = true, equipped = true, previewRes = R.drawable.placeholder_item), // Default equipped
+
             )
 
             val wings = listOf(
-                ShopItem("wings_bat", "Bat Wings", 120, previewRes = R.drawable.placeholder_item),
-                ShopItem("wings_feather", "Feathered", 150, previewRes = R.drawable.placeholder_item),
-                ShopItem("wings_ragged", "Ragged", 60, owned = true, previewRes = R.drawable.placeholder_item),
-                ShopItem("wings_royal", "Royal Wings", 200, previewRes = R.drawable.placeholder_item)
+                ShopItem("wings_bat", "Bat Wings", 120, previewRes = R.drawable.placeholder_item, equipped = false),
+                ShopItem("wings_feather", "Feathered", 150, previewRes = R.drawable.placeholder_item, equipped = false),
+                ShopItem("wings_ragged", "Ragged", 60, owned = true, equipped = true, previewRes = R.drawable.placeholder_item), // Default equipped
+
             )
 
             val palette = listOf(
-                ShopItem("pal_forest", "Forest Scheme", 40, previewRes = R.drawable.placeholder_item),
-                ShopItem("pal_crimson", "Crimson Scheme", 60, previewRes = R.drawable.placeholder_item),
-                ShopItem("pal_ember", "Ember Scheme", 0, owned = true, previewRes = R.drawable.placeholder_item),
-                ShopItem("pal_ice", "Ice Scheme", 50, previewRes = R.drawable.placeholder_item)
+                ShopItem("pal_forest", "Forest Scheme", 40, previewRes = R.drawable.placeholder_item, equipped = false),
+                ShopItem("pal_crimson", "Crimson Scheme", 60, previewRes = R.drawable.placeholder_item, equipped = false),
+                ShopItem("pal_ember", "Ember Scheme", 0, owned = true, equipped = true, previewRes = R.drawable.placeholder_item), // Default equipped
+                ShopItem("pal_ice", "Ice Scheme", 50, previewRes = R.drawable.placeholder_item, equipped = false)
             )
 
             _state.value = _state.value.copy(
@@ -68,7 +87,7 @@ class ShopViewModel : ViewModel() {
     private fun loadCurrency() {
         viewModelScope.launch {
             // TODO: Load from Repository/DataStore instead of hard-coding
-            _state.value = _state.value.copy(currency = 0)
+            _state.value = _state.value.copy(currency = 500) // Reset currency to 500 for easier testing
         }
     }
 
@@ -107,14 +126,25 @@ class ShopViewModel : ViewModel() {
     }
 
     private fun equipItem(list: MutableList<ShopItem>, index: Int) {
+        val itemToEquip = list[index]
+
         // Unequip all items in this category
         for (i in list.indices) {
             list[i] = list[i].copy(equipped = false)
         }
         // Equip the selected item
-        list[index] = list[index].copy(equipped = true)
+        list[index] = itemToEquip.copy(equipped = true)
 
         updateItemList(list)
+
+        // NOTIFY DRAGON VIEW: Tell the activity which item was equipped
+        val accessoryType = when(_state.value.currentTab) {
+            ShopTab.HORNS -> "horns"
+            ShopTab.WINGS -> "wings"
+            else -> "palette" // Palette will change the dragonImageRes, but we still notify
+        }
+        // This call updates the DragonViewModel which in turn updates HomeActivity
+        equipListener?.onAccessoryEquipped(accessoryType, itemToEquip.id)
     }
 
     private fun purchaseItem(list: MutableList<ShopItem>, index: Int, item: ShopItem) {
@@ -154,6 +184,5 @@ class ShopViewModel : ViewModel() {
     fun addCurrency(amount: Int) {
         val newAmount = (_state.value.currency + amount).coerceAtLeast(0)
         _state.value = _state.value.copy(currency = newAmount)
-        // TODO: Persist to Repository/DataStore
     }
 }

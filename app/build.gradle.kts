@@ -58,6 +58,10 @@ dependencies {
 
     //To remember users
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    // Gif Usage
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    ksp("com.github.bumptech.glide:compiler:4.16.0")
 
     // DO NOT include Room kapt/annotationProcessor lines anymore
 }

@@ -48,11 +48,33 @@ object DragonRules {
         return maxOf(MIN_XP_PER_ACTION, base + bonus)
     }
 
+
+    @DrawableRes
+    fun dragonImageFor(level: Int, mood: Mood): Int = when {
+        level >= 10 -> when (mood) { // Adult from (Level >= 10)
+            // these will be replaced with gifs
+            Mood.HAPPY   -> R.drawable.adult_dragon_happy
+            Mood.NEUTRAL -> R.drawable.adult_dragon_neutral
+            Mood.ANGRY   -> R.drawable.adult_dragon_angry
+        }
+        level >= 5 -> when (mood) {   // Teen from 5 to 9
+            Mood.HAPPY   -> R.drawable.teen_dragon_happy
+            Mood.NEUTRAL -> R.drawable.teen_dragon_neutral
+            Mood.ANGRY   -> R.drawable.teen_dragon_angry
+        }
+        else       -> when (mood) {           // baby start
+            Mood.HAPPY   -> R.drawable.baby_dragon_happy
+            Mood.NEUTRAL -> R.drawable.baby_dragon_neutral
+            Mood.ANGRY   -> R.drawable.baby_dragon_sad
+        }
+    }
+
+
     @DrawableRes
     fun dragonImageFor(level: Int): Int = when {
-        level >= 10 -> R.drawable.adult_dragon
-        level >= 5 -> R.drawable.teen_dragon
-        else       -> R.drawable.baby_dragon
+        level >= 10 -> R.drawable.adult_dragon_happy
+        level >= 5 -> R.drawable.teen_dragon_happy
+        else       -> R.drawable.baby_dragon_happy
     }
 
     @DrawableRes

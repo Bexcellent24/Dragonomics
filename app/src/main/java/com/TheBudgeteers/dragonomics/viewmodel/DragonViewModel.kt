@@ -10,6 +10,7 @@ import com.TheBudgeteers.dragonomics.gamify.DragonRules
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class DragonUiState(
@@ -18,7 +19,11 @@ data class DragonUiState(
     val xpProgress: Int = 0,
     val mood: DragonRules.Mood = DragonRules.Mood.NEUTRAL,
     val dragonImageRes: Int = 0,
-    val moodIconRes: Int = 0
+    val moodIconRes: Int = 0,
+    // Fields for Customization and View State
+    val isExpanded: Boolean = false,
+    val equippedHornsId: String? = "horns_chipped", // Default items
+    val equippedWingsId: String? = "wings_ragged"    // Default items
 )
 
 class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
@@ -47,15 +52,35 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
         val state = dragonGame.state
         val xpPercent = (state.xpIntoLevel * 100) / DragonRules.XP_PER_LEVEL
 
-        _uiState.value = DragonUiState(
-            level = state.level,
-            xpIntoLevel = state.xpIntoLevel,
-            xpProgress = xpPercent,
-            mood = state.mood,
-            dragonImageRes = DragonRules.dragonImageFor(state.level),
-            moodIconRes = DragonRules.moodIconFor(state.mood)
-        )
+        _uiState.update { currentState ->
+            currentState.copy(
+                level = state.level,
+                xpIntoLevel = state.xpIntoLevel,
+                xpProgress = xpPercent,
+                mood = state.mood,
+                // Pass mood and level to dragonImage
+                dragonImageRes = DragonRules.dragonImageFor(state.level, state.mood),
+                moodIconRes = DragonRules.moodIconFor(state.mood)
+            )
+        }
     }
+
+    // Function called by HomeActivity to toggle view size
+    fun toggleExpansion() {
+        _uiState.update { it.copy(isExpanded = !it.isExpanded) }
+    }
+
+    // Function called by ShopViewModel (via an interface) to update equipped item
+    fun setEquippedAccessory(accessoryType: String, itemId: String) {
+        _uiState.update { state ->
+            when(accessoryType) {
+                "horns" -> state.copy(equippedHornsId = itemId)
+                "wings" -> state.copy(equippedWingsId = itemId)
+                else -> state // Palette is handled by dragonImageRes, ignore here
+            }
+        }
+    }
+
 
     fun onExpenseLogged(addedPhoto: Boolean) {
         dragonGame.onExpenseLogged(addedPhoto)

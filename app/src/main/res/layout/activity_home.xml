@@ -162,11 +162,35 @@
             android:textSize="16sp"
             android:textStyle="bold"/>
     </LinearLayout>
+    <ImageView
+        android:id="@+id/wing_left"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+
+        app:layout_constraintStart_toStartOf="@id/dragon"
+        app:layout_constraintTop_toTopOf="@id/dragon" />
+
+    <ImageView
+        android:id="@+id/wing_right"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+
+        app:layout_constraintStart_toStartOf="@id/dragon"
+        app:layout_constraintTop_toTopOf="@id/dragon" />
+
+
+    <ImageView
+        android:id="@+id/horn_left"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+
+        app:layout_constraintStart_toStartOf="@id/dragon"
+        app:layout_constraintTop_toTopOf="@id/dragon" />
 
     <ImageView
         android:id="@+id/dragon"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="360dp"
+        android:layout_height="360dp"
         android:padding="70dp"
         android:layout_marginTop="20dp"
         android:adjustViewBounds="true"
@@ -176,6 +200,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/xp_currencyRow" />
+
+
+
+
+    <ImageView
+        android:id="@+id/horn_right"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+
+        app:layout_constraintStart_toStartOf="@id/dragon"
+        app:layout_constraintTop_toTopOf="@id/dragon" />
 
 
     <ImageButton
