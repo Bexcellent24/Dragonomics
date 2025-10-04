@@ -2,35 +2,26 @@ package com.TheBudgeteers.dragonomics.models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.TheBudgeteers.dragonomics.data.QuestType
 
-/*
-  Quest entity for storing user quests in the database.
-  Tracks quest progress and completion status.
-*/
+// Represents a quest stored in the database.
+// Tracks quest progress, type, and completion.
+// Used to persist quest state for a given user.
 
 @Entity(tableName = "quests")
 data class QuestEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val userId: Long,
-    val questType: QuestType,
-    val title: String,
-    val description: String?,
-    val iconRes: String, // Store icon name as string, convert to resource ID in UI
-    val rewardXp: Int,
-    val targetValue: Int, // e.g., "log 3 expenses" -> targetValue = 3
-    val currentValue: Int = 0, // Current progress
-    val completed: Boolean = false,
-    val completedDate: Long? = null
+    val userId: Long,           // Which user this quest belongs to
+    val questType: QuestType,   // Type of quest
+    val title: String,          // Quest title
+    val description: String?,   // Optional description
+    val iconRes: String,        // Icon name stored as string
+    val rewardXp: Int,          // XP reward for completing quest
+    val targetValue: Int,       // Goal value for quest progress
+    val currentValue: Int = 0,  // Current progress value
+    val completed: Boolean = false, // Whether quest is completed
+    val completedDate: Long? = null // Timestamp when completed
 )
 
 
-enum class QuestType {
-    DAILY_STREAK,      // Login X days in a row
-    LOG_EXPENSES,      // Log X transactions
-    HIT_MIN_GOAL,      // Stay above min goal
-    HIT_MAX_GOAL,      // Reach max goal
-    SAVE_AMOUNT,       // Save X amount of money
-    CATEGORIZE_ALL,    // Categorize all transactions in a period
-    PHOTO_RECEIPTS,    // Add photos to X receipts
-    WEEKLY_REVIEW      // Review spending weekly
-}
+

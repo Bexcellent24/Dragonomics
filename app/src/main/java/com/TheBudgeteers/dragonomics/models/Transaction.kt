@@ -5,7 +5,6 @@ import androidx.room.PrimaryKey
 import java.util.Date
 
 
-// Transaction.kt
 // This is the main model for a single transaction in the app.
 // Every transaction is stored in the database and linked to a Nest (category).
 // Works with Nest.kt to group transactions, and with TransactionDao to be saved/retrieved.

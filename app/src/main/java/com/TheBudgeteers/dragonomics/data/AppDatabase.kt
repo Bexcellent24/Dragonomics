@@ -10,18 +10,19 @@ import com.TheBudgeteers.dragonomics.models.Transaction
 import com.TheBudgeteers.dragonomics.models.QuestEntity
 import com.TheBudgeteers.dragonomics.models.UserEntity
 
-// AppDatabase.kt
-// Main Room database. Holds all tables (entities) and their DAOs.
-// Added a singleton so only one DB instance exists across the whole app.
+// Main Room database for the app.
+// Holds all entities and links them to their DAOs.
+// Implemented as a singleton to prevent multiple instances.
 
 @Database(
     entities = [Transaction::class, Nest::class, UserEntity::class, QuestEntity::class],
-    version = 8
+    version = 9
 )
 
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
+    // DAO accessors for each data type
     abstract fun transactionDao(): TransactionDao
     abstract fun nestDao(): NestDao
     abstract fun userDao(): UserDao
@@ -30,6 +31,8 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+
+        // Returns the single DB instance
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -37,8 +40,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "dragonomics_db"
                 )
-                    // Dev-friendly; wipes DB on schema mismatch.
-                    // Replace with proper Migrations when ready.
+                    // Wipes and rebuilds DB on version mismatch (temporary during dev)
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

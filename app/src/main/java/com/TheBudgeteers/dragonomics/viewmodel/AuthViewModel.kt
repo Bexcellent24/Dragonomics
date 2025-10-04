@@ -3,7 +3,7 @@ package com.TheBudgeteers.dragonomics.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.TheBudgeteers.dragonomics.data.RepositoryProvider
+import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

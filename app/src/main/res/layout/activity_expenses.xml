@@ -140,8 +140,8 @@
         android:text="Recent Tranactions"
         android:textColor="@color/GoldenEmber"
         android:textSize="16sp"
+        android:padding="15dp"
         android:fontFamily="@font/breathe_fire_iii"
-        android:paddingLeft="10dp"
         android:background="@color/MidnightViolet" />
 
     <FrameLayout

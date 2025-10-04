@@ -1,6 +1,5 @@
 package com.TheBudgeteers.dragonomics.viewmodel
 
-import androidx.annotation.DrawableRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.TheBudgeteers.dragonomics.data.Repository
@@ -8,59 +7,149 @@ import com.TheBudgeteers.dragonomics.models.Mood
 import com.TheBudgeteers.dragonomics.models.Nest
 import com.TheBudgeteers.dragonomics.models.NestType
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+
+/**
+ * UI state for a single nest with all computed values
+ */
+data class NestUiState(
+    val nest: Nest,
+    val spent: Double,
+    val budget: Double,
+    val remaining: Double,
+    val progress: Double,
+    val mood: Mood
+)
+
+
+
+// ViewModel for the Nest entity.
+// Handles calculating progress, moods, and providing reactive UI state for nests.
+// Used by the UI layer (Adapters, Fragments, Activities) to display nest data and state.
+// Also handles CRUD operations for nests and aggregate mood calculations.
+
 
 class NestViewModel(private val repository: Repository) : ViewModel() {
 
-    // ---- Existing API ----
-    fun getNestById(nestId: Long, callback: (Nest) -> Unit) {
-        viewModelScope.launch {
-            val nest = repository.getNestById(nestId)
-            callback(nest)
+ // ========== UI LOGIC STUFF ==========
+
+     //Returns a Flow emitting UI state for a single nest.
+     //Automatically updates when spent amounts change.
+    fun getNestUiStateFlow(nestId: Long): Flow<NestUiState> = flow {
+        val nest = repository.getNestById(nestId)
+
+        if (nest.type == NestType.INCOME) {
+            // Income nests: budget = total income, spent = amount spent FROM this income.
+            val totalIncome = repository.getTransactionsByNestId(nestId)
+                .sumOf { it.amount }
+                .coerceAtLeast(0.0)
+
+            // Observe spent FROM this income source (fromCategoryId)
+            repository.getSpentAmountFromNestFlow(nestId).collect { spent ->
+                val displayedSpent = spent ?: 0.0
+                val remaining = totalIncome - displayedSpent
+                val progress = calculateNestProgress(nest, displayedSpent)
+                val mood = calculateMood(progress)
+
+                emit(NestUiState(
+                    nest = nest,
+                    spent = displayedSpent,
+                    budget = totalIncome,
+                    remaining = remaining,
+                    progress = progress,
+                    mood = mood
+                ))
+            }
+        } else {
+            // For expense type nests use set budget
+            val budget = nest.budget ?: 0.0
+
+            // Observe spent IN this expense category (categoryId)
+            repository.getSpentInCategoryFlow(nestId).collect { spent ->
+                val displayedSpent = spent
+                val remaining = budget - displayedSpent
+                val progress = calculateNestProgress(nest, displayedSpent)
+                val mood = calculateMood(progress)
+
+                emit(NestUiState(
+                    nest = nest,
+                    spent = displayedSpent,
+                    budget = budget,
+                    remaining = remaining,
+                    progress = progress,
+                    mood = mood
+                ))
+            }
         }
     }
 
-    /**
-     * Progress is 0..1
-     * - EXPENSE with valid budget: (budget - spent) / budget, clamped
-     * - EXPENSE with null/zero budget: 0.0  (treat as Angry / no room)
-     * - INCOME: 1.0  (doesn't affect expense-based overall)
-     */
+
+     // Returns UI state for a nest as a single snapshot.
+
+    suspend fun getNestUiState(nestId: Long): NestUiState {
+        val nest = repository.getNestById(nestId)
+        val spent = repository.getTransactionsByNestId(nestId)
+            .sumOf { it.amount }
+            .coerceAtLeast(0.0)
+
+        val budget = if (nest.type == NestType.INCOME) {
+            spent // For income, budget = total income
+        } else {
+            nest.budget ?: 0.0
+        }
+
+        return buildUiState(nest, spent, budget)
+    }
+
+    private fun buildUiState(nest: Nest, spent: Double, budget: Double): NestUiState {
+        val remaining = budget - spent
+        val progress = calculateNestProgress(nest, spent)
+        val mood = calculateMood(progress)
+
+        return NestUiState(
+            nest = nest,
+            spent = spent,
+            budget = budget,
+            remaining = remaining,
+            progress = progress,
+            mood = mood
+        )
+    }
+
+    // ========== Progress and Mood Calculations ==========
+
+
+     // Calculate progress (0.0 to 1.0) for a nest
+     // - EXPENSE: (budget - spent) / budget, clamped to 0..1
+     // - INCOME: always 1.0 (doesn't affect overall mood)
+
     fun calculateNestProgress(nest: Nest, totalSpent: Double): Double {
         return if (nest.type == NestType.EXPENSE) {
             val b = nest.budget
             if (b != null && b > 0.0) {
-                val left = (b - totalSpent.coerceAtLeast(0.0))
-                (left / b).coerceIn(0.0, 1.0)
+                val remaining = (b - totalSpent.coerceAtLeast(0.0))
+                (remaining / b).coerceIn(0.0, 1.0)
             } else {
-                0.0
+                0.0 // No budget = angry
             }
         } else {
-            1.0
+            1.0 // Income always happy
         }
     }
 
+
+     // Converts progress to a mood state.
     fun calculateMood(progress: Double): Mood = when {
         progress >= 0.75 -> Mood.POSITIVE
         progress >= 0.4  -> Mood.NEUTRAL
         else             -> Mood.NEGATIVE
     }
 
-    fun getNestProgressAndMoodWithSpent(
-        nestId: Long,
-        callback: (Double, Mood, Double) -> Unit
-    ) {
-        viewModelScope.launch {
-            val nest = repository.getNestById(nestId)
-            val transactions = repository.getTransactionsByNestId(nestId)
-            val spent = transactions.sumOf { it.amount }.coerceAtLeast(0.0)
-            val progress = calculateNestProgress(nest, spent)
-            val mood = calculateMood(progress)
-            callback(progress, mood, spent)
-        }
-    }
+    // ========== NEST CRUD ==========
+
+    suspend fun getNestById(nestId: Long): Nest = repository.getNestById(nestId)
 
     fun addNest(nest: Nest, onDone: (() -> Unit)? = null) {
         viewModelScope.launch {
@@ -69,49 +158,40 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    // ---- Queries / flows ----
-
     suspend fun getNestsByType(type: NestType): List<Nest> =
         repository.getNests().filter { it.type == type }
-/*
-    fun getIncomeNestBudget(nestId: Long): Double {
-        var budget = 0.0
-        runBlocking {
-            budget = repository.getTotalIncomeForNest(nestId)
-        }
-        return budget
-    }*/
 
-    fun getSpentAmountFlow(nestId: Long) =
+
+    // ========== FLOWS ==========
+
+    fun getSpentAmountFlow(nestId: Long): Flow<Double?> =
         repository.getSpentAmountFromNestFlow(nestId)
 
-    fun getNestsByTypeLive(type: NestType) =
+    fun getNestsByTypeLive(type: NestType): Flow<List<Nest>> =
         repository.getNestsFlowByType(type)
 
-    /** Optional helper (keep only if your Repository exposes getSpentAmountsInRange). */
     fun getSpentAmountsInRange(start: Long, end: Long): Flow<Map<Long, Double>> {
         return repository.getSpentAmountsInRange(start, end)
             .map { list -> list.associate { it.nestId to it.spent } }
     }
 
-    // ---- Overall mood for Home ----
+    // ========== OVERALL MOOD ==========
 
     enum class Weighting { EQUAL, BUDGET, SPENT }
 
-    /**
-     * Average progress across nests, with optional weighting.
-     * If there are NO expense nests, return 0.5 (neutral).
-     */
+    // Computes weighted average progress across all nests of a type.
     suspend fun computeOverallProgress(
         type: NestType = NestType.EXPENSE,
         weighting: Weighting = Weighting.BUDGET
     ): Double {
         val nests = repository.getNests().filter { it.type == type }
-        if (nests.isEmpty()) return 0.5 // neutral default, not forced-happy
+        if (nests.isEmpty()) return 0.5
 
         data class Row(val nest: Nest, val spent: Double, val progress: Double)
         val rows = nests.map { n ->
-            val spent = repository.getTransactionsByNestId(n.id).sumOf { it.amount }.coerceAtLeast(0.0)
+            val spent = repository.getTransactionsByNestId(n.id)
+                .sumOf { it.amount }
+                .coerceAtLeast(0.0)
             val prog = calculateNestProgress(n, spent)
             Row(n, spent, prog)
         }
@@ -130,19 +210,8 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    fun getOverallMood(
-        type: NestType = NestType.EXPENSE,
-        weighting: Weighting = Weighting.BUDGET,
-        callback: (mood: Mood, averageProgress: Double) -> Unit
-    ) {
-        viewModelScope.launch {
-            val avgProgress = computeOverallProgress(type, weighting)
-            val overallMood = calculateMood(avgProgress)
-            callback(overallMood, avgProgress)
-        }
-    }
-
-    suspend fun getOverallMoodSuspend(
+    // Returns overall mood and average progress for a type of nest.
+    suspend fun getOverallMood(
         type: NestType = NestType.EXPENSE,
         weighting: Weighting = Weighting.BUDGET
     ): Pair<Mood, Double> {
@@ -150,13 +219,4 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         return calculateMood(avg) to avg
     }
 
-    // Map mood -> your actual drawable names used in XML
-    @DrawableRes
-    fun Mood.asDrawableRes(): Int = when (this) {
-        Mood.POSITIVE -> com.TheBudgeteers.dragonomics.R.drawable.happy_mood
-        Mood.NEUTRAL  -> com.TheBudgeteers.dragonomics.R.drawable.neutral_mood
-        Mood.NEGATIVE -> com.TheBudgeteers.dragonomics.R.drawable.angry_mood
-    }.let { resolved ->
-        if (resolved != 0) resolved else com.TheBudgeteers.dragonomics.R.drawable.happy_mood
-    }
 }

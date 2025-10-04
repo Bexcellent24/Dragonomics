@@ -1,10 +1,12 @@
-package com.TheBudgeteers.dragonomics.data
+package com.TheBudgeteers.dragonomics.utils
 
 import android.util.Patterns
 
 object Validators {
-    private val ALNUM_6PLUS = Regex("^[A-Za-z0-9]{6,}$")
 
+    private val ALNUM_6PLUS = Regex("^[A-Za-z0-9]{6,}$") // letters + numbers, at least 6 chars
+
+    // Validate username format and length
     fun username(u: String): String? {
         if (u.isBlank()) return "Username is required"
         if (!ALNUM_6PLUS.matches(u)) {
@@ -14,6 +16,7 @@ object Validators {
         return null
     }
 
+    // Validate email format
     fun email(e: String): String? {
         if (e.isBlank()) return "Email is required"
         if (!Patterns.EMAIL_ADDRESS.matcher(e).matches())
@@ -21,6 +24,7 @@ object Validators {
         return null
     }
 
+    // Validate password format and length
     fun password(p: String): String? {
         if (p.isBlank()) return "Password is required"
         if (!ALNUM_6PLUS.matches(p)) {
@@ -30,6 +34,7 @@ object Validators {
         return null
     }
 
+    // Validate password confirmation
     fun confirmPassword(p: String, c: String): String? {
         if (c.isBlank()) return "Please confirm your password"
         if (p != c) return "Passwords do not match"

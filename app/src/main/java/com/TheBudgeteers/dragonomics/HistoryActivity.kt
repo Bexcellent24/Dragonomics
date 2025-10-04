@@ -13,7 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.TheBudgeteers.dragonomics.data.NestLayoutType
-import com.TheBudgeteers.dragonomics.data.RepositoryProvider
+import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import java.text.SimpleDateFormat
 import java.util.Locale
 import com.TheBudgeteers.dragonomics.databinding.ActivityHistoryBinding

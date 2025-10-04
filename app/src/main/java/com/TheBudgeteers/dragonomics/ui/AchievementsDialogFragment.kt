@@ -14,6 +14,10 @@ import com.TheBudgeteers.dragonomics.databinding.DialogAchievementsBinding
 import com.TheBudgeteers.dragonomics.viewmodel.AchievementsViewModel
 import kotlinx.coroutines.launch
 
+// Dialog fragment showing a list of achievements.
+// Uses AchievementsViewModel to fetch achievement data.
+// Displays achievements in a RecyclerView with an AchievementsAdapter.
+
 class AchievementsDialogFragment : DialogFragment() {
 
     private var _binding: DialogAchievementsBinding? = null
@@ -44,6 +48,7 @@ class AchievementsDialogFragment : DialogFragment() {
         observeViewModel()
     }
 
+    // Setup RecyclerView and adapter for achievements
     private fun setupAdapter() {
         achievementsAdapter = AchievementsAdapter(emptyList())
         binding.achRecycler.apply {
@@ -53,12 +58,14 @@ class AchievementsDialogFragment : DialogFragment() {
         }
     }
 
+    // Setup click listener for close button
     private fun setupCloseButton() {
         binding.closeX.setOnClickListener {
             dismiss()
         }
     }
 
+    // Observe achievements data and update adapter
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             achievementsViewModel.achievements.collect { achievements ->

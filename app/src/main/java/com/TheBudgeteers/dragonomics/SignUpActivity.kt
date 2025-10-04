@@ -7,7 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.TheBudgeteers.dragonomics.data.Validators
+import com.TheBudgeteers.dragonomics.utils.Validators
 import com.TheBudgeteers.dragonomics.databinding.ActivitySignupBinding
 import com.TheBudgeteers.dragonomics.viewmodel.AuthState
 import com.TheBudgeteers.dragonomics.viewmodel.AuthViewModel

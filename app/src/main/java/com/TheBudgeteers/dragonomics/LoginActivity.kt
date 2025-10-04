@@ -9,7 +9,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.TheBudgeteers.dragonomics.data.SessionStore
-import com.TheBudgeteers.dragonomics.data.Validators
+import com.TheBudgeteers.dragonomics.utils.Validators
 import com.TheBudgeteers.dragonomics.databinding.ActivityLoginBinding
 import com.TheBudgeteers.dragonomics.viewmodel.AuthState
 import com.TheBudgeteers.dragonomics.viewmodel.AuthViewModel

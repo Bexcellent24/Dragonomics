@@ -8,7 +8,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.fragment.app.setFragmentResultListener
 import com.TheBudgeteers.dragonomics.data.NestLayoutType
-import com.TheBudgeteers.dragonomics.data.RepositoryProvider
 import com.TheBudgeteers.dragonomics.databinding.ActivityExpensesBinding
 import com.TheBudgeteers.dragonomics.models.NestType
 import com.TheBudgeteers.dragonomics.testing.TestDataSeeder
@@ -25,6 +24,7 @@ import com.TheBudgeteers.dragonomics.gamify.DragonGameEvents
 import com.TheBudgeteers.dragonomics.gamify.DragonMoodManager
 import com.TheBudgeteers.dragonomics.viewmodel.NestViewModel
 import com.TheBudgeteers.dragonomics.gamify.DragonRules
+import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 
 
 class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -153,7 +153,7 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
 
     private fun updateOverallMoodFromVm(type: NestType) {
         lifecycleScope.launch {
-            val (mood, _) = nestVm.getOverallMoodSuspend(
+            val (mood, _) = nestVm.getOverallMood(
                 type = type,
                 weighting = NestViewModel.Weighting.BUDGET
             )

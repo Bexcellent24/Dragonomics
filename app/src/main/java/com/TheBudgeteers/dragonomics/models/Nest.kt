@@ -4,8 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 
-// Nest.kt
-// This is the model for a "Nest" — basically a category in the app.
+// This is the model for a "Nest", basically a category in the app.
 // Each nest has a name, budget (for expenses), an icon, a colour and a type (income/expense).
 // Works with Transaction.kt so transactions can be grouped under a nest.
 // Mood is calculated based on spending progress and affects the UI dragon’s mood.

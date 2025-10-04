@@ -159,7 +159,7 @@ class ShopDialogFragment : DialogFragment() {
                 tabView.layoutParams = tabView.layoutParams.apply { height = tabH }
                 tabView.setPadding(padH, 0, padH, 0)
 
-                val iconView = tabView.findViewById<ImageView>(com.google.android.material.R.id.icon)
+                val iconView = tabView.findViewById<ImageView>(R.id.icon)
                 iconView?.layoutParams = iconView?.layoutParams?.apply {
                     width = iconSize
                     height = iconSize

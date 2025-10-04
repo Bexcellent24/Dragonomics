@@ -8,6 +8,9 @@ import com.TheBudgeteers.dragonomics.models.Transaction
 import java.util.Calendar
 import java.util.Date
 
+// Seeds the database with dummy data for testing.
+// Adds nests and transactions if none exist to avoid duplicates.
+
 class TestDataSeeder(private val repository: Repository) {
 
     suspend fun seedDummyData() {

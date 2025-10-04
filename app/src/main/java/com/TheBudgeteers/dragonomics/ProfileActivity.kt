@@ -15,7 +15,7 @@ import androidx.core.content.edit
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.TheBudgeteers.dragonomics.data.RepositoryProvider
+import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.databinding.ActivityProfileBinding
 import com.TheBudgeteers.dragonomics.models.Quest
@@ -76,8 +76,13 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 return@launch
             }
 
+            // CRITICAL: Set user ID FIRST before any UI operations
             currentUserId = userId
+
+            // Initialize ViewModel - this starts loading user data
             initViewModel(userId)
+
+            // Then setup UI components
             initPerUserUi()
         }
     }
@@ -89,11 +94,17 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             ProfileViewModelFactory(repository, userId)
         )[ProfileViewModel::class.java]
 
-        // Observe user data from database
+        // Observe user data from database - this is the single source of truth for goals
         lifecycleScope.launch {
             viewModel.user.collect { user ->
                 user?.let {
                     updateGoalsDisplay(it.minGoal, it.maxGoal)
+
+                    // Update display name when user data loads
+                    val prefs = getProfilePrefs()
+                    val first = prefs.getString(PrefKeys.FIRST, "") ?: ""
+                    val last = prefs.getString(PrefKeys.LAST, "") ?: ""
+                    binding.txtUsername.text = viewModel.getDisplayName(first, last)
                 }
             }
         }
@@ -156,6 +167,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
     private fun setupHeaderActions() {
         binding.btnLogout.setOnClickListener {
             lifecycleScope.launch {
+                getProfilePrefs().edit { clear() }
                 session.setUser(null)
                 navigateToLogin()
             }
@@ -179,8 +191,11 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             }
         }
 
-        // Apply display from prefs
-        applyDisplayFromPrefs()
+        // Apply name from SharedPreferences
+        // Goals will be applied by ViewModel Flow observer
+        val first = prefs.getString(PrefKeys.FIRST, "") ?: ""
+        val last = prefs.getString(PrefKeys.LAST, "") ?: ""
+        binding.txtUsername.text = viewModel.getDisplayName(first, last)
 
         // Setup edit button
         binding.btnEdit.setOnClickListener {
@@ -232,27 +247,12 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             val maxGoal = maxStr.toDoubleOrNull()
             viewModel.updateGoals(minGoal, maxGoal)
 
-            // Update display
-            applyDisplay(first, last, minGoal, maxGoal)
+            // Update name display immediately
+            // Goals will update automatically via Flow observer
+            binding.txtUsername.text = viewModel.getDisplayName(first, last)
+
             closeOverlay()
         }
-    }
-
-    private fun applyDisplayFromPrefs() {
-        val prefs = getProfilePrefs()
-        val first = prefs.getString(PrefKeys.FIRST, "") ?: ""
-        val last = prefs.getString(PrefKeys.LAST, "") ?: ""
-
-        // Goals come from ViewModel/database
-        val minGoal = viewModel.user.value?.minGoal
-        val maxGoal = viewModel.user.value?.maxGoal
-
-        applyDisplay(first, last, minGoal, maxGoal)
-    }
-
-    private fun applyDisplay(first: String, last: String, minGoal: Double?, maxGoal: Double?) {
-        binding.txtUsername.text = viewModel.getDisplayName(first, last)
-        updateGoalsDisplay(minGoal, maxGoal)
     }
 
     private fun updateGoalsDisplay(minGoal: Double?, maxGoal: Double?) {
@@ -261,7 +261,8 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
     }
 
     private fun formatAmount(amount: Double?): String {
-        if (amount == null) return "13,000" // Default fallback
+        // FIXED: Removed hardcoded "13,000" fallback
+        if (amount == null) return "Not Set"
         return NumberFormat.getNumberInstance(Locale.getDefault()).format(amount.toInt())
     }
 

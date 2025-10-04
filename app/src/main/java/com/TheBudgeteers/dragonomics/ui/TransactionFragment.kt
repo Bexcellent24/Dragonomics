@@ -10,7 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.TheBudgeteers.dragonomics.R
-import com.TheBudgeteers.dragonomics.data.RepositoryProvider
+import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import com.TheBudgeteers.dragonomics.viewmodel.TransactionViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.RepositoryViewModelFactory
 import kotlinx.coroutines.launch

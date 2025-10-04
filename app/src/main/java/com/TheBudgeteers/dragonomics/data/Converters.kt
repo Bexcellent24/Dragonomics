@@ -5,26 +5,25 @@ import com.TheBudgeteers.dragonomics.models.NestType
 import java.util.Date
 
 
-// Converters.kt
-// Room can only store simple data types, so we need converters for custom types.
-// This class tells Room how to store and retrieve Dates and NestType enums.
-// Works with AppDatabase via @TypeConverters so Room knows how to handle these types.
+// Handles data type conversions for Room.
+// Room only supports basic types, so this converts Dates and NestType enums.
+// Registered in AppDatabase using @TypeConverters.
 
 class Converters {
 
-    // Converts a Long timestamp to a Date object when reading from the database
+    // Converts Long (timestamp) to Date when reading from DB
     @TypeConverter
     fun fromTimestamp(value: Long?): Date? = value?.let { Date(it) }
 
-    // Converts a Date object to a Long timestamp when writing to the database
+    // Converts Date to Long (timestamp) when writing to DB
     @TypeConverter
     fun dateToTimestamp(date: Date?): Long? = date?.time
 
-    // Converts a String stored in the database back into a NestType enum
+    // Converts stored String to NestType enum
     @TypeConverter
     fun fromNestType(value: String?): NestType? = value?.let { NestType.valueOf(it) }
 
-    // Converts a NestType enum into a String for storage in the database
+    // Converts NestType enum to String for storage
     @TypeConverter
     fun nestTypeToString(nestType: NestType?): String? = nestType?.name
 }
