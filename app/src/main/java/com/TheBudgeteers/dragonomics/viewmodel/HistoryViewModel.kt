@@ -128,9 +128,15 @@ class HistoryViewModel(
         _endDate.value = end
     }
 
-    // Get display name for current month (e.g., "January 2024")
     fun getMonthDisplayName(): String {
-        return DateUtils.getMonthName(currentYear, currentMonth)
+        val cal = Calendar.getInstance().apply {
+            set(Calendar.YEAR, currentYear)
+            set(Calendar.MONTH, currentMonth)
+        }
+        // Short format: "Oct 24"
+        val monthName = cal.getDisplayName(Calendar.MONTH, Calendar.SHORT, java.util.Locale.getDefault())
+        val year = (currentYear % 100).toString().padStart(2, '0') // Last 2 digits of year
+        return "$monthName $year"
     }
 
 

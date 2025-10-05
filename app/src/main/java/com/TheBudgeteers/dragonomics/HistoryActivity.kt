@@ -98,7 +98,7 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         val incomeText = binding.incomeText
         val expensesText = binding.expensesText
 
-        val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH)
+        val dateFormat = SimpleDateFormat("d MMM yy", Locale.ENGLISH)
 
         // Month navigation buttons
         prevMonthButton.setOnClickListener {
@@ -112,14 +112,14 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         // Display start date (updates automatically when date range changes)
         lifecycleScope.launchWhenStarted {
             viewModel.startDate.collect { start ->
-                startDateText.text = if (start != 0L) "Start: ${dateFormat.format(Date(start))}" else "Start Date"
+                startDateText.text = if (start != 0L) dateFormat.format(Date(start)) else "Start"
             }
         }
 
         // Display end date (updates automatically when date range changes)
         lifecycleScope.launchWhenStarted {
             viewModel.endDate.collect { end ->
-                endDateText.text = if (end != 0L) "End: ${dateFormat.format(Date(end))}" else "End Date"
+                endDateText.text = if (end != 0L) dateFormat.format(Date(end)) else "End"
             }
         }
 

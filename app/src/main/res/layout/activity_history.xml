@@ -16,44 +16,56 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:padding="8dp"
-        android:layout_marginTop="30dp">
+        android:layout_marginTop="20dp">
 
+        <!-- Left arrow -->
         <ImageView
             android:id="@+id/prevMonthButton"
-            android:layout_width="0dp"
-            android:layout_height="25dp"
-            android:layout_weight="0.1"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="4dp"
             android:src="@drawable/ic_arrow_left"
             android:contentDescription="Previous Month" />
 
+        <!-- Month text - fixed width -->
         <TextView
             android:id="@+id/currentMonthText"
-            android:layout_width="0dp"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.5"
             android:padding="4dp"
-            android:text="October"
+            android:text="Sept 25"
             android:textSize="16sp"
             android:fontFamily="@font/breathe_fire_iii"
             android:textColor="@color/GoldenEmber"
-            android:gravity="center" />
+            android:gravity="center"
+            android:singleLine="true" />
 
+        <!-- Right arrow -->
         <ImageView
             android:id="@+id/nextMonthButton"
-            android:layout_width="0dp"
-            android:layout_height="25dp"
-            android:layout_weight="0.1"
-            android:layout_marginRight="5dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:padding="4dp"
+            android:layout_marginEnd="8dp"
             android:src="@drawable/ic_arrow_right"
             android:contentDescription="Next Month" />
 
+        <!-- Start date button - flexible -->
         <include
             android:id="@+id/startDateButton"
-            layout="@layout/start_date_button" />
+            layout="@layout/start_date_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="4dp" />
 
+        <!-- End date button - flexible -->
         <include
             android:id="@+id/endDateButton"
-            layout="@layout/end_date_button" />
+            layout="@layout/end_date_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
     </LinearLayout>
 
 
