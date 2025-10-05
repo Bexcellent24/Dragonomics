@@ -51,7 +51,7 @@ class ShopAdapter(
 
         // Hide price if user already owns or has equipped this item
         val owned = item.owned || item.equipped
-        h.priceChip.visibility = if (owned) View.INVISIBLE else View.VISIBLE
+        h.priceChip.visibility = if (owned) View.GONE else View.VISIBLE
         h.price.text = item.price.toString()
 
         // Button text changes based on item state:

@@ -10,24 +10,30 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-// interface for the home kt. this is to get the string and Id
+// ShopViewModel manages the in-app shop where users buy dragon accessories
+// Handles three categories: horns, wings, and color palettes
+// Manages currency, purchases, and equipped items
+// Communicates with HomeActivity to update the dragon's appearance
+
+// Listener interface for notifying when accessories are equipped
+// HomeActivity implements this to update the dragon view
 interface AccessoryEquipListener {
-    // accessoryType will be like  "horns", "wings", or "palette"
-    // itemId will be the unique ID, like "horns_chipped"
+    // accessoryType: "horns", "wings", or "palette"
+    // itemId: unique identifier like "horns_chipped"
     fun onAccessoryEquipped(accessoryType: String, itemId: String)
 }
 
-// Data class defining the structure of the Shop's UI state.
+// Complete shop state container
 data class ShopState(
-    val currency: Int = 0,
-    val hornsItems: List<ShopItem> = emptyList(),
-    val wingsItems: List<ShopItem> = emptyList(),
-    val paletteItems: List<ShopItem> = emptyList(),
-    val currentTab: ShopTab = ShopTab.PALETTE,
-    val purchaseResult: PurchaseResult? = null
+    val currency: Int = 0,                              // User's current currency
+    val hornsItems: List<ShopItem> = emptyList(),       // Available horn styles
+    val wingsItems: List<ShopItem> = emptyList(),       // Available wing styles
+    val paletteItems: List<ShopItem> = emptyList(),     // Available color schemes
+    val currentTab: ShopTab = ShopTab.PALETTE,          // Active shop tab
+    val purchaseResult: PurchaseResult? = null          // Result of last purchase attempt
 )
 
-// Sealed class to represent the outcome of a purchase attempt.
+// Outcome of a purchase attempt
 sealed class PurchaseResult {
     object Success : PurchaseResult()
     object InsufficientFunds : PurchaseResult()
@@ -35,7 +41,8 @@ sealed class PurchaseResult {
 
 class ShopViewModel : ViewModel() {
 
-    // Listener will be set by HomeActivity in initializeViewModels
+
+    // Listener for communicating equipped items to the dragon view
     private var equipListener: AccessoryEquipListener? = null
 
     private val _state = MutableStateFlow(ShopState())
@@ -46,34 +53,99 @@ class ShopViewModel : ViewModel() {
         loadCurrency()
     }
 
-    // Setter for the listener (called by HomeActivity)
-    public fun setEquipListener(listener: AccessoryEquipListener) {
+    // Set the listener (called by HomeActivity during initialization)
+    fun setEquipListener(listener: AccessoryEquipListener) {
         this.equipListener = listener
     }
 
+
+    // Load all available shop items
+    // TODO: This should eventually come from a database or config file
     private fun loadShopItems() {
         viewModelScope.launch {
-            // NOTE: Using placeholder items and resources
-            // IMPORTANT: Equipped status needs to be tracked.
+            // Horn items - different horn styles for the dragon
             val horns = listOf(
-                ShopItem("horns_twisted", "Twisted Horns", 90, previewRes = R.drawable.placeholder_item, equipped = false),
-                ShopItem("horns_curly", "Curly Horns", 90, previewRes = R.drawable.placeholder_item, equipped = false),
-                ShopItem("horns_chipped", "Chipped Horns", 0, owned = true, equipped = true, previewRes = R.drawable.placeholder_item), // Default equipped
-
+                ShopItem(
+                    "horns_twisted",
+                    "Twisted Horns",
+                    90,
+                    previewRes = R.drawable.placeholder_item,
+                    equipped = false
+                ),
+                ShopItem(
+                    "horns_curly",
+                    "Curly Horns",
+                    90,
+                    previewRes = R.drawable.placeholder_item,
+                    equipped = false
+                ),
+                ShopItem(
+                    "horns_chipped",
+                    "Chipped Horns",
+                    0,
+                    owned = true,
+                    equipped = true,
+                    previewRes = R.drawable.placeholder_item
+                ) // Default equipped item
             )
 
+            // Wing items - different wing styles for the dragon
             val wings = listOf(
-                ShopItem("wings_bat", "Bat Wings", 120, previewRes = R.drawable.placeholder_item, equipped = false),
-                ShopItem("wings_feather", "Feathered", 150, previewRes = R.drawable.placeholder_item, equipped = false),
-                ShopItem("wings_ragged", "Ragged", 60, owned = true, equipped = true, previewRes = R.drawable.placeholder_item), // Default equipped
-
+                ShopItem(
+                    "wings_bat",
+                    "Bat Wings",
+                    120,
+                    previewRes = R.drawable.placeholder_item,
+                    equipped = false
+                ),
+                ShopItem(
+                    "wings_feather",
+                    "Feathered",
+                    150,
+                    previewRes = R.drawable.placeholder_item,
+                    equipped = false
+                ),
+                ShopItem(
+                    "wings_ragged",
+                    "Ragged",
+                    60,
+                    owned = true,
+                    equipped = true,
+                    previewRes = R.drawable.placeholder_item
+                ) // Default equipped item
             )
 
+            // Palette items - different color schemes for the dragon
             val palette = listOf(
-                ShopItem("pal_forest", "Forest Scheme", 40, previewRes = R.drawable.placeholder_item, equipped = false),
-                ShopItem("pal_crimson", "Crimson Scheme", 60, previewRes = R.drawable.placeholder_item, equipped = false),
-                ShopItem("pal_ember", "Ember Scheme", 0, owned = true, equipped = true, previewRes = R.drawable.placeholder_item), // Default equipped
-                ShopItem("pal_ice", "Ice Scheme", 50, previewRes = R.drawable.placeholder_item, equipped = false)
+                ShopItem(
+                    "pal_forest",
+                    "Forest Scheme",
+                    40,
+                    previewRes = R.drawable.placeholder_item,
+                    equipped = false
+                ),
+                ShopItem(
+                    "pal_crimson",
+                    "Crimson Scheme",
+                    60,
+                    previewRes = R.drawable.placeholder_item,
+                    equipped = false
+                ),
+                ShopItem(
+                    "pal_ember",
+                    "Ember Scheme",
+                    0,
+                    owned = true,
+                    equipped = true,
+                    previewRes = R.drawable.placeholder_item
+                ), // Default equipped item
+                ShopItem(
+                    "pal_ice",
+                    "Ice Scheme",
+                    50,
+                    previewRes = R.drawable.placeholder_item,
+                    equipped = false
+                )
             )
 
             _state.value = _state.value.copy(
@@ -84,17 +156,20 @@ class ShopViewModel : ViewModel() {
         }
     }
 
+    // Load user's currency balance
     private fun loadCurrency() {
         viewModelScope.launch {
-            // TODO: Load from Repository/DataStore instead of hard-coding
-            _state.value = _state.value.copy(currency = 500) // Reset currency to 500 for easier testing
+            _state.value = _state.value.copy(currency = 500)
         }
     }
 
+
+    // Switch between shop categories
     fun setCurrentTab(tab: ShopTab) {
         _state.value = _state.value.copy(currentTab = tab)
     }
 
+    // Get items for the currently active tab
     fun getCurrentItems(): List<ShopItem> {
         return when (_state.value.currentTab) {
             ShopTab.PALETTE -> _state.value.paletteItems
@@ -103,6 +178,15 @@ class ShopViewModel : ViewModel() {
         }
     }
 
+
+    // begin code attribution
+    // When expression pattern adapted from:
+    // Kotlin Documentation: When expression
+
+    // Handle user clicking on a shop item
+    // Logic: Already equipped -> do nothing
+    //        Owned -> equip it
+    //        Not owned -> try to purchase
     fun handleItemAction(item: ShopItem) {
         val currentList = getCurrentItems().toMutableList()
         val idx = currentList.indexOfFirst { it.id == item.id }
@@ -111,24 +195,27 @@ class ShopViewModel : ViewModel() {
         val current = currentList[idx]
 
         when {
-            current.equipped -> return // Already equipped, do nothing
+            current.equipped -> return // Already wearing it
 
             current.owned -> {
-                // Equip this item, unequip others in the same category
+                // User owns it, so equip it
                 equipItem(currentList, idx)
             }
 
             else -> {
-                // Try to purchase
+                // User doesn't own it, try to buy it
                 purchaseItem(currentList, idx, current)
             }
         }
     }
 
+    // end code attribution (Kotlin Documentation, 2020)
+
+    // Equip an item and unequip all others in the same category
     private fun equipItem(list: MutableList<ShopItem>, index: Int) {
         val itemToEquip = list[index]
 
-        // Unequip all items in this category
+        // Unequip everything else in this category
         for (i in list.indices) {
             list[i] = list[i].copy(equipped = false)
         }
@@ -137,19 +224,20 @@ class ShopViewModel : ViewModel() {
 
         updateItemList(list)
 
-        // NOTIFY DRAGON VIEW: Tell the activity which item was equipped
+        // Notify the dragon view to update its appearance
         val accessoryType = when(_state.value.currentTab) {
             ShopTab.HORNS -> "horns"
             ShopTab.WINGS -> "wings"
-            else -> "palette" // Palette will change the dragonImageRes, but we still notify
+            else -> "palette"
         }
-        // This call updates the DragonViewModel which in turn updates HomeActivity
         equipListener?.onAccessoryEquipped(accessoryType, itemToEquip.id)
     }
 
+
+    // Attempt to purchase an item
     private fun purchaseItem(list: MutableList<ShopItem>, index: Int, item: ShopItem) {
         if (_state.value.currency >= item.price) {
-            // Purchase successful
+            // User has enough money
             val newCurrency = _state.value.currency - item.price
             list[index] = item.copy(owned = true)
 
@@ -159,7 +247,6 @@ class ShopViewModel : ViewModel() {
             )
             updateItemList(list)
 
-            // TODO: Persist currency to Repository/DataStore
         } else {
             // Not enough funds
             _state.value = _state.value.copy(
@@ -168,6 +255,7 @@ class ShopViewModel : ViewModel() {
         }
     }
 
+    // Update the item list for the current tab
     private fun updateItemList(list: List<ShopItem>) {
         val tab = _state.value.currentTab
         _state.value = when (tab) {
@@ -177,12 +265,18 @@ class ShopViewModel : ViewModel() {
         }
     }
 
+
+    // Clear purchase result (after showing a message to user)
     fun clearPurchaseResult() {
         _state.value = _state.value.copy(purchaseResult = null)
     }
 
+    // Add currency to the user's balance (for testing or rewards)
     fun addCurrency(amount: Int) {
         val newAmount = (_state.value.currency + amount).coerceAtLeast(0)
         _state.value = _state.value.copy(currency = newAmount)
     }
 }
+
+// reference list
+// Kotlin Documentation, 2020. When Expression. [online] Available at: <https://kotlinlang.org/docs/control-flow.html#when-expression> [Accessed 3 October 2025].

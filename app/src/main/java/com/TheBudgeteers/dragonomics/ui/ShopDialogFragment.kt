@@ -68,9 +68,13 @@ class ShopDialogFragment : DialogFragment() {
             adapter = shopAdapter
             setHasFixedSize(true)
             layoutManager = GridLayoutManager(requireContext(), 2)
-            addItemDecoration(createSpacingDecoration())
+            //addItemDecoration(createSpacingDecoration())
         }
     }
+
+    // begin code attribution
+    // ItemDecoration for spacing adapted from:
+    // Android Developers guide to RecyclerView ItemDecoration
 
     // Add spacing between grid items for better visual separation
     private fun createSpacingDecoration(): RecyclerView.ItemDecoration {
@@ -83,7 +87,7 @@ class ShopDialogFragment : DialogFragment() {
             }
         }
     }
-
+    // end code attribution (Android Developers, 2020)
 
     private fun setupTabs() {
         createTabs()
@@ -146,6 +150,11 @@ class ShopDialogFragment : DialogFragment() {
         }
     }
 
+
+    // begin code attribution
+    // Tab icon resizing adapted from:
+    // Stack Overflow answer on resizing TabLayout icons
+
     // Make tab icons bigger and easier to tap
     private fun resizeTabIcons(sizeDp: Int = 80, tabHeightDp: Int = 80, horizPadDp: Int = 10) {
         binding.shopTabs.post {
@@ -170,6 +179,8 @@ class ShopDialogFragment : DialogFragment() {
             strip.requestLayout()
         }
     }
+
+    // end code attribution (Bill Shannon, 2018)
 
     private fun setupCloseButton() {
         binding.shopCloseX.setOnClickListener {
@@ -223,3 +234,7 @@ class ShopDialogFragment : DialogFragment() {
         const val TAG = "ShopDialogFragment"
     }
 }
+
+
+// Android Developers, 2020. ItemDecoration. [online] Available at: <https://developer.android.com/reference/androidx/recyclerview/widget/RecyclerView.ItemDecoration> [Accessed 5 October 2025]
+// Bill Shannon, 2020. How to resize TabLayout icon (Stack Overflow). [online] Available at: <https://stackoverflow.com/questions/48411243/how-to-change-tab-icon-size-in-tablayout> [Accessed 5 October 2025]

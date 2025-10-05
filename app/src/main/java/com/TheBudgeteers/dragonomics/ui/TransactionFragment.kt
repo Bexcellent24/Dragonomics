@@ -29,6 +29,8 @@ class TransactionFragment : Fragment() {
     private lateinit var adapter: TransactionAdapter
     private lateinit var sessionStore: SessionStore
 
+    // begin code attribution
+    // Inflating fragment layout adapted from Android Developers guide to Fragments
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -41,6 +43,7 @@ class TransactionFragment : Fragment() {
 
         return view
     }
+    // end code attribution (Android Developers, 2020)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -64,6 +67,9 @@ class TransactionFragment : Fragment() {
     }
 
 
+    // begin code attribution
+    // Data loading adapted from Kotlin Coroutines documentation
+
     private fun loadTransactions() {
         viewLifecycleOwner.lifecycleScope.launch {
             // Get current user ID from session
@@ -81,6 +87,7 @@ class TransactionFragment : Fragment() {
             observeTransactions()
         }
     }
+    // end code attribution (Kotlin Documentation, 2025)
 
     private suspend fun observeTransactions() {
         viewModel.transactionsWithNestsFlow.collect { transactions ->
@@ -93,3 +100,7 @@ class TransactionFragment : Fragment() {
         Toast.makeText(requireContext(), "No user logged in", Toast.LENGTH_SHORT).show()
     }
 }
+
+// reference list
+// Android Developers, 2020. Fragments Overview. [online] Available at: <https://developer.android.com/guide/fragments> [Accessed 2 October 2025].
+// Kotlin Documentation, 2025. Coroutines Flow. [online] Available at: <https://kotlinlang.org/docs/flow.html> [Accessed 2 October 2025].

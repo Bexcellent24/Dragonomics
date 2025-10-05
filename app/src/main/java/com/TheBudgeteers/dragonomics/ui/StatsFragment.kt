@@ -84,6 +84,9 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
     }
 
+    // begin code attribution
+    // Data observing adapted from Android Developers guide to LifecycleScope
+
     // Data Observing
     private fun observeData() {
         observeMonthlyStats()
@@ -99,6 +102,16 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
     }
 
+    // Watch for changes in user's savings goals
+    private fun observeUserGoals() {
+        lifecycleScope.launch {
+            viewModel.userEntity.collect { user ->
+                user?.let { updateGoalsDisplay(it) }
+            }
+        }
+    }
+    // end code attribution (Android Developers, 2020)
+
     private fun updateStatsDisplay(stats: MonthlyStats) {
         incomeAmount.text = "R${stats.income.toInt()}"
         expensesAmount.text = "R${stats.expenses.toInt()}"
@@ -111,15 +124,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             0
         }
         progressBar.progress = percent
-    }
-
-    // Watch for changes in user's savings goals
-    private fun observeUserGoals() {
-        lifecycleScope.launch {
-            viewModel.userEntity.collect { user ->
-                user?.let { updateGoalsDisplay(it) }
-            }
-        }
     }
 
     private fun updateGoalsDisplay(user: UserEntity) {
@@ -164,3 +168,5 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
     }
 }
+
+// Android Developers, 2020. LifecycleScope. [online] Available at: <https://developer.android.com/topic/libraries/architecture/coroutines> [Accessed 3 October 2025].
