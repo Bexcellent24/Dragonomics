@@ -21,39 +21,43 @@ class ColourAdapter(
     // ViewHolder for colour item
     inner class ColourVH(val view: View) : RecyclerView.ViewHolder(view)
 
+    // begin code attribution
+    // Adapter pattern and ViewHolder implementation adapted from:
+    // Android Developers guide to RecyclerView Adapters and ViewHolders
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ColourVH {
         val v = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_colour, parent, false)
         return ColourVH(v)
     }
+    // end code attribution (Android Developers, 2020)
 
     override fun onBindViewHolder(holder: ColourVH, position: Int) {
         val hex = colours[position]
 
-        // Create a rounded rectangle background for colour item
+        // begin code attribution
+        // Use of GradientDrawable for dynamic colour UI adapted from:
+        // Android Developers guide to Drawables overview
         val drawable = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadius = 8f // rounded corners
+            cornerRadius = 8f
             try {
                 setColor(android.graphics.Color.parseColor(hex))
             } catch (e: Exception) {
-                setColor(android.graphics.Color.GRAY) // fallback colour
+                setColor(android.graphics.Color.GRAY)
             }
 
-            // Stroke: golden if selected, FireBurst if not
             setStroke(
-                3, // stroke width in px
+                3,
                 if (position == selectedPos)
                     holder.view.context.getColor(R.color.GoldenEmber)
                 else
                     holder.view.context.getColor(R.color.FireBurst)
             )
         }
+        // end code attribution (Android Developers, 2020)
 
-        // Apply background drawable
         holder.view.background = drawable
 
-        // Handle click selection
         holder.view.setOnClickListener {
             val currentPosition = holder.adapterPosition
             if (currentPosition == RecyclerView.NO_POSITION) return@setOnClickListener
@@ -61,14 +65,16 @@ class ColourAdapter(
             val previous = selectedPos
             selectedPos = currentPosition
 
-            // Refresh previous and current selection visuals
             notifyItemChanged(previous)
             notifyItemChanged(selectedPos)
 
-            // Trigger callback with selected colour hex
             onSelect(colours[currentPosition])
         }
     }
 
     override fun getItemCount() = colours.size
 }
+
+// reference list
+// Android Developers, 2020. Create a List with RecyclerView. [online] Available at: <https://developer.android.com/develop/ui/views/layout/recyclerview> [Accessed 21 September 2025].
+// Android Developers, 2020. Drawables overview. [online] Available at: <https://developer.android.com/guide/topics/graphics/drawables> [Accessed 21 September 2025].

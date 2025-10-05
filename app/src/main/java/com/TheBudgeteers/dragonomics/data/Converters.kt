@@ -11,6 +11,11 @@ import java.util.Date
 
 class Converters {
 
+
+    // begin code attribution
+    // Conversion methods for Date and Enum types are adapted from:
+    // Android Developers official guide on TypeConverters for Room
+
     // Converts Long (timestamp) to Date when reading from DB
     @TypeConverter
     fun fromTimestamp(value: Long?): Date? = value?.let { Date(it) }
@@ -26,4 +31,9 @@ class Converters {
     // Converts NestType enum to String for storage
     @TypeConverter
     fun nestTypeToString(nestType: NestType?): String? = nestType?.name
+
+    // end code attribution (Android Developers, 2020)
 }
+
+// reference list
+// Android Developers, 2020. Define type converters for Room. [online] Available at: <https://developer.android.com/training/data-storage/room/referencing-data#type-converters> [Accessed 15 September 2025].

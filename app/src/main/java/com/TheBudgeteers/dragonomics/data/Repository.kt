@@ -16,6 +16,13 @@ class Repository(private val db: AppDatabase) {
     private val nestDao = db.nestDao()
     private val users = db.userDao()
 
+
+
+    // begin code attribution
+    // Repository pattern structure and coroutine Flow usage adapted from:
+    // Android Developers official guide - "Room with a View" (Kotlin)
+    // and Android Architecture Components documentation
+
     // ---------- NEST OPERATIONS ----------
 
     suspend fun addNest(nest: Nest) = nestDao.insert(nest)
@@ -35,6 +42,8 @@ class Repository(private val db: AppDatabase) {
 
     fun getSpentAmountsInRange(userId: Long, start: Long, end: Long): Flow<List<NestSpent>> =
         transactionDao.getSpentAmountsInRangeFlow(userId, start, end)
+
+
 
     // ---------- TRANSACTION OPERATIONS ----------
 
@@ -62,12 +71,13 @@ class Repository(private val db: AppDatabase) {
     fun getTransactionsWithNestBetweenFlow(userId: Long, start: Long, end: Long): Flow<List<TransactionWithNest>> =
         transactionDao.getByDateRangeFlow(userId, start, end).map { list -> list.map { mapTransaction(it) } }
 
-    // Helper to map a transaction to TransactionWithNest
     private suspend fun mapTransaction(transaction: Transaction): TransactionWithNest {
         val categoryNest = nestDao.getById(transaction.categoryId)
         val fromNest = transaction.fromCategoryId?.let { nestDao.getById(it) }
         return TransactionWithNest(transaction, categoryNest, fromNest)
     }
+
+
 
     // ---------- USER OPERATIONS ----------
 
@@ -107,6 +117,8 @@ class Repository(private val db: AppDatabase) {
     fun getUserFlow(userId: Long): Flow<UserEntity?> =
         users.getUserFlow(userId)
 
+
+
     // ---------- STATS ----------
 
     fun getMonthlyStatsFlow(userId: Long, start: Long, end: Long): Flow<MonthlyStats> =
@@ -122,4 +134,11 @@ class Repository(private val db: AppDatabase) {
 
             MonthlyStats(income = income, expenses = expenses, remaining = income - expenses)
         }
+
+
+    // end code attribution (Android Developers, 2020)
 }
+
+// reference list
+// Android Developers, 2020. Room with a View (Kotlin). [online] Available at: <https://developer.android.com/codelabs/android-room-with-a-view-kotlin> [Accessed 17 September 2025].
+// Android Developers, 2020. Guide to App Architecture. [online] Available at: <https://developer.android.com/topic/libraries/architecture> [Accessed  17 September 2025].

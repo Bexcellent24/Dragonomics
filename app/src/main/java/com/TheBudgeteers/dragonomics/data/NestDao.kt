@@ -14,6 +14,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface NestDao {
 
+    // begin code attribution
+    // DAO structure and annotations are based on:
+    // Android Developers official guide to Room DAO interfaces
+
     // Inserts a new nest entry
     @Insert
     suspend fun insert(nest: Nest)
@@ -35,4 +39,9 @@ interface NestDao {
               LEFT JOIN transactions ON transactions.categoryId = nests.id 
               WHERE nests.userId = :userId AND nests.type = :type """)
     fun getAllFlowByType(userId: Long, type: String): Flow<List<Nest>>
+
+    // end code attribution (Android Developers, 2020)
 }
+
+// reference list
+// Android Developers, 2020. Access data using Room DAOs. [online] Available at: <https://developer.android.com/training/data-storage/room/accessing-data> [Accessed 16 September 2025].

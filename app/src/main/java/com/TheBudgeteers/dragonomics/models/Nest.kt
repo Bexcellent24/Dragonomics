@@ -12,6 +12,12 @@ import androidx.room.PrimaryKey
 // Works with Transaction.kt so transactions can be grouped under a nest.
 // Mood is calculated based on spending progress and affects the UI dragon's mood.
 
+
+
+// begin code attribution
+// Entity structure and Room annotations adapted from:
+// Android Developers official guide to defining entities in Room
+
 @Entity(
     tableName = "nests",
     foreignKeys = [
@@ -39,6 +45,8 @@ data class Nest(
     val type: NestType, // tells if nest is income or expense
 )
 
+// end code attribution (Android Developers, 2020)
+
 enum class NestType {
     INCOME,
     EXPENSE
@@ -50,3 +58,6 @@ enum class Mood {
     NEUTRAL,  // borderline
     NEGATIVE  // overspent
 }
+
+// reference list
+// Android Developers, 2020. Define data using Room entities. [online] Available at: <https://developer.android.com/training/data-storage/room/defining-data> [Accessed 17 September 2025].

@@ -7,6 +7,7 @@ import com.TheBudgeteers.dragonomics.data.QuestType
 // Represents a quest stored in the database.
 // Tracks quest progress, type, and completion.
 // Used to persist quest state for a given user.
+// not integrated yet - for POE
 
 @Entity(tableName = "quests")
 data class QuestEntity(

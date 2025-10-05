@@ -32,6 +32,9 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        // begin code attribution
+        // The singleton Room database builder pattern is adapted from:
+        // Android Developers official documentation on Room databases
 
         // Returns the single DB instance
         fun getDatabase(context: Context): AppDatabase {
@@ -48,5 +51,11 @@ abstract class AppDatabase : RoomDatabase() {
                 instance
             }
         }
+
+        // end code attribution (Android Developers, 2020)
     }
 }
+
+// reference list
+// Android Developers, 2020. Room Database with a View - Kotlin. [online] Available at: <https://developer.android.com/codelabs/android-room-with-a-view-kotlin> [Accessed 15 September 2025].
+// Android Studio, 2020. Room persistence library. [online] Available at: <https://developer.android.com/training/data-storage/room> [Accessed 15 September 2025].

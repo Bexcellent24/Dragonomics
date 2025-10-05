@@ -18,6 +18,11 @@ import com.TheBudgeteers.dragonomics.viewmodel.RepositoryViewModelFactory
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
+// Fragment that shows a scrollable list of all user's transactions.
+// Gets transaction data from the TransactionViewModel.
+// Automatically updates the list when new transactions are added.
+// Only shows transactions for the currently logged-in user.
+
 class TransactionFragment : Fragment() {
 
     private lateinit var viewModel: TransactionViewModel
@@ -31,42 +36,60 @@ class TransactionFragment : Fragment() {
     ): View {
         val view = inflater.inflate(R.layout.fragment_transaction_list, container, false)
 
-        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerTransactions)
-        recyclerView.layoutManager = LinearLayoutManager(context)
-
-        adapter = TransactionAdapter(emptyList())
-        recyclerView.adapter = adapter
-
-        // Initialize session store
-        sessionStore = SessionStore(requireContext())
-
-        // Setup ViewModel
-        val repository = RepositoryProvider.getRepository(requireContext())
-        val factory = RepositoryViewModelFactory(repository)
-        viewModel = ViewModelProvider(this, factory)[TransactionViewModel::class.java]
+        setupRecyclerView(view)
+        setupViewModel()
 
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        loadTransactions()
+    }
 
+
+    private fun setupRecyclerView(view: View) {
+        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerTransactions)
+        recyclerView.layoutManager = LinearLayoutManager(context)
+
+        adapter = TransactionAdapter(emptyList())
+        recyclerView.adapter = adapter
+    }
+
+    private fun setupViewModel() {
+        sessionStore = SessionStore(requireContext())
+        val repository = RepositoryProvider.getRepository(requireContext())
+        val factory = RepositoryViewModelFactory(repository)
+        viewModel = ViewModelProvider(this, factory)[TransactionViewModel::class.java]
+    }
+
+
+    private fun loadTransactions() {
         viewLifecycleOwner.lifecycleScope.launch {
-            // Get user ID from session
+            // Get current user ID from session
             val userId = sessionStore.userId.firstOrNull()
 
             if (userId == null) {
-                Toast.makeText(requireContext(), "No user logged in", Toast.LENGTH_SHORT).show()
+                showNoUserError()
                 return@launch
             }
 
-            // Set user ID in ViewModel to activate the flow
+            // Tell ViewModel which user's transactions to load
             viewModel.setUserId(userId)
 
-            // Collect transactions
-            viewModel.transactionsWithNestsFlow.collect { transactions ->
-                adapter.updateData(transactions)
-            }
+            // Listen for transaction updates and refresh the list
+            observeTransactions()
         }
+    }
+
+    private suspend fun observeTransactions() {
+        viewModel.transactionsWithNestsFlow.collect { transactions ->
+            adapter.updateData(transactions)
+        }
+    }
+
+    //Error handling
+    private fun showNoUserError() {
+        Toast.makeText(requireContext(), "No user logged in", Toast.LENGTH_SHORT).show()
     }
 }

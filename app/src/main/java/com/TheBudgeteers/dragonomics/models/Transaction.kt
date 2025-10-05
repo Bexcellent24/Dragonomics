@@ -12,6 +12,11 @@ import java.util.Date
 // it is also linked to a specific user for multi-user support.
 // Works with Nest.kt to group transactions, and with TransactionDao to be saved/retrieved.
 
+
+// begin code attribution
+// Entity structure and Room annotations adapted from:
+// Android Developers official guide to defining entities in Room
+
 @Entity(
     tableName = "transactions",
     foreignKeys = [
@@ -41,3 +46,7 @@ data class Transaction(
     val categoryId: Long, // links this transaction to a Nest (category)
     val fromCategoryId: Long? // for expenses, where the money came from; null for incoming transactions
 )
+// end code attribution (Android Developers, 2020)
+
+// reference list
+// Android Developers, 2020. Define data using Room entities. [online] Available at: <https://developer.android.com/training/data-storage/room/defining-data> [Accessed 17 September 2025].

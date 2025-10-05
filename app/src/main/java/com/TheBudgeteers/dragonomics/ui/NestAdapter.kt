@@ -25,18 +25,10 @@ import kotlinx.coroutines.launch
 // NestAdapter is a RecyclerView adapter for displaying Nests in different layouts:
 // GRID, LIST, and HISTORY.
 
- // - GRID: shows nest name, icon, mood, budget progress, spent amount, and remaining budget.
+// - GRID: shows nest name, icon, mood, budget progress, spent amount, and remaining budget.
 // - LIST: shows nest name, icon, budget, and coloured progress bar.
 // - HISTORY: shows nest name, icon, and amount spent within a given date range.
-
 //  In this class we tried to manage all variations of nest layouts used on different pages, helping to avoid repeating large code blocks.
-
-// @param nestViewModel ViewModel to get nest data and UI state
-// @param layoutType Determines which layout to use for nest items
-// @param lifecycleScope Lifecycle scope to launch coroutines for reactive UI updates
-// @param startDateFlow Optional flow for start date (used in HISTORY mode)
-// @param endDateFlow Optional flow for end date (used in HISTORY mode)
-// @param onClick Callback when a nest is clicked
 
 
 class NestAdapter(
@@ -52,6 +44,9 @@ class NestAdapter(
     private val nests = mutableListOf<Nest>()
     private val nestSpentMap = mutableMapOf<Long, Double>()
 
+    // begin code attribution
+    // combine() and flatMapLatest() usage adapted from:
+    // Kotlin Coroutines documentation: Combining flows
     init {
         // For HISTORY layout: collect spent amounts in date range
         if (startDateFlow != null && endDateFlow != null) {
@@ -68,6 +63,7 @@ class NestAdapter(
             }
         }
     }
+    // end code attribution (Kotlin Documentation, 2020)
 
     // Updates the nest list displayed in the adapter.
     fun setNests(newNests: List<Nest>) {
@@ -92,6 +88,10 @@ class NestAdapter(
         var bindJob: Job? = null // Track coroutine job to cancel on rebind
     }
 
+    // begin code attribution
+    // Inflating different layouts based on view type adapted from:
+    // Android Developers guide to RecyclerView
+
     // Choose layout based on selected layout type
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NestViewHolder {
         val layoutRes = when (layoutType) {
@@ -102,6 +102,7 @@ class NestAdapter(
         val view = LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
         return NestViewHolder(view)
     }
+    // end code attribution (Android Developers, 2020)
 
     override fun onBindViewHolder(holder: NestViewHolder, position: Int) {
         // Cancel previous bind job to prevent multiple collectors for recycled views
@@ -200,3 +201,7 @@ class NestAdapter(
 
     override fun getItemCount() = nests.size
 }
+
+// reference list
+// Kotlin Documentation, 2020. Combining Flows. [online] Available at: <https://kotlinlang.org/docs/flow.html#combine> [Accessed 29 September 2025].
+// Android Developers, 2020. Create a List with RecyclerView. [online] Available at: <https://developer.android.com/develop/ui/views/layout/recyclerview> [Accessed 29 September 2025].

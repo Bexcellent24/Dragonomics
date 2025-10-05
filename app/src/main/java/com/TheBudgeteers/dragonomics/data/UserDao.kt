@@ -14,9 +14,16 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface UserDao {
 
+    // begin code attribution
+    // DAO structure and annotations are based on:
+    // Android Developers official guide to Room DAO interfaces
+
+
     // ---------- INSERT ----------
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(user: UserEntity): Long
+
+
 
     // ---------- QUERIES ----------
     // Finds a user by username (used for login)
@@ -31,8 +38,15 @@ interface UserDao {
     @Query("SELECT * FROM users WHERE id = :id LIMIT 1")
     suspend fun getUserById(id: Long): UserEntity?
 
+
+
     // ---------- UPDATES ----------
     // Updates a user's goal values
     @Query("UPDATE users SET minGoal = :minGoal, maxGoal = :maxGoal WHERE id = :userId")
     suspend fun updateGoals(userId: Long, minGoal: Double?, maxGoal: Double?)
+
+    // end code attribution (Android Developers, 2020)
 }
+
+// reference list
+// Android Developers, 2020. Access data using Room DAOs. [online] Available at: <https://developer.android.com/training/data-storage/room/accessing-data> [Accessed 16 September 2025].

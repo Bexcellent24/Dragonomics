@@ -44,12 +44,16 @@ class HistoryTransactionsAdapter(
         val txtAmount: TextView = itemView.findViewById(R.id.txtTransactionAmount)
     }
 
+    // begin code attribution
+    // ViewHolder pattern and multiple view type usage adapted from:
+    // Android Developers guide to RecyclerView
     override fun getItemViewType(position: Int): Int {
         return when (items[position]) {
             is HistoryListItem.Header -> TYPE_HEADER
             is HistoryListItem.TransactionItem -> TYPE_TRANSACTION
         }
     }
+    // end code attribution (Android Developers, 2020)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return if (viewType == TYPE_HEADER) {
@@ -66,14 +70,17 @@ class HistoryTransactionsAdapter(
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val item = items[position]) {
 
-            // Bind date header
             is HistoryListItem.Header -> {
                 val headerHolder = holder as HeaderViewHolder
+
+                // begin code attribution
+                // SimpleDateFormat usage adapted from:
+                // Android Developers guide to formatting dates in Java/Kotlin
                 val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale.getDefault())
                 headerHolder.txtHeader.text = dateFormat.format(Date(item.dateMillis))
+                // end code attribution (Android Developers, 2020)
             }
 
-            // Bind transaction item
             is HistoryListItem.TransactionItem -> {
                 val transactionHolder = holder as HistoryTransactionViewHolder
                 val transaction = item.transactionWithNest
@@ -81,12 +88,10 @@ class HistoryTransactionsAdapter(
                 transactionHolder.txtTitle.text = transaction.transaction.title
                 transactionHolder.txtDescription.text = transaction.transaction.description ?: ""
 
-                // Load category icon
                 transactionHolder.imgCategoryIcon.setImageResource(
                     getIconResource(transactionHolder.itemView.context, transaction.categoryNest.icon)
                 )
 
-                // Show or hide "from category" icon and arrow based on fromCategoryId
                 if (transaction.transaction.fromCategoryId != null && transaction.fromNest != null) {
                     transactionHolder.imgFromCategory.visibility = View.VISIBLE
                     transactionHolder.imgFromCategory.setImageResource(
@@ -98,7 +103,6 @@ class HistoryTransactionsAdapter(
                     transactionHolder.arrow.visibility = View.GONE
                 }
 
-                // Show photo icon if transaction has a photo
                 if (!transaction.transaction.photoPath.isNullOrEmpty()) {
                     transactionHolder.imgPhotoIcon.visibility = View.VISIBLE
                     transactionHolder.imgPhotoIcon.setOnClickListener {
@@ -108,7 +112,6 @@ class HistoryTransactionsAdapter(
                     transactionHolder.imgPhotoIcon.visibility = View.GONE
                 }
 
-                // Format amount with + for income, - for expense
                 val sign = if (transaction.categoryNest.type == NestType.INCOME) "+" else "-"
                 transactionHolder.txtAmount.text = "$sign R${transaction.transaction.amount.toInt()}"
             }
@@ -117,15 +120,22 @@ class HistoryTransactionsAdapter(
 
     override fun getItemCount(): Int = items.size
 
-    // Utility to get drawable resource ID from icon name
+    // begin code attribution
+    // Dynamic resource loading with getIdentifier() adapted from:
+    // Android Developers Resources class documentation
     private fun getIconResource(context: Context, categoryId: String): Int {
         return context.resources.getIdentifier(categoryId, "drawable", context.packageName)
             .takeIf { it != 0 } ?: R.drawable.ic_default
     }
+    // end code attribution (Android Developers, 2020)
 
-    // Replace adapter data and refresh list
     fun updateData(newItems: List<HistoryListItem>) {
         items = newItems
         notifyDataSetChanged()
     }
 }
+
+// reference list
+// Android Developers, 2020. Create a List with RecyclerView. [online] Available at: <https://developer.android.com/develop/ui/views/layout/recyclerview> [Accessed 23 September 2025].
+// Android Developers, 2020. Formatting Dates with SimpleDateFormat. [online] Available at: <https://developer.android.com/reference/java/text/SimpleDateFormat> [Accessed 23 September 2025]
+// Android Developers, 2020. Resources Class Documentation. [online] Available at: <https://developer.android.com/reference/android/content/res/Resources#getIdentifier(java.lang.String,%20java.lang.String,%20java.lang.String)> [Accessed 23 September 2025].

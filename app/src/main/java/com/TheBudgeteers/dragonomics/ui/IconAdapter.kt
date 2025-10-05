@@ -22,6 +22,9 @@ class IconAdapter(
         val img: ImageView = view.findViewById(R.id.imgIcon)
     }
 
+    // begin code attribution
+    // Adapter and ViewHolder pattern adapted from:
+    // Android Developers guide to RecyclerView usage
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): IconVH {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_icon, parent, false)
@@ -31,13 +34,17 @@ class IconAdapter(
 
         return IconVH(view)
     }
+    // end code attribution (Android Developers, 2020)
 
     override fun onBindViewHolder(holder: IconVH, position: Int) {
         val iconName = icons[position]
         val context = holder.itemView.context
 
-        // Get drawable resource ID by name
+        // begin code attribution
+        // Use of getIdentifier() for dynamic resource loading adapted from:
+        // Android Developers Resources class documentation
         val resId = context.resources.getIdentifier(iconName, "drawable", context.packageName)
+        // end code attribution (Android Developers, 2020)
 
         // Set icon image or fallback icon
         holder.img.setImageResource(if (resId != 0) resId else android.R.drawable.ic_menu_help)
@@ -64,3 +71,7 @@ class IconAdapter(
 
     override fun getItemCount(): Int = icons.size
 }
+
+// reference list
+// Android Developers, 2020. Create a List with RecyclerView. [online] Available at: <https://developer.android.com/develop/ui/views/layout/recyclerview> [Accessed 21 September 2025].
+// Android Developers, 2020. Resources Class Documentation. [online] Available at: <https://developer.android.com/reference/android/content/res/Resources#getIdentifier(java.lang.String,%20java.lang.String,%20java.lang.String)> [Accessed 21 September 2025].
