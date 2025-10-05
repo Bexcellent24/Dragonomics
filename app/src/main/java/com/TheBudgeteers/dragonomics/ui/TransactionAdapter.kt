@@ -29,6 +29,9 @@ class TransactionAdapter(
         private const val EXPENSE_COLOR = "#9C2124"
     }
 
+    // begin code attribution
+    // ViewHolder pattern adapted from Android Developers guide to RecyclerView
+
     // ViewHolder stores references to views for one transaction item
     class TransactionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imgIcon: ImageView = itemView.findViewById(R.id.imgCategoryIcon)
@@ -36,6 +39,8 @@ class TransactionAdapter(
         val txtDate: TextView = itemView.findViewById(R.id.txtTransactionDate)
         val txtAmount: TextView = itemView.findViewById(R.id.txtTransactionAmount)
     }
+
+    // end code attribution (Android Developers, 2020)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -64,6 +69,8 @@ class TransactionAdapter(
         holder.imgIcon.setImageResource(iconRes)
     }
 
+    // begin code attribution
+    // Color coding adapted from Android Developers guide to GradientDrawable
     private fun bindAmountColor(holder: TransactionViewHolder, item: TransactionWithNest) {
         // Color code: green for income, red for expenses
         val bg = holder.txtAmount.background as GradientDrawable
@@ -74,6 +81,7 @@ class TransactionAdapter(
         }
         bg.setColor(color)
     }
+    // end code attribution (Android Developers, 2020)
 
 
     // Find drawable resource by name, or use default icon if not found
@@ -90,3 +98,7 @@ class TransactionAdapter(
 
     override fun getItemCount() = transactions.size
 }
+
+// Reference list
+// Android Developers, 2020. RecyclerView.Adapter. [online] Available at: <https://developer.android.com/reference/androidx/recyclerview/widget/RecyclerView.Adapter> [Accessed 1 October 2025].
+// Android Developers, 2020. GradientDrawable. [online] Available at: <https://developer.android.com/reference/android/graphics/drawable/GradientDrawable> [Accessed 1 October 2025].

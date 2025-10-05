@@ -11,9 +11,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-/**
- * UI state for a single nest with all computed values
- */
+
+ // UI state for a single nest with all computed values
 data class NestUiState(
     val nest: Nest,
     val spent: Double,
@@ -33,7 +32,8 @@ data class NestUiState(
 
 class NestViewModel(private val repository: Repository) : ViewModel() {
 
- // ========== UI LOGIC STUFF ==========
+    // begin code attribution
+    // Flow collection and emission pattern adapted from Kotlin Coroutines Flow documentation
 
      //Returns a Flow emitting UI state for a single nest.
      //Automatically updates when spent amounts change.
@@ -84,6 +84,7 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
              }
          }
      }
+    // end code attribution (Kotlin Documentation, 2021)
 
 
      // Returns UI state for a nest as a single snapshot.
@@ -118,7 +119,6 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         )
     }
 
-    // ========== Progress and Mood Calculations ==========
 
 
      // Calculate progress (0.0 to 1.0) for a nest
@@ -147,9 +147,11 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         else             -> Mood.NEGATIVE
     }
 
-    // ========== NEST CRUD ==========
 
     suspend fun getNestById(nestId: Long): Nest = repository.getNestById(nestId)
+
+    // begin code attribution
+    // viewModelScope coroutine launching pattern adapted from Android Developers ViewModelScope guide
 
     fun addNest(nest: Nest, onDone: (() -> Unit)? = null) {
         viewModelScope.launch {
@@ -158,11 +160,10 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
+    // end code attribution (Android Developers, 2021)
+
     suspend fun getNestsByType(userId: Long, type: NestType): List<Nest> =
         repository.getNests(userId).filter { it.type == type }
-
-
-    // ========== FLOWS ==========
 
 
     fun getSpentAmountFlow(userId: Long, nestId: Long): Flow<Double?> =
@@ -178,7 +179,6 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
             .map { list -> list.associate { it.nestId to it.spent } }
     }
 
-    // ========== OVERALL MOOD ==========
 
     enum class Weighting { EQUAL, BUDGET, SPENT }
 
@@ -225,3 +225,7 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
     }
 
 }
+
+// reference list
+// Android Developers, 2021. ViewModelScope Overview. [online] Available at: <https://developer.android.com/topic/libraries/architecture/coroutines> [Accessed 3 October 2025].
+// Kotlin Documentation, 2021. Flow API Overview. [online] Available at: <https://kotlinlang.org/docs/flow.html> [Accessed 3 October 2025].
