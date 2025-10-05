@@ -9,7 +9,6 @@
     android:layout_gravity="center"
     android:background="@color/DeepAbyss">
 
-    <!-- Top Controls Row -->
     <LinearLayout
         android:id="@+id/topControls"
         android:layout_width="match_parent"
@@ -58,14 +57,12 @@
     </LinearLayout>
 
 
-    <!-- Pie Chart + Income/Expenses -->
     <FrameLayout
         android:id="@+id/pieChartContainer"
         android:layout_width="match_parent"
         android:layout_height="220dp"
         android:layout_margin="16dp">
 
-        <!-- Pie Chart Placeholder -->
         <ImageView
             android:id="@+id/pieChartPlaceholder"
             android:layout_width="match_parent"
@@ -75,7 +72,6 @@
             android:layout_marginRight="10dp"
             android:src="@drawable/chart" />
 
-        <!-- Overlay for Income/Expenses -->
         <LinearLayout
             android:id="@+id/incomeExpensesContainer"
             android:layout_width="match_parent"
@@ -83,7 +79,6 @@
             android:orientation="vertical"
             android:gravity="center">
 
-            <!-- Income Label -->
             <TextView
                 android:id="@+id/incomeLabel"
                 android:layout_width="wrap_content"
@@ -94,7 +89,6 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <!-- Income Amount -->
             <TextView
                 android:id="@+id/incomeText"
                 android:layout_width="wrap_content"
@@ -105,7 +99,6 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <!-- Expenses Label -->
             <TextView
                 android:id="@+id/expensesLabel"
                 android:layout_width="wrap_content"
@@ -117,7 +110,6 @@
                 android:textStyle="bold"
                 android:layout_marginTop="8dp" />
 
-            <!-- Expenses Amount -->
             <TextView
                 android:id="@+id/expensesText"
                 android:layout_width="wrap_content"
@@ -149,7 +141,6 @@
         android:background="@color/MidnightViolet"/>
 
 
-    <!-- Bottom Navigation -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
@@ -159,8 +150,12 @@
         android:paddingBottom="0dp"
         app:itemIconSize="28dp"
         app:itemIconTint="@null"
-        app:itemBackground="@android:color/transparent"
-        app:itemTextColor="@color/nav_item_color"
+        app:itemTextColor="@color/nav_item_text_color"
+        app:itemRippleColor="@android:color/transparent"
+        app:itemActiveIndicatorStyle="@style/NoActiveIndicator"
         app:labelVisibilityMode="labeled"
-        app:menu="@menu/bottom_nav_menu" />
+        app:menu="@menu/bottom_nav_menu"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 </LinearLayout>

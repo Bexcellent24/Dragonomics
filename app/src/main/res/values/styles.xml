@@ -1,10 +1,8 @@
-<!-- res/values/styles.xml -->
 <resources>
 
-    <!-- Pill-shaped card style -->
     <style name="Shape.Pill" parent="">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">22dp</item> <!-- big = pill -->
+        <item name="cornerSize">22dp</item>
     </style>
 
     <style name="CenteredDialog" parent="Theme.Material3.DayNight.Dialog">
@@ -19,5 +17,22 @@
         <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
         <item name="android:windowExitAnimation">@android:anim/fade_out</item>
     </style>
+
+    <style name="NoActiveIndicator">
+        <item name="android:color">@android:color/transparent</item>
+        <item name="backgroundTint">@android:color/transparent</item>
+        <!-- optional: keep; some builds ignore width/height here -->
+        <item name="android:width">0dp</item>
+        <item name="android:height">0dp</item>
+    </style>
+
+    <style name="Widget.Dragonomics.BottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemIconTint">@null</item>
+        <item name="itemTextColor">@color/nav_item_text_color</item>
+        <item name="itemRippleColor">@android:color/transparent</item>
+        <item name="itemActiveIndicatorStyle">@style/NoActiveIndicator</item>
+        <item name="backgroundTint">@color/DeepAbyss</item>
+    </style>
+
 
 </resources>

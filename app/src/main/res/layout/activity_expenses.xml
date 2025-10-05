@@ -23,7 +23,6 @@
         android:padding="8dp"
         android:background="@color/MidnightViolet">
 
-        <!-- Nest Out -->
         <LinearLayout
             android:id="@+id/btnNestsOut"
             android:layout_width="100dp"
@@ -52,14 +51,12 @@
                 android:gravity="center"/>
         </LinearLayout>
 
-        <!-- Left group: Nest In & Nest Out -->
         <LinearLayout
             android:id="@+id/nest_toggle_buttons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <!-- Nest In -->
             <LinearLayout
                 android:id="@+id/btnNestsIn"
                 android:layout_width="100dp"
@@ -91,13 +88,11 @@
 
         </LinearLayout>
 
-        <!-- Spacer to push Edit button to the right -->
         <View
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_weight="1" />
 
-        <!-- Edit Nests button -->
         <LinearLayout
             android:id="@+id/btnEditNests"
             android:layout_width="90dp"
@@ -174,8 +169,9 @@
         android:paddingBottom="0dp"
         app:itemIconSize="28dp"
         app:itemIconTint="@null"
-        app:itemBackground="@android:color/transparent"
-        app:itemTextColor="@color/nav_item_color"
+        app:itemTextColor="@color/nav_item_text_color"
+        app:itemRippleColor="@android:color/transparent"
+        app:itemActiveIndicatorStyle="@style/NoActiveIndicator"
         app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"

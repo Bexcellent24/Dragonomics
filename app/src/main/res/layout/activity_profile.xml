@@ -8,7 +8,6 @@
     android:layout_height="match_parent"
     tools:context=".ProfileActivity">
 
-    <!-- 1) Profile header -->
     <LinearLayout
         android:id="@+id/userProfile"
         android:layout_width="0dp"
@@ -20,7 +19,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Header row: Edit (left) + Logout (right) -->
         <LinearLayout
             android:id="@+id/headerActionsRow"
             android:layout_width="match_parent"
@@ -30,7 +28,6 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp">
 
-            <!-- Edit button (text style) -->
             <Button
                 android:id="@+id/btn_edit"
                 android:layout_width="wrap_content"
@@ -46,13 +43,11 @@
                 app:backgroundTint="@android:color/transparent"
                 app:rippleColor="@color/GoldenEmber" />
 
-            <!-- Spacer pushes Logout to far right -->
             <View
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
-            <!-- Logout button (text style) -->
             <Button
                 android:id="@+id/btn_logout"
                 android:layout_width="wrap_content"
@@ -67,8 +62,6 @@
                 app:backgroundTint="@android:color/transparent"
                 app:rippleColor="@color/GoldenEmber" />
         </LinearLayout>
-
-        <!-- Removed MaterialToolbar (no longer needed) -->
 
         <FrameLayout
             android:id="@+id/header"
@@ -99,7 +92,6 @@
             android:textSize="24sp"/>
     </LinearLayout>
 
-    <!-- 2) Static labels  -->
     <LinearLayout
         android:id="@+id/max_minText"
         android:layout_width="0dp"
@@ -138,7 +130,6 @@
             android:textStyle="bold"/>
     </LinearLayout>
 
-    <!-- 3) Amounts -->
     <LinearLayout
         android:id="@+id/max_minAmounts"
         android:layout_width="0dp"
@@ -186,7 +177,6 @@
             android:textColorHint="@color/GoldenEmber"/>
     </LinearLayout>
 
-    <!-- 4) Quests header -->
     <TextView
         android:id="@+id/txt_quest_header"
         android:layout_width="0dp"
@@ -203,7 +193,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- 5) Quests list -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvQuests"
         android:layout_width="0dp"
@@ -218,7 +207,6 @@
         app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
         tools:listitem="@layout/item_quest" />
 
-    <!-- 6) Bottom nav -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         android:layout_width="match_parent"
@@ -228,15 +216,15 @@
         android:paddingBottom="0dp"
         app:itemIconSize="28dp"
         app:itemIconTint="@null"
-        app:itemBackground="@android:color/transparent"
-        app:itemTextColor="@color/nav_item_color"
+        app:itemTextColor="@color/nav_item_text_color"
+        app:itemRippleColor="@android:color/transparent"
+        app:itemActiveIndicatorStyle="@style/NoActiveIndicator"
         app:labelVisibilityMode="labeled"
         app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Edit overlay -->
     <FrameLayout
         android:id="@+id/profileEditOverlay"
         android:layout_width="0dp"
@@ -273,7 +261,6 @@
                     android:layout_height="wrap_content"
                     android:padding="18dp">
 
-                    <!-- Close “X” -->
                     <ImageButton
                         android:id="@+id/btnClosePanel"
                         android:layout_width="28dp"
@@ -287,7 +274,6 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
-                    <!-- Avatar block -->
                     <LinearLayout
                         android:id="@+id/avatarBlock"
                         android:layout_width="wrap_content"
@@ -328,7 +314,6 @@
                             android:fontFamily="@font/aref_ruqaa" />
                     </LinearLayout>
 
-                    <!-- Fields -->
                     <LinearLayout
                         android:id="@+id/fieldsColumn"
                         android:layout_width="0dp"
