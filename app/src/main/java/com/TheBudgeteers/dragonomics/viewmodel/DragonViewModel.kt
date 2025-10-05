@@ -45,7 +45,8 @@ data class DragonUiState(
     //UI-only state and equipped cosmetics by default
     val isExpanded: Boolean = false,
     val equippedHornsId: String? = "horns_chipped",
-    val equippedWingsId: String? = "wings_ragged"
+    val equippedWingsId: String? = "wings_ragged",
+    val equippedPaletteId: String = "pal_ember"
 )
 
 //ViewModel that observes the domain game
@@ -105,6 +106,7 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
             when(accessoryType) {
                 "horns" -> state.copy(equippedHornsId = itemId)
                 "wings" -> state.copy(equippedWingsId = itemId)
+                "palette" -> state.copy(equippedPaletteId = itemId)
                 else -> state
             }
         }

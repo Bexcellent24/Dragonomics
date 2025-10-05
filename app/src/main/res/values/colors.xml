@@ -20,4 +20,16 @@
     <color name="option6">#231c2a</color>
     <color name="Grey">#333333</color>
 
+    <color name="ember_body">#CA4D0B</color>
+    <color name="ember_accessory">#F5FB03</color>
+
+    <color name="forest_body">#4CAF50</color>
+    <color name="forest_accessory">#501E01</color>
+
+    <color name="crimson_body">#D50101</color>
+    <color name="crimson_accessory">#545454</color>
+
+    <color name="ice_body">#A0D8FF</color>
+    <color name="ice_accessory">#FFFFFF</color>
+
 </resources>

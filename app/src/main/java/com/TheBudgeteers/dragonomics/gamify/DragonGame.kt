@@ -30,7 +30,7 @@ object DragonRules {
 
     //Tunable progression values
     const val XP_PER_LEVEL = 25
-    const val XP_EXPENSE = 5
+    const val XP_EXPENSE = 25
     const val XP_PHOTO_BONUS = 2
 
     //Tunable dragon mood bonuses
@@ -70,19 +70,19 @@ object DragonRules {
     fun dragonImageFor(level: Int, mood: Mood): Int = when {
         level >= 10 -> when (mood) { // Adult from (Level >= 10)
             // these will be replaced with gifs
-            Mood.HAPPY   -> R.drawable.adult_dragon_happy
-            Mood.NEUTRAL -> R.drawable.adult_dragon_neutral
-            Mood.ANGRY   -> R.drawable.adult_dragon_angry
+            Mood.HAPPY   -> R.drawable.adult_happy
+            Mood.NEUTRAL -> R.drawable.adult_neutral
+            Mood.ANGRY   -> R.drawable.adult_angry
         }
         level >= 5 -> when (mood) {   // Teen from 5 to 9
-            Mood.HAPPY   -> R.drawable.teen_dragon_happy
-            Mood.NEUTRAL -> R.drawable.teen_dragon_neutral
-            Mood.ANGRY   -> R.drawable.teen_dragon_angry
+            Mood.HAPPY   -> R.drawable.teen_happy
+            Mood.NEUTRAL -> R.drawable.teen_neutral
+            Mood.ANGRY   -> R.drawable.teen_angry
         }
         else       -> when (mood) {    // baby start
-            Mood.HAPPY   -> R.drawable.baby_dragon_happy
-            Mood.NEUTRAL -> R.drawable.baby_dragon_neutral
-            Mood.ANGRY   -> R.drawable.baby_dragon_sad
+            Mood.HAPPY   -> R.drawable.baby_happy
+            Mood.NEUTRAL -> R.drawable.baby_neutral
+            Mood.ANGRY   -> R.drawable.baby_sad
         }
     }
 

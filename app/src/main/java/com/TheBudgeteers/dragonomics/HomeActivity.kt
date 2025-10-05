@@ -1,5 +1,8 @@
 package com.TheBudgeteers.dragonomics
 
+import android.graphics.ColorFilter
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.MenuItem
@@ -8,6 +11,7 @@ import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
@@ -29,6 +33,8 @@ import com.TheBudgeteers.dragonomics.DragonSockets.BABY_DRAGON_SOCKETS
 import com.TheBudgeteers.dragonomics.DragonSockets.DRAGON_REFERENCE_WIDTH_DP
 import com.TheBudgeteers.dragonomics.DragonSockets.DRAGON_SMALL_DP
 import com.TheBudgeteers.dragonomics.DragonSockets.TEEN_DRAGON_SOCKETS
+import com.TheBudgeteers.dragonomics.utilities.PaletteColors
+import com.TheBudgeteers.dragonomics.utilities.PaletteMapper
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -81,12 +87,17 @@ class HomeActivity : AppCompatActivity(),
     }
 
     private fun initializeDragonDisplay() {
-        lifecycleScope.launch {
+        lifecycleScope.launch { //------------CODE ATTRIBUTION------------
+//Title: Getting started with glider
+//Author: Glider
+//Date: 05/10/2025
+//Code Version: v4
+//Availability: https://bumptech.github.io/glide/doc/getting-started.html
             dragonViewModel.uiState.collect { state ->
                 Glide.with(this@HomeActivity)
                     .load(state.dragonImageRes)
                     .into(binding.dragon)
-
+//------------ END OF CODE ATTRIBUTION------------ ( Glider, 2025)
                 binding.xpTxt.text =
                     "XP L${state.level} ${state.xpIntoLevel}/${DragonRules.XP_PER_LEVEL}"
                 binding.xpProgress.setProgress(state.xpProgress, true)
@@ -120,6 +131,25 @@ class HomeActivity : AppCompatActivity(),
                 else -> BABY_DRAGON_SOCKETS
             }
 
+            // gets the dual color IDs from the mapper
+            val paletteColors: PaletteColors? = PaletteMapper.mapPaletteIdToColors(this, state.equippedPaletteId)
+
+            // gets the Body Color Filter
+            val bodyColorFilter: ColorFilter? = paletteColors?.bodyColorRes?.let { resId ->
+                val colorInt = ContextCompat.getColor(this, resId)
+                PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY)
+            }
+
+            //  creates the Accessory Color Filter
+            val accessoryColorFilter: ColorFilter? = paletteColors?.accessoryColorRes?.let { resId ->
+                val colorInt = ContextCompat.getColor(this, resId)
+                PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY)
+            }
+
+            //  applies filter to the main dragon body
+            binding.dragon.colorFilter = bodyColorFilter
+
+
             val dragonWidthDp = DRAGON_SMALL_DP
             val scaleFactor = dragonWidthDp / DRAGON_REFERENCE_WIDTH_DP.toFloat()
 
@@ -132,7 +162,8 @@ class HomeActivity : AppCompatActivity(),
                 imageView: ImageView,
                 socket: DragonSockets.AttachmentPoint,
                 itemId: String?,
-                currentLevel: Int
+                currentLevel: Int,
+                colorFilter: ColorFilter? // Now expects the ACCESSORY filter
             ) {
                 val safeItemId = itemId ?: ""
                 val drawables = getAccessoryDrawables(safeItemId, currentLevel)
@@ -159,6 +190,10 @@ class HomeActivity : AppCompatActivity(),
                     }
 
                     Glide.with(this@HomeActivity).load(accessoryRes).into(imageView)
+
+                    // applies the Accessory Color Filter
+                    imageView.colorFilter = colorFilter
+
                     imageView.visibility = ImageView.VISIBLE
                 } else {
                     imageView.setImageDrawable(null)
@@ -166,10 +201,11 @@ class HomeActivity : AppCompatActivity(),
                 }
             }
 
-            updateAccessoryView(binding.hornLeft, currentSocketSet.hornLeft, state.equippedHornsId, state.level)
-            updateAccessoryView(binding.hornRight, currentSocketSet.hornRight, state.equippedHornsId, state.level)
-            updateAccessoryView(binding.wingLeft, currentSocketSet.wingLeft, state.equippedWingsId, state.level)
-            updateAccessoryView(binding.wingRight, currentSocketSet.wingRight, state.equippedWingsId, state.level)
+            // passes the specific accessoryColorFilter to all accessory updates
+            updateAccessoryView(binding.hornLeft, currentSocketSet.hornLeft, state.equippedHornsId, state.level, accessoryColorFilter)
+            updateAccessoryView(binding.hornRight, currentSocketSet.hornRight, state.equippedHornsId, state.level, accessoryColorFilter)
+            updateAccessoryView(binding.wingLeft, currentSocketSet.wingLeft, state.equippedWingsId, state.level, accessoryColorFilter)
+            updateAccessoryView(binding.wingRight, currentSocketSet.wingRight, state.equippedWingsId, state.level, accessoryColorFilter)
         }
     }
 
@@ -179,12 +215,14 @@ class HomeActivity : AppCompatActivity(),
             level >= 5 -> "teen_"
             else -> "baby_"
         }
+// helper method that helps us dynamically finds the names of our accessories. It checks what level the user is on
+        // then based on that level, we will get the first prefix. Whatever the user selects in the  store will be the second prefix
 
         fun getResId(suffix: String): Int {
             val resourceName = "${prefix}${itemId}_$suffix"
             return resources.getIdentifier(resourceName, "drawable", packageName)
         }
-
+// suffix will alwayss return both left and right so we can get both the compoents
         return DragonSockets.AccessoryDrawables(
             leftResId = getResId("left"),
             rightResId = getResId("right")
@@ -293,3 +331,5 @@ class HomeActivity : AppCompatActivity(),
         return true
     }
 }
+// reference list
+//The Independent Institute of Education. 2025. Open Source Coding Module Manuel  [OPSC 7311]. nt. [online via internal VLE] The Independent Institute of Education. Available at: <https://advtechonline.sharepoint.com/:w:/r/sites/TertiaryStudents/_layouts/15/Doc.aspx?sourcedoc=%7BD5C243B5-895D-4B63-B083-140930EF9734%7D&file=OPSC7311MM.docx&action=default&mobileredirect=true> [Accessed Date 03 October 2025].

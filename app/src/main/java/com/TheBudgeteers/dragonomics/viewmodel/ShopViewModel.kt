@@ -10,18 +10,24 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+
 // ShopViewModel manages the in-app shop where users buy dragon accessories
 // Handles three categories: horns, wings, and color palettes
 // Manages currency, purchases, and equipped items
 // Communicates with HomeActivity to update the dragon's appearance
 
-// Listener interface for notifying when accessories are equipped
-// HomeActivity implements this to update the dragon view
+//------------CODE ATTRIBUTION------------
+//Title: Interfaces
+//Author: JetBrains
+//Date: 05/10/2025
+//Code Version:(N/A)
+//Availability: https://kotlinlang.org/docs/interfaces.html#jvm-default-method-generation-for-interface-functions
 interface AccessoryEquipListener {
-    // accessoryType: "horns", "wings", or "palette"
-    // itemId: unique identifier like "horns_chipped"
+    // Listener interface for notifying when accessories are equipped
+// HomeActivity implements this to update the dragon view
     fun onAccessoryEquipped(accessoryType: String, itemId: String)
 }
+//---------END OF CODE ATTRIBUTION--------- ( Jetbrains, 2025)
 
 // Complete shop state container
 data class ShopState(
@@ -32,6 +38,8 @@ data class ShopState(
     val currentTab: ShopTab = ShopTab.PALETTE,          // Active shop tab
     val purchaseResult: PurchaseResult? = null          // Result of last purchase attempt
 )
+
+
 
 // Outcome of a purchase attempt
 sealed class PurchaseResult {
@@ -280,3 +288,6 @@ class ShopViewModel : ViewModel() {
 
 // reference list
 // Kotlin Documentation, 2020. When Expression. [online] Available at: <https://kotlinlang.org/docs/control-flow.html#when-expression> [Accessed 3 October 2025].
+//Kotlin Documentation, 2025. Interfaces | Kotlin. [online] Available at: <https://kotlinlang.org/docs/interfaces.html> [Accessed 3 October 2025].
+//
+

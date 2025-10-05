@@ -60,6 +60,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     // Gif Usage
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
     ksp("com.github.bumptech.glide:compiler:4.16.0")
 
