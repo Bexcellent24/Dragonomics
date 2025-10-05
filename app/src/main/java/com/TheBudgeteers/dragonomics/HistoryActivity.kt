@@ -30,10 +30,18 @@ import java.io.File
 import java.util.Calendar
 import java.util.Date
 
+// HistoryActivity displays transaction history with filtering options
+// Shows transactions grouped by date with monthly income/expense summary
+// Users can navigate between months or set custom date ranges
+// Displays attached receipt photos and allows viewing them in full screen
+// Part of the bottom navigation flow
+
 class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
+
     private lateinit var binding: ActivityHistoryBinding
-    private lateinit var viewModel: HistoryViewModel  // ✅ Make it a class property
+    private lateinit var viewModel: HistoryViewModel
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +50,7 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         binding = ActivityHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Setup bottom navigation
         binding.bottomNavigationView.itemIconTintList = null
         binding.bottomNavigationView.selectedItemId = R.id.nav_history
 
@@ -49,26 +58,35 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             onNavigationItemSelected(item)
         }
 
+        // Initialize repository and session
         val repository = RepositoryProvider.getRepository(this)
         val session = SessionStore(this)
 
+        // Get user ID and setup ViewModel
         lifecycleScope.launch {
             val userId = session.userId.firstOrNull()
             if (userId == null) {
+                // No user logged in - redirect to login
                 navigateToLogin()
                 return@launch
             }
 
+            // Create ViewModel with user-specific factory
             viewModel = ViewModelProvider(
                 this@HistoryActivity,
                 HistoryViewModelFactory(repository, userId)
             )[HistoryViewModel::class.java]
 
-
             setupUI()
         }
     }
 
+
+    // begin code attribution
+    // Flow collection in lifecycle scope adapted from:
+    // Android Developers: Collect flows safely
+
+    // Setup all UI components and their data bindings
     private fun setupUI() {
         val prevMonthButton = binding.prevMonthButton
         val nextMonthButton = binding.nextMonthButton
@@ -82,6 +100,7 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
         val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale.ENGLISH)
 
+        // Month navigation buttons
         prevMonthButton.setOnClickListener {
             viewModel.prevMonth()
         }
@@ -90,24 +109,28 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             viewModel.nextMonth()
         }
 
+        // Display start date (updates automatically when date range changes)
         lifecycleScope.launchWhenStarted {
             viewModel.startDate.collect { start ->
                 startDateText.text = if (start != 0L) "Start: ${dateFormat.format(Date(start))}" else "Start Date"
             }
         }
 
+        // Display end date (updates automatically when date range changes)
         lifecycleScope.launchWhenStarted {
             viewModel.endDate.collect { end ->
                 endDateText.text = if (end != 0L) "End: ${dateFormat.format(Date(end))}" else "End Date"
             }
         }
 
+        // Display current month name
         lifecycleScope.launchWhenStarted {
             viewModel.startDate.collect {
                 currentMonthText.text = viewModel.getMonthDisplayName()
             }
         }
 
+        // Display monthly income and expense totals
         lifecycleScope.launchWhenStarted {
             viewModel.monthlyStats.collect { stats ->
                 incomeText.text = "R${stats.income.toInt()}"
@@ -115,6 +138,9 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             }
         }
 
+        // end code attribution (Android Developers, 2021)
+
+        // Custom date range pickers
         binding.startDateButton.root.setOnClickListener {
             showDatePicker { date ->
                 viewModel.setCustomRange(date, viewModel.endDate.value)
@@ -127,6 +153,7 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             }
         }
 
+        // Setup nest spending summary fragment
         supportFragmentManager.beginTransaction()
             .replace(
                 R.id.history_fragment_container,
@@ -134,12 +161,14 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             )
             .commit()
 
+        // Setup transaction list with photo viewing capability
         val adapter = HistoryTransactionsAdapter(emptyList()) { photoPath ->
             openPhotoViewer(photoPath)
         }
         binding.transactionsRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.transactionsRecyclerView.adapter = adapter
 
+        // Collect grouped transactions (automatically updates when date range changes)
         lifecycleScope.launchWhenStarted {
             viewModel.groupedTransactions.collect { grouped ->
                 adapter.updateData(grouped)
@@ -147,6 +176,12 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
+
+    // begin code attribution
+    // DatePickerDialog usage adapted from:
+    // Android Developers: Pickers guide
+
+    // Show date picker dialog and return selected timestamp
     private fun showDatePicker(onDateSelected: (Long) -> Unit) {
         val calendar = Calendar.getInstance()
         val datePicker = DatePickerDialog(
@@ -162,16 +197,26 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         datePicker.show()
     }
 
+    // end code attribution (Android Developers, 2020)
+
+
+    // begin code attribution
+    // FileProvider usage for viewing images adapted from:
+    // Android Developers: Sharing files with FileProvider
+
+    // Open receipt photo in external image viewer
     private fun openPhotoViewer(photoPath: String) {
         try {
             val photoFile = File(photoPath)
             if (photoFile.exists()) {
+                // Use FileProvider to securely share the file
                 val photoUri: Uri = FileProvider.getUriForFile(
                     this,
                     "${applicationContext.packageName}.fileprovider",
                     photoFile
                 )
 
+                // Create intent to view image
                 val intent = Intent(Intent.ACTION_VIEW).apply {
                     setDataAndType(photoUri, "image/*")
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -187,6 +232,10 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
+    // end code attribution (Android Developers, 2020)
+
+
+    // Redirect to login screen if no user is logged in
     private fun navigateToLogin() {
         val intent = Intent(this, LoginActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -195,6 +244,7 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         finish()
     }
 
+    // Handle bottom navigation item clicks
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.nav_home -> openIntent(this, "", HomeActivity::class.java)
@@ -205,3 +255,8 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         return true
     }
 }
+
+// reference list
+// Android Developers, 2021. Collect Flows Safely. [online] Available at: <https://developer.android.com/kotlin/flow/collect> [Accessed 5 October 2025].
+// Android Developers, 2020. Pickers. [online] Available at: <https://developer.android.com/develop/ui/views/components/pickers> [Accessed 5 October 2025].
+// Android Developers, 2020. Sharing Files with FileProvider. [online] Available at: <https://developer.android.com/training/secure-file-sharing/setup-sharing> [Accessed 5 October 2025].

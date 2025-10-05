@@ -68,7 +68,7 @@ class ShopDialogFragment : DialogFragment() {
             adapter = shopAdapter
             setHasFixedSize(true)
             layoutManager = GridLayoutManager(requireContext(), 2)
-            addItemDecoration(createSpacingDecoration())
+            //addItemDecoration(createSpacingDecoration())
         }
     }
 
