@@ -15,17 +15,14 @@ import com.TheBudgeteers.dragonomics.R
 import com.TheBudgeteers.dragonomics.data.AppDatabase
 import com.TheBudgeteers.dragonomics.data.NestLayoutType
 import com.TheBudgeteers.dragonomics.data.Repository
+import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.models.NestType
 import com.TheBudgeteers.dragonomics.viewmodel.HistoryViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.HistoryViewModelFactory
 import com.TheBudgeteers.dragonomics.viewmodel.NestViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.NestViewModelFactory
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-
-
-// Fragment that displays a list of nests in a chosen layout (Grid, List, or History).
-// Responsible for creating and binding the NestAdapter, setting up RecyclerView, and observing nest data.
-// Used to display nests of a specific type (Income or Expense) and layout style.
 
 class NestFragment : Fragment() {
 
@@ -33,6 +30,7 @@ class NestFragment : Fragment() {
     private var adapter: NestAdapter? = null
     private lateinit var nestViewModel: NestViewModel
     private lateinit var repository: Repository
+    private lateinit var sessionStore: SessionStore
 
     private lateinit var layoutType: NestLayoutType
     private lateinit var nestType: NestType
@@ -41,7 +39,6 @@ class NestFragment : Fragment() {
         private const val ARG_NEST_TYPE = "nest_type"
         private const val ARG_LAYOUT_TYPE = "layout_type"
 
-        // Creates a new instance of NestFragment with specific nest and layout types
         fun newInstance(nestType: NestType, layoutType: NestLayoutType): NestFragment {
             val fragment = NestFragment()
             val args = Bundle()
@@ -54,7 +51,6 @@ class NestFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Get nest type and layout type from fragment arguments or default values
         nestType = arguments?.getString(ARG_NEST_TYPE)?.let { NestType.valueOf(it) }
             ?: NestType.EXPENSE
         layoutType = arguments?.getString(ARG_LAYOUT_TYPE)?.let { NestLayoutType.valueOf(it) }
@@ -62,13 +58,13 @@ class NestFragment : Fragment() {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         val view = inflater.inflate(R.layout.fragment_nest_list, container, false)
         recyclerView = view.findViewById(R.id.recyclerViewNests)
 
-        // Set RecyclerView layout manager based on layout type
         recyclerView.layoutManager = when (layoutType) {
             NestLayoutType.GRID -> GridLayoutManager(requireContext(), 2)
             NestLayoutType.LIST -> LinearLayoutManager(requireContext())
@@ -81,37 +77,43 @@ class NestFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Initialize all dependencies
         repository = Repository(AppDatabase.getDatabase(requireContext()))
+        sessionStore = SessionStore(requireContext())
         val factory = NestViewModelFactory(repository)
         nestViewModel = ViewModelProvider(this, factory)[NestViewModel::class.java]
 
-        adapter = createAdapter()
-
-        recyclerView.adapter = adapter
-
-        // Observe nests of this type and update adapter when they change
         viewLifecycleOwner.lifecycleScope.launch {
-            repository.getReactiveNestsFlowByType(nestType).collect { nests ->
+            val userId = sessionStore.userId.firstOrNull()
+            if (userId == null) {
+                Toast.makeText(requireContext(), "No user logged in", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            adapter = createAdapter(userId)
+            recyclerView.adapter = adapter
+
+            // Observe nests of this type and update adapter when they change
+            repository.getReactiveNestsFlowByType(userId, nestType).collect { nests ->
                 adapter?.setNests(nests)
             }
         }
 
-        // Listen for a result that a new nest was created
         parentFragmentManager.setFragmentResultListener("new_nest_created", viewLifecycleOwner) { _, _ ->
             // No manual refresh required because flow emits automatically when DB changes
         }
     }
 
-    // Creates the NestAdapter with appropriate flows for the chosen layout
-    private fun createAdapter(): NestAdapter {
+    private fun createAdapter(userId: Long): NestAdapter {
         return if (layoutType == NestLayoutType.HISTORY) {
             val historyViewModel = ViewModelProvider(
                 requireActivity(),
-                HistoryViewModelFactory(repository)
+                HistoryViewModelFactory(repository, userId)
             )[HistoryViewModel::class.java]
 
             NestAdapter(
                 nestViewModel,
+                userId,
                 layoutType,
                 viewLifecycleOwner.lifecycleScope,
                 historyViewModel.startDate,
@@ -122,6 +124,7 @@ class NestFragment : Fragment() {
         } else {
             NestAdapter(
                 nestViewModel,
+                userId,
                 layoutType,
                 viewLifecycleOwner.lifecycleScope,
                 null,

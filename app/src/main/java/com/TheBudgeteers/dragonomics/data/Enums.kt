@@ -18,4 +18,3 @@ enum class QuestType {
     WEEKLY_REVIEW      // Review spending weekly
 }
 
-

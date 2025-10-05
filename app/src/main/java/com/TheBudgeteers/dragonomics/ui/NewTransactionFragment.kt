@@ -38,6 +38,8 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.core.os.bundleOf
+import com.TheBudgeteers.dragonomics.data.SessionStore
+import kotlinx.coroutines.flow.firstOrNull
 
 class NewTransactionFragment : DialogFragment() {
 
@@ -56,18 +58,23 @@ class NewTransactionFragment : DialogFragment() {
     private lateinit var btnCancel: Button
     private lateinit var btnCreate: Button
     private lateinit var recyclerFromCategories: RecyclerView
+    private lateinit var session: SessionStore
+
     private var selectedCategory: Nest? = null
     private var selectedFromCategory: Nest? = null
     private var isExpense = true
     private var selectedDate = Date()
     private var photoUri: Uri? = null
     private var currentPhotoPath: String? = null
+    private var currentUserId: Long? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.dialog_new_transaction, container, false)
+
+        session = SessionStore(requireContext())
 
         edtTitle = view.findViewById(R.id.edtTransactionTitle)
         edtAmount = view.findViewById(R.id.edtTransactionAmount)
@@ -104,7 +111,16 @@ class NewTransactionFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        toggleType(true) // default to Expense
+
+        lifecycleScope.launch {
+            currentUserId = session.userId.firstOrNull()
+            if (currentUserId != null) {
+                toggleType(true) // default to Expense
+            } else {
+                Toast.makeText(requireContext(), "Error: No user logged in", Toast.LENGTH_SHORT).show()
+                dismiss()
+            }
+        }
     }
 
     override fun onStart() {
@@ -133,9 +149,11 @@ class NewTransactionFragment : DialogFragment() {
     }
 
     private fun loadCategories(expense: Boolean) {
+        val userId = currentUserId ?: return
         val type = if (expense) NestType.EXPENSE else NestType.INCOME
+
         viewLifecycleOwner.lifecycleScope.launch {
-            nestViewModel.getNestsByTypeLive(type).collect { categories ->
+            nestViewModel.getNestsByTypeLive(userId, type).collect { categories ->
                 recyclerCategories.layoutManager = GridLayoutManager(requireContext(), 6)
                 recyclerCategories.adapter = NewTransactionNestAdapter(categories) {
                     selectedCategory = it
@@ -146,9 +164,11 @@ class NewTransactionFragment : DialogFragment() {
     }
 
     private fun loadFromCategories() {
+        val userId = currentUserId ?: return
         recyclerFromCategories.layoutManager = GridLayoutManager(requireContext(), 6)
+
         viewLifecycleOwner.lifecycleScope.launch {
-            nestViewModel.getNestsByTypeLive(NestType.INCOME).collect { categories ->
+            nestViewModel.getNestsByTypeLive(userId, NestType.INCOME).collect { categories ->
                 recyclerFromCategories.adapter = NewTransactionNestAdapter(categories) {
                     selectedFromCategory = it
                     txtFromSelectedCategory.text = it.name
@@ -234,16 +254,15 @@ class NewTransactionFragment : DialogFragment() {
         recyclerCategories.layoutManager = GridLayoutManager(requireContext(), 6)
     }
 
-    private fun checkCreateButtonState() {
-        val hasTitle = edtTitle.text.toString().isNotBlank()
-        val hasCategory = selectedCategory != null
-        val hasFromCategory = !isExpense || (isExpense && selectedFromCategory != null)
-        btnCreate.isEnabled = hasTitle && hasCategory && hasFromCategory
-    }
-
     private fun createTransaction() {
         val title = edtTitle.text.toString().trim()
         val amount = edtAmount.text.toString().toDoubleOrNull() ?: 0.0
+        val userId = currentUserId
+
+        if (userId == null) {
+            Toast.makeText(requireContext(), "Error: No user logged in", Toast.LENGTH_SHORT).show()
+            return
+        }
 
         if (title.isBlank()) {
             edtTitle.error = "Title is required"
@@ -265,6 +284,7 @@ class NewTransactionFragment : DialogFragment() {
         }
 
         val transaction = Transaction(
+            userId = userId,
             title = title,
             amount = amount,
             date = selectedDate,
@@ -280,7 +300,7 @@ class NewTransactionFragment : DialogFragment() {
 
         vm.addTransaction(transaction)
 
-        // Notify host (e.g., ExpensesActivity) for XP/mood bonuses, etc.
+
         val addedPhoto = currentPhotoPath != null
         parentFragmentManager.setFragmentResult(
             "tx_saved",

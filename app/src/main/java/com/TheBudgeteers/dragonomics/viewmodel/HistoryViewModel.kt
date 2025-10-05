@@ -8,13 +8,11 @@ import com.TheBudgeteers.dragonomics.data.Repository
 import com.TheBudgeteers.dragonomics.models.Transaction
 import com.TheBudgeteers.dragonomics.models.TransactionWithNest
 import com.TheBudgeteers.dragonomics.utils.DateUtils
-import com.android.volley.Header
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
 
-class HistoryViewModel(private val repository: Repository) : ViewModel() {
+class HistoryViewModel(private val repository: Repository, private val userId: Long) : ViewModel() {
 
     private var currentYear: Int
     private var currentMonth: Int
@@ -29,21 +27,21 @@ class HistoryViewModel(private val repository: Repository) : ViewModel() {
         combine(_startDate, _endDate) { start, end ->
             Pair(start, end)
         }.flatMapLatest { (start, end) ->
-            repository.getTransactionsBetweenFlow(start, end)
+            repository.getTransactionsBetweenFlow(userId, start, end)
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val transactionsWithNest: StateFlow<List<TransactionWithNest>> =
         combine(_startDate, _endDate) { start, end ->
             Pair(start, end)
         }.flatMapLatest { (start, end) ->
-            repository.getTransactionsWithNestBetweenFlow(start, end)
+            repository.getTransactionsWithNestBetweenFlow(userId, start, end)
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val monthlyStats: StateFlow<MonthlyStats> =
         combine(_startDate, _endDate) { start, end ->
             Pair(start, end)
         }.flatMapLatest { (start, end) ->
-            repository.getMonthlyStatsFlow(start, end)
+            repository.getMonthlyStatsFlow(userId, start, end)
         }.stateIn(viewModelScope, SharingStarted.Lazily, MonthlyStats(0.0, 0.0, 0.0))
 
     init {

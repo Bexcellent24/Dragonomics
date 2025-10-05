@@ -18,9 +18,9 @@ class StatsViewModel(private val repository: Repository) : ViewModel() {
     private val _userEntity = MutableStateFlow<UserEntity?>(null)
     val userEntity: StateFlow<UserEntity?> = _userEntity.asStateFlow()
 
-    fun loadMonthlyStats(start: Long, end: Long) {
+    fun loadMonthlyStats(userId: Long, start: Long, end: Long) {
         viewModelScope.launch {
-            repository.getMonthlyStatsFlow(start, end).collect { stats ->
+            repository.getMonthlyStatsFlow(userId, start, end).collect { stats ->
                 _monthlyStats.value = stats
             }
         }

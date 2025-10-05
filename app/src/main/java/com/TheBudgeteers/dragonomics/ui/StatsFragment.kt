@@ -36,27 +36,25 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         val factory = StatsViewModelFactory(repository)
         viewModel = ViewModelProvider(this, factory)[StatsViewModel::class.java]
 
-        val (start, end) = DateUtils.getMonthRange()
-        viewModel.loadMonthlyStats(start, end)
-
-        // ✅ FIX: Load the actual logged-in user ID
-        lifecycleScope.launch {
-            val userId = session.userId.firstOrNull()
-            if (userId != null) {
-                viewModel.loadUser(userId)
-            }
-        }
-
         val incomeAmount = view.findViewById<TextView>(R.id.incomeAmount)
         val expensesAmount = view.findViewById<TextView>(R.id.expensesAmount)
         val remainingAmount = view.findViewById<TextView>(R.id.remainingAmount)
         val minGoal = view.findViewById<TextView>(R.id.minGoal)
         val maxGoal = view.findViewById<TextView>(R.id.maxGoal)
         val progressBar = view.findViewById<ProgressBar>(R.id.progressBar)
-        val goalsRow = view.findViewById<LinearLayout>(R.id.goalsRow)
         val toggleArrow = view.findViewById<ImageView>(R.id.toggleArrow)
 
-        // collect stats
+
+        lifecycleScope.launch {
+            val userId = session.userId.firstOrNull()
+            if (userId != null) {
+                val (start, end) = DateUtils.getMonthRange()
+                viewModel.loadMonthlyStats(userId, start, end)
+                viewModel.loadUser(userId)
+            }
+        }
+
+       // collect stats
         lifecycleScope.launchWhenStarted {
             viewModel.monthlyStats.collect { stats ->
                 stats?.let {
@@ -71,7 +69,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             }
         }
 
-        // ✅ FIX: Display goals with proper formatting
         lifecycleScope.launchWhenStarted {
             viewModel.userEntity.collect { user ->
                 user?.let {
@@ -104,6 +101,9 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         } else {
             toggleArrow.visibility = View.GONE
         }
+
+        //val (start, end) = DateUtils.getMonthRange()
+        //viewModel.loadMonthlyStats(userId, start, end)
     }
 
     companion object {
@@ -113,4 +113,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             return f
         }
     }
+
+
 }

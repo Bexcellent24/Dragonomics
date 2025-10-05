@@ -13,10 +13,11 @@ import com.TheBudgeteers.dragonomics.models.UserEntity
 // Main Room database for the app.
 // Holds all entities and links them to their DAOs.
 // Implemented as a singleton to prevent multiple instances.
+// All data operations filtered by userId
 
 @Database(
     entities = [Transaction::class, Nest::class, UserEntity::class, QuestEntity::class],
-    version = 9
+    version = 10
 )
 
 @TypeConverters(Converters::class)

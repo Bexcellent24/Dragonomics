@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.TheBudgeteers.dragonomics.data.NestLayoutType
+import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -23,6 +24,8 @@ import com.TheBudgeteers.dragonomics.ui.NestFragment
 import com.TheBudgeteers.dragonomics.viewmodel.HistoryViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.HistoryViewModelFactory
 import com.google.android.material.navigation.NavigationView
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Calendar
 import java.util.Date
@@ -30,6 +33,7 @@ import java.util.Date
 class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var binding: ActivityHistoryBinding
+    private lateinit var viewModel: HistoryViewModel  // ✅ Make it a class property
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,10 +49,27 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             onNavigationItemSelected(item)
         }
 
-        // ViewModel
         val repository = RepositoryProvider.getRepository(this)
-        val viewModel = ViewModelProvider(this, HistoryViewModelFactory(repository))[HistoryViewModel::class.java]
+        val session = SessionStore(this)
 
+        lifecycleScope.launch {
+            val userId = session.userId.firstOrNull()
+            if (userId == null) {
+                navigateToLogin()
+                return@launch
+            }
+
+            viewModel = ViewModelProvider(
+                this@HistoryActivity,
+                HistoryViewModelFactory(repository, userId)
+            )[HistoryViewModel::class.java]
+
+
+            setupUI()
+        }
+    }
+
+    private fun setupUI() {
         val prevMonthButton = binding.prevMonthButton
         val nextMonthButton = binding.nextMonthButton
         val currentMonthText = binding.currentMonthText
@@ -114,13 +135,11 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             .commit()
 
         val adapter = HistoryTransactionsAdapter(emptyList()) { photoPath ->
-            // Open photo viewer
             openPhotoViewer(photoPath)
         }
         binding.transactionsRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.transactionsRecyclerView.adapter = adapter
 
-        // Observe grouped transactions
         lifecycleScope.launchWhenStarted {
             viewModel.groupedTransactions.collect { grouped ->
                 adapter.updateData(grouped)
@@ -140,7 +159,6 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         )
-
         datePicker.show()
     }
 
@@ -167,6 +185,14 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             Toast.makeText(this, "Error opening photo: ${e.message}", Toast.LENGTH_SHORT).show()
             e.printStackTrace()
         }
+    }
+
+    private fun navigateToLogin() {
+        val intent = Intent(this, LoginActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        startActivity(intent)
+        finish()
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {

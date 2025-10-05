@@ -12,12 +12,16 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.TheBudgeteers.dragonomics.databinding.ActivityHomeBinding
+import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.gamify.DragonMoodManager
+import com.TheBudgeteers.dragonomics.models.NestType
 import com.TheBudgeteers.dragonomics.ui.AchievementsDialogFragment
 import com.TheBudgeteers.dragonomics.ui.ShopDialogFragment
+import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import com.TheBudgeteers.dragonomics.viewmodel.AchievementsViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.DragonUiState
 import com.TheBudgeteers.dragonomics.viewmodel.DragonViewModel
+import com.TheBudgeteers.dragonomics.viewmodel.NestViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.ShopViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.AccessoryEquipListener
 import com.TheBudgeteers.dragonomics.DragonSockets.ADULT_DRAGON_SOCKETS
@@ -26,6 +30,7 @@ import com.TheBudgeteers.dragonomics.DragonSockets.DRAGON_REFERENCE_WIDTH_DP
 import com.TheBudgeteers.dragonomics.DragonSockets.DRAGON_SMALL_DP
 import com.TheBudgeteers.dragonomics.DragonSockets.TEEN_DRAGON_SOCKETS
 import com.google.android.material.navigation.NavigationView
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import com.TheBudgeteers.dragonomics.gamify.DragonRules
 import kotlin.math.roundToInt
@@ -35,13 +40,11 @@ class HomeActivity : AppCompatActivity(),
     AccessoryEquipListener {
 
     private lateinit var binding: ActivityHomeBinding
-
-    // ViewModels
     private lateinit var dragonViewModel: DragonViewModel
     private lateinit var shopViewModel: ShopViewModel
     private lateinit var achievementsViewModel: AchievementsViewModel
-
-    // Utility for DP to PX conversion
+    private lateinit var nestViewModel: NestViewModel
+    private lateinit var sessionStore: SessionStore
     private lateinit var displayMetrics: DisplayMetrics
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,6 +63,9 @@ class HomeActivity : AppCompatActivity(),
         setupBackButton()
 
         shopViewModel.setEquipListener(this)
+
+        // Calculate mood on activity creation
+        updateOverallMoodFromNests()
     }
 
     private fun initializeViewModels() {
@@ -68,12 +74,15 @@ class HomeActivity : AppCompatActivity(),
 
         shopViewModel = ViewModelProvider(this)[ShopViewModel::class.java]
         achievementsViewModel = ViewModelProvider(this)[AchievementsViewModel::class.java]
+
+        val repository = RepositoryProvider.getRepository(this)
+        nestViewModel = NestViewModel(repository)
+        sessionStore = SessionStore(this)
     }
 
     private fun initializeDragonDisplay() {
         lifecycleScope.launch {
             dragonViewModel.uiState.collect { state ->
-                // glide is being used here as this is the import that allows us to use gifs in image views
                 Glide.with(this@HomeActivity)
                     .load(state.dragonImageRes)
                     .into(binding.dragon)
@@ -82,7 +91,6 @@ class HomeActivity : AppCompatActivity(),
                     "XP L${state.level} ${state.xpIntoLevel}/${DragonRules.XP_PER_LEVEL}"
                 binding.xpProgress.setProgress(state.xpProgress, true)
 
-                //  Mood Icon and Text
                 binding.MoodImg.setImageResource(state.moodIconRes)
                 val label = when (state.mood) {
                     DragonRules.Mood.HAPPY -> "Happy"
@@ -104,30 +112,22 @@ class HomeActivity : AppCompatActivity(),
         }
     }
 
-    // CUSTOMIZATION STUFF
-
     private fun updateDragonCustomization(state: DragonUiState) {
-        // We still use View.post to ensure initial layout is stable.
         binding.dragon.post {
-
-            //  Determining which set of sockets to use based on the current level. This is so the wings and horns fit correctly
             val currentSocketSet = when {
                 state.level >= 10 -> ADULT_DRAGON_SOCKETS
                 state.level >= 5 -> TEEN_DRAGON_SOCKETS
                 else -> BABY_DRAGON_SOCKETS
             }
 
-
-            val dragonWidthDp = DRAGON_SMALL_DP // fixed size, took scaling out
+            val dragonWidthDp = DRAGON_SMALL_DP
             val scaleFactor = dragonWidthDp / DRAGON_REFERENCE_WIDTH_DP.toFloat()
 
-            // Helper method to convert dp to px, helps with scaleability
             fun dpToPx(dp: Int): Int {
                 val scaledDp = dp * scaleFactor
                 return (scaledDp * displayMetrics.density).roundToInt()
             }
 
-            // Helper to update  the accessory view
             fun updateAccessoryView(
                 imageView: ImageView,
                 socket: DragonSockets.AttachmentPoint,
@@ -144,13 +144,11 @@ class HomeActivity : AppCompatActivity(),
                 }
 
                 if (accessoryRes != 0) {
-                    // Calculate scaled position and size
                     val x = dpToPx(socket.x)
                     val y = dpToPx(socket.y)
                     val w = dpToPx(socket.width)
                     val h = dpToPx(socket.height)
 
-                    // Apply position and size
                     imageView.layoutParams = (imageView.layoutParams as ConstraintLayout.LayoutParams).apply {
                         width = w
                         height = h
@@ -160,17 +158,14 @@ class HomeActivity : AppCompatActivity(),
                         bottomMargin = 0
                     }
 
-
                     Glide.with(this@HomeActivity).load(accessoryRes).into(imageView)
                     imageView.visibility = ImageView.VISIBLE
                 } else {
-
                     imageView.setImageDrawable(null)
                     imageView.visibility = ImageView.GONE
                 }
             }
 
-            // Apply updates to all accessories
             updateAccessoryView(binding.hornLeft, currentSocketSet.hornLeft, state.equippedHornsId, state.level)
             updateAccessoryView(binding.hornRight, currentSocketSet.hornRight, state.equippedHornsId, state.level)
             updateAccessoryView(binding.wingLeft, currentSocketSet.wingLeft, state.equippedWingsId, state.level)
@@ -178,34 +173,25 @@ class HomeActivity : AppCompatActivity(),
         }
     }
 
-
     private fun getAccessoryDrawables(itemId: String, level: Int): DragonSockets.AccessoryDrawables {
-        // This method will help us determine which form of the accessory is to be used. Eg is teen dragon is active, we want to use teen accessories
         val prefix = when {
             level >= 10 -> "adult_"
             level >= 5 -> "teen_"
             else -> "baby_"
         }
 
-        //  This helper function to dynamically construct the resource name to find, thought this would be cleaner then straight up hard coding it
-        // it takes the prefix from the level, then the middle part from the item selectec/equipped , this will then find it in our drawable folder and then apply it
         fun getResId(suffix: String): Int {
             val resourceName = "${prefix}${itemId}_$suffix"
-
             return resources.getIdentifier(resourceName, "drawable", packageName)
         }
 
-        //  this will return both the left and right parts of the accessory
         return DragonSockets.AccessoryDrawables(
             leftResId = getResId("left"),
             rightResId = getResId("right")
         )
     }
 
-
-    // Accessory listener ( i think its like events, atleast to my understanding)
     override fun onAccessoryEquipped(accessoryType: String, itemId: String) {
-        // Passes the string and item id
         dragonViewModel.setEquippedAccessory(accessoryType, itemId)
     }
 
@@ -247,24 +233,35 @@ class HomeActivity : AppCompatActivity(),
 
     override fun onResume() {
         super.onResume()
-        DragonMoodManager.getOverallMood(this)?.let { nestMood ->
-            dragonViewModel.setOverallMood(nestMood.toDragonMood())
+        updateOverallMoodFromNests()
+    }
+
+    private fun updateOverallMoodFromNests() {
+        lifecycleScope.launch {
+            val userId = sessionStore.userId.firstOrNull()
+
+            if (userId == null) {
+                return@launch
+            }
+
+            val (mood, _) = nestViewModel.getOverallMood(
+                userId = userId,
+                type = NestType.EXPENSE,
+                weighting = NestViewModel.Weighting.BUDGET
+            )
+
+            DragonMoodManager.setOverallMood(this@HomeActivity, mood)
+            dragonViewModel.setOverallMood(mood.toDragonMood())
         }
     }
 
-    private fun com.TheBudgeteers.dragonomics.models.Mood.toDragonMood():
-            com.TheBudgeteers.dragonomics.gamify.DragonRules.Mood {
+    private fun com.TheBudgeteers.dragonomics.models.Mood.toDragonMood(): DragonRules.Mood {
         return when (this) {
-            com.TheBudgeteers.dragonomics.models.Mood.POSITIVE ->
-                com.TheBudgeteers.dragonomics.gamify.DragonRules.Mood.HAPPY
-            com.TheBudgeteers.dragonomics.models.Mood.NEUTRAL ->
-                com.TheBudgeteers.dragonomics.gamify.DragonRules.Mood.NEUTRAL
-            com.TheBudgeteers.dragonomics.models.Mood.NEGATIVE ->
-                com.TheBudgeteers.dragonomics.gamify.DragonRules.Mood.ANGRY
+            com.TheBudgeteers.dragonomics.models.Mood.POSITIVE -> DragonRules.Mood.HAPPY
+            com.TheBudgeteers.dragonomics.models.Mood.NEUTRAL -> DragonRules.Mood.NEUTRAL
+            com.TheBudgeteers.dragonomics.models.Mood.NEGATIVE -> DragonRules.Mood.ANGRY
         }
     }
-
-    // ==================== Public API for Dragon Events ====================
 
     fun onUserLoggedExpense(addedPhoto: Boolean) {
         dragonViewModel.onExpenseLogged(addedPhoto)

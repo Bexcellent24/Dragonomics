@@ -6,6 +6,9 @@ import com.TheBudgeteers.dragonomics.data.Repository
 import com.TheBudgeteers.dragonomics.models.Transaction
 import com.TheBudgeteers.dragonomics.models.TransactionWithNest
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 
@@ -17,6 +20,8 @@ import kotlinx.coroutines.launch
 
 class TransactionViewModel(private val repository: Repository) : ViewModel() {
 
+    private val _userId = MutableStateFlow<Long?>(null)
+
     // Adds a transaction — runs in background so UI doesn’t freeze
     fun addTransaction(transaction: Transaction) {
         viewModelScope.launch {
@@ -25,19 +30,29 @@ class TransactionViewModel(private val repository: Repository) : ViewModel() {
     }
 
     // Gets all transactions and passes them back via a callback
-    fun getTransactions(callback: (List<Transaction>) -> Unit) {
+    fun getTransactions(userId: Long, callback: (List<Transaction>) -> Unit) {
         viewModelScope.launch {
-            callback(repository.getTransactions())
+            callback(repository.getTransactions(userId))
         }
     }
 
-    fun getTransactionsWithNests(callback: (List<TransactionWithNest>) -> Unit) {
+    fun getTransactionsWithNests(userId: Long, callback: (List<TransactionWithNest>) -> Unit) {
         viewModelScope.launch {
-            callback(repository.getTransactionsWithNests())
+            callback(repository.getTransactionsWithNests(userId))
         }
     }
 
     val transactionsWithNestsFlow: Flow<List<TransactionWithNest>> =
-        repository.getTransactionsWithNestsFlow()
+        _userId.flatMapLatest { userId ->
+            if (userId != null) {
+                repository.getTransactionsWithNestsFlow(userId)
+            } else {
+                flowOf(emptyList())
+            }
+        }
+
+    fun setUserId(userId: Long) {
+        _userId.value = userId
+    }
 
 }

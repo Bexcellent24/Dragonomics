@@ -37,60 +37,60 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
 
      //Returns a Flow emitting UI state for a single nest.
      //Automatically updates when spent amounts change.
-    fun getNestUiStateFlow(nestId: Long): Flow<NestUiState> = flow {
-        val nest = repository.getNestById(nestId)
+     fun getNestUiStateFlow(userId: Long, nestId: Long): Flow<NestUiState> = flow {
+         val nest = repository.getNestById(nestId)
 
-        if (nest.type == NestType.INCOME) {
-            // Income nests: budget = total income, spent = amount spent FROM this income.
-            val totalIncome = repository.getTransactionsByNestId(nestId)
-                .sumOf { it.amount }
-                .coerceAtLeast(0.0)
+         if (nest.type == NestType.INCOME) {
+             // Income nests: budget = total income, spent = amount spent FROM this income.
+             val totalIncome = repository.getTransactionsByNestId(userId, nestId)
+                 .sumOf { it.amount }
+                 .coerceAtLeast(0.0)
 
-            // Observe spent FROM this income source (fromCategoryId)
-            repository.getSpentAmountFromNestFlow(nestId).collect { spent ->
-                val displayedSpent = spent ?: 0.0
-                val remaining = totalIncome - displayedSpent
-                val progress = calculateNestProgress(nest, displayedSpent)
-                val mood = calculateMood(progress)
+             // Observe spent FROM this income source (fromCategoryId)
+             repository.getSpentAmountFromNestFlow(userId, nestId).collect { spent ->
+                 val displayedSpent = spent ?: 0.0
+                 val remaining = totalIncome - displayedSpent
+                 val progress = calculateNestProgress(nest, displayedSpent)
+                 val mood = calculateMood(progress)
 
-                emit(NestUiState(
-                    nest = nest,
-                    spent = displayedSpent,
-                    budget = totalIncome,
-                    remaining = remaining,
-                    progress = progress,
-                    mood = mood
-                ))
-            }
-        } else {
-            // For expense type nests use set budget
-            val budget = nest.budget ?: 0.0
+                 emit(NestUiState(
+                     nest = nest,
+                     spent = displayedSpent,
+                     budget = totalIncome,
+                     remaining = remaining,
+                     progress = progress,
+                     mood = mood
+                 ))
+             }
+         } else {
+             // For expense type nests use set budget
+             val budget = nest.budget ?: 0.0
 
-            // Observe spent IN this expense category (categoryId)
-            repository.getSpentInCategoryFlow(nestId).collect { spent ->
-                val displayedSpent = spent
-                val remaining = budget - displayedSpent
-                val progress = calculateNestProgress(nest, displayedSpent)
-                val mood = calculateMood(progress)
+             // Observe spent IN this expense category (categoryId)
+             repository.getSpentInCategoryFlow(userId, nestId).collect { spent ->
+                 val displayedSpent = spent
+                 val remaining = budget - displayedSpent
+                 val progress = calculateNestProgress(nest, displayedSpent)
+                 val mood = calculateMood(progress)
 
-                emit(NestUiState(
-                    nest = nest,
-                    spent = displayedSpent,
-                    budget = budget,
-                    remaining = remaining,
-                    progress = progress,
-                    mood = mood
-                ))
-            }
-        }
-    }
+                 emit(NestUiState(
+                     nest = nest,
+                     spent = displayedSpent,
+                     budget = budget,
+                     remaining = remaining,
+                     progress = progress,
+                     mood = mood
+                 ))
+             }
+         }
+     }
 
 
      // Returns UI state for a nest as a single snapshot.
 
-    suspend fun getNestUiState(nestId: Long): NestUiState {
+    suspend fun getNestUiState(userId: Long, nestId: Long): NestUiState {
         val nest = repository.getNestById(nestId)
-        val spent = repository.getTransactionsByNestId(nestId)
+        val spent = repository.getTransactionsByNestId(userId, nestId)
             .sumOf { it.amount }
             .coerceAtLeast(0.0)
 
@@ -158,20 +158,23 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    suspend fun getNestsByType(type: NestType): List<Nest> =
-        repository.getNests().filter { it.type == type }
+    suspend fun getNestsByType(userId: Long, type: NestType): List<Nest> =
+        repository.getNests(userId).filter { it.type == type }
 
 
     // ========== FLOWS ==========
 
-    fun getSpentAmountFlow(nestId: Long): Flow<Double?> =
-        repository.getSpentAmountFromNestFlow(nestId)
 
-    fun getNestsByTypeLive(type: NestType): Flow<List<Nest>> =
-        repository.getNestsFlowByType(type)
+    fun getSpentAmountFlow(userId: Long, nestId: Long): Flow<Double?> =
+        repository.getSpentAmountFromNestFlow(userId, nestId)
 
-    fun getSpentAmountsInRange(start: Long, end: Long): Flow<Map<Long, Double>> {
-        return repository.getSpentAmountsInRange(start, end)
+
+    fun getNestsByTypeLive(userId: Long, type: NestType): Flow<List<Nest>> =
+        repository.getNestsFlowByType(userId, type)
+
+
+    fun getSpentAmountsInRange(userId: Long, start: Long, end: Long): Flow<Map<Long, Double>> {
+        return repository.getSpentAmountsInRange(userId, start, end)
             .map { list -> list.associate { it.nestId to it.spent } }
     }
 
@@ -181,15 +184,16 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
 
     // Computes weighted average progress across all nests of a type.
     suspend fun computeOverallProgress(
+        userId: Long,
         type: NestType = NestType.EXPENSE,
         weighting: Weighting = Weighting.BUDGET
     ): Double {
-        val nests = repository.getNests().filter { it.type == type }
+        val nests = repository.getNests(userId).filter { it.type == type }
         if (nests.isEmpty()) return 0.5
 
         data class Row(val nest: Nest, val spent: Double, val progress: Double)
         val rows = nests.map { n ->
-            val spent = repository.getTransactionsByNestId(n.id)
+            val spent = repository.getTransactionsByNestId(userId, n.id)
                 .sumOf { it.amount }
                 .coerceAtLeast(0.0)
             val prog = calculateNestProgress(n, spent)
@@ -212,10 +216,11 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
 
     // Returns overall mood and average progress for a type of nest.
     suspend fun getOverallMood(
+        userId: Long,
         type: NestType = NestType.EXPENSE,
         weighting: Weighting = Weighting.BUDGET
     ): Pair<Mood, Double> {
-        val avg = computeOverallProgress(type, weighting)
+        val avg = computeOverallProgress(userId, type, weighting)
         return calculateMood(avg) to avg
     }
 

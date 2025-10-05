@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.map
 // Central repository for app data.
 // Handles database access and logic combining multiple DAOs.
 // Keeps data retrieval logic separate from UI/ViewModels.
+// all data operations filtered by userId
 
 class Repository(private val db: AppDatabase) {
 
@@ -19,51 +20,47 @@ class Repository(private val db: AppDatabase) {
 
     suspend fun addNest(nest: Nest) = nestDao.insert(nest)
 
-    suspend fun getNests() = nestDao.getAll()
+    suspend fun getNests(userId: Long) = nestDao.getAll(userId)
 
     suspend fun getNestById(id: Long) = nestDao.getById(id)
 
-    fun getReactiveNestsFlowByType(type: NestType) =
-        nestDao.getAllFlowByType(type.name)
+    fun getReactiveNestsFlowByType(userId: Long, type: NestType) =
+        nestDao.getAllFlowByType(userId, type.name)
 
-    fun getNestsFlowByType(type: NestType) =
-        nestDao.getAllFlow().map { list -> list.filter { it.type == type } }
+    fun getNestsFlowByType(userId: Long, type: NestType) =
+        nestDao.getAllFlow(userId).map { list -> list.filter { it.type == type } }
 
-    fun getSpentAmountFromNestFlow(nestId: Long) =
-        transactionDao.getSpentAmountFromNestFlow(nestId)
+    fun getSpentAmountFromNestFlow(userId: Long, nestId: Long) =
+        transactionDao.getSpentAmountFromNestFlow(userId, nestId)
 
-    fun getSpentAmountForNestInRange(nestId: Long, start: Long, end: Long): Flow<Double> =
-        transactionDao.getSpentForNestInRange(nestId, start, end)
-
-    fun getSpentAmountsInRange(start: Long, end: Long): Flow<List<NestSpent>> =
-        transactionDao.getSpentAmountsInRangeFlow(start, end)
+    fun getSpentAmountsInRange(userId: Long, start: Long, end: Long): Flow<List<NestSpent>> =
+        transactionDao.getSpentAmountsInRangeFlow(userId, start, end)
 
     // ---------- TRANSACTION OPERATIONS ----------
 
     suspend fun addTransaction(transaction: Transaction) =
         transactionDao.insert(transaction)
 
-    suspend fun getTransactions() =
-        transactionDao.getAll()
+    suspend fun getTransactions(userId: Long) =
+        transactionDao.getAll(userId)
 
-    suspend fun getTransactionsByNestId(nestId: Long) =
-        transactionDao.getByCategoryId(nestId)
+    suspend fun getTransactionsByNestId(userId: Long, nestId: Long) =
+        transactionDao.getByCategoryId(userId, nestId)
 
-    fun getTransactionsBetweenFlow(start: Long, end: Long): Flow<List<Transaction>> =
-        transactionDao.getByDateRangeFlow(start, end)
+    fun getTransactionsBetweenFlow(userId: Long, start: Long, end: Long): Flow<List<Transaction>> =
+        transactionDao.getByDateRangeFlow(userId, start, end)
 
-    fun getSpentInCategoryFlow(nestId: Long): Flow<Double> =
-        transactionDao.getSpentInCategoryFlow(nestId)
+    fun getSpentInCategoryFlow(userId: Long, nestId: Long): Flow<Double> =
+        transactionDao.getSpentInCategoryFlow(userId, nestId)
 
-    // Returns transactions with their related nest details
-    suspend fun getTransactionsWithNests(): List<TransactionWithNest> =
-        transactionDao.getAll().map { mapTransaction(it) }
+    suspend fun getTransactionsWithNests(userId: Long): List<TransactionWithNest> =
+        transactionDao.getAll(userId).map { mapTransaction(it) }
 
-    fun getTransactionsWithNestsFlow(): Flow<List<TransactionWithNest>> =
-        transactionDao.getAllFlow().map { list -> list.map { mapTransaction(it) } }
+    fun getTransactionsWithNestsFlow(userId: Long): Flow<List<TransactionWithNest>> =
+        transactionDao.getAllFlow(userId).map { list -> list.map { mapTransaction(it) } }
 
-    fun getTransactionsWithNestBetweenFlow(start: Long, end: Long): Flow<List<TransactionWithNest>> =
-        transactionDao.getByDateRangeFlow(start, end).map { list -> list.map { mapTransaction(it) } }
+    fun getTransactionsWithNestBetweenFlow(userId: Long, start: Long, end: Long): Flow<List<TransactionWithNest>> =
+        transactionDao.getByDateRangeFlow(userId, start, end).map { list -> list.map { mapTransaction(it) } }
 
     // Helper to map a transaction to TransactionWithNest
     private suspend fun mapTransaction(transaction: Transaction): TransactionWithNest {
@@ -112,8 +109,8 @@ class Repository(private val db: AppDatabase) {
 
     // ---------- STATS ----------
 
-    fun getMonthlyStatsFlow(start: Long, end: Long): Flow<MonthlyStats> =
-        transactionDao.getByDateRangeFlow(start, end).map { transactions ->
+    fun getMonthlyStatsFlow(userId: Long, start: Long, end: Long): Flow<MonthlyStats> =
+        transactionDao.getByDateRangeFlow(userId, start, end).map { transactions ->
             var income = 0.0
             var expenses = 0.0
 

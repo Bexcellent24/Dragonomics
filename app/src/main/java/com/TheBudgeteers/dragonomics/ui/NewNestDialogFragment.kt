@@ -10,15 +10,19 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.TheBudgeteers.dragonomics.R
 import com.TheBudgeteers.dragonomics.data.AppDatabase
 import com.TheBudgeteers.dragonomics.data.Repository
+import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.models.Nest
 import com.TheBudgeteers.dragonomics.models.NestType
 import com.TheBudgeteers.dragonomics.viewmodel.NestViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.NestViewModelFactory
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
 
@@ -30,6 +34,7 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
     private lateinit var recyclerColours: RecyclerView
     private lateinit var btnCancel: Button
     private lateinit var btnCreate: Button
+    private lateinit var session: SessionStore
 
     private var selectedIcon: String? = null
     private var selectedColour: String? = null
@@ -41,6 +46,8 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.dialog_new_nest, container, false)
+
+        session = SessionStore(requireContext())
         edtName = view.findViewById(R.id.edtName)
         edtAmount = view.findViewById(R.id.edtAmount)
         btnIncoming = view.findViewById(R.id.btnIncoming)
@@ -166,24 +173,36 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
             }
         }
 
-        val nest = Nest(
-            name = name,
-            budget = if (type == NestType.EXPENSE) amount else null,
-            icon = icon,
-            colour = colour,
-            type = type
-        )
+        lifecycleScope.launch {
+            val userId = session.userId.firstOrNull()
+            if (userId == null) {
+                Toast.makeText(requireContext(), "Error: No user logged in", Toast.LENGTH_SHORT)
+                    .show()
+                return@launch
+            }
 
-        val repository = Repository(AppDatabase.getDatabase(requireContext()))
-        val factory = NestViewModelFactory(repository)
-        val vm = ViewModelProvider(this, factory).get(NestViewModel::class.java)
+            val nest = Nest(
+                userId = userId,  // ✅ NEW: Add userId
+                name = name,
+                budget = if (type == NestType.EXPENSE) amount else null,
+                icon = icon,
+                colour = colour,
+                type = type
+            )
 
-        vm.addNest(nest) {
-            parentFragmentManager.setFragmentResult("new_nest_created", Bundle.EMPTY)
-            Toast.makeText(requireContext(), "Nest created successfully", Toast.LENGTH_SHORT).show()
-            view?.postDelayed({ dismiss() }, 200)
+            val repository = Repository(AppDatabase.getDatabase(requireContext()))
+            val factory = NestViewModelFactory(repository)
+            val vm = ViewModelProvider(
+                this@NewNestDialogFragment,
+                factory
+            ).get(NestViewModel::class.java)
+
+            vm.addNest(nest) {
+                parentFragmentManager.setFragmentResult("new_nest_created", Bundle.EMPTY)
+                Toast.makeText(requireContext(), "Nest created successfully", Toast.LENGTH_SHORT)
+                    .show()
+                view?.postDelayed({ dismiss() }, 200)
+            }
         }
     }
-
-
 }

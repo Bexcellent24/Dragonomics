@@ -41,6 +41,7 @@ import kotlinx.coroutines.launch
 
 class NestAdapter(
     private val nestViewModel: NestViewModel,
+    private val userId: Long,
     private val layoutType: NestLayoutType,
     private val lifecycleScope: LifecycleCoroutineScope,
     private val startDateFlow: Flow<Long>? = null,
@@ -57,7 +58,7 @@ class NestAdapter(
             lifecycleScope.launch {
                 combine(startDateFlow, endDateFlow) { start, end -> start to end }
                     .flatMapLatest { (start, end) ->
-                        nestViewModel.getSpentAmountsInRange(start, end)
+                        nestViewModel.getSpentAmountsInRange(userId, start, end)
                     }
                     .collect { spentMap ->
                         nestSpentMap.clear()
@@ -128,7 +129,7 @@ class NestAdapter(
 
         // Collect UI state and update views reactively
         holder.bindJob = lifecycleScope.launch {
-            nestViewModel.getNestUiStateFlow(nest.id).collect { uiState ->
+            nestViewModel.getNestUiStateFlow(userId,nest.id).collect { uiState ->
                 updateGridViews(holder, uiState)
             }
         }
@@ -166,7 +167,7 @@ class NestAdapter(
 
         // Collect UI state to get the correct budget (important for income nests)
         holder.bindJob = lifecycleScope.launch {
-            nestViewModel.getNestUiStateFlow(nest.id).collect { uiState ->
+            nestViewModel.getNestUiStateFlow(userId,nest.id).collect { uiState ->
                 holder.txtBudget?.text = NestUiMapper.formatCurrency(uiState.budget)
             }
         }

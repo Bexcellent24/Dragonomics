@@ -6,35 +6,31 @@ import android.widget.LinearLayout
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.fragment.app.setFragmentResultListener
 import com.TheBudgeteers.dragonomics.data.NestLayoutType
+import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.databinding.ActivityExpensesBinding
+import com.TheBudgeteers.dragonomics.gamify.DragonGameEvents
+import com.TheBudgeteers.dragonomics.gamify.DragonGameProvider
+import com.TheBudgeteers.dragonomics.gamify.DragonMoodManager
+import com.TheBudgeteers.dragonomics.gamify.DragonRules
 import com.TheBudgeteers.dragonomics.models.NestType
-import com.TheBudgeteers.dragonomics.testing.TestDataSeeder
 import com.TheBudgeteers.dragonomics.ui.NestFragment
 import com.TheBudgeteers.dragonomics.ui.NewTransactionFragment
 import com.TheBudgeteers.dragonomics.ui.StatsFragment
 import com.TheBudgeteers.dragonomics.ui.TransactionFragment
-import com.google.android.material.navigation.NavigationView
-import kotlinx.coroutines.launch
-
-import com.TheBudgeteers.dragonomics.gamify.DragonGameProvider
-import com.TheBudgeteers.dragonomics.gamify.DragonGameEvents
-
-import com.TheBudgeteers.dragonomics.gamify.DragonMoodManager
-import com.TheBudgeteers.dragonomics.viewmodel.NestViewModel
-import com.TheBudgeteers.dragonomics.gamify.DragonRules
 import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
-
+import com.TheBudgeteers.dragonomics.viewmodel.NestViewModel
+import com.google.android.material.navigation.NavigationView
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var binding: ActivityExpensesBinding
-
     private lateinit var btnNestIn: LinearLayout
     private lateinit var btnNestOut: LinearLayout
-
     private lateinit var nestVm: NestViewModel
+    private lateinit var sessionStore: SessionStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,62 +39,50 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         binding = ActivityExpensesBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Initialize dependencies
         val repository = RepositoryProvider.getRepository(this)
         nestVm = NestViewModel(repository)
+        sessionStore = SessionStore(this)
 
+        // Setup UI components
+        setupBottomNavigation()
+        setupNestButtons()
+        setupFragments(savedInstanceState)
+        setupTransactionListener()
+
+        // Initial mood update
         lifecycleScope.launch {
-            //val seeder = TestDataSeeder(repository)
-            //seeder.seedDummyData()
-            // After seeding, refresh overall mood once (based on EXPENSE nests)
             updateOverallMoodFromVm(NestType.EXPENSE)
         }
+    }
 
-        binding.bottomNavigationView.itemIconTintList = null
-        binding.bottomNavigationView.selectedItemId = R.id.nav_expenses
+    override fun onResume() {
+        super.onResume()
+        // Keep Home/XP in sync if anything changed while away
+        updateOverallMoodFromVm(NestType.EXPENSE)
+    }
 
-        binding.bottomNavigationView.setOnItemSelectedListener { item ->
-            onNavigationItemSelected(item)
+    private fun setupBottomNavigation() {
+        binding.bottomNavigationView.apply {
+            itemIconTintList = null
+            selectedItemId = R.id.nav_expenses
+            setOnItemSelectedListener { item ->
+                onNavigationItemSelected(item)
+            }
         }
+    }
 
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.month_summary, StatsFragment.newInstance(toggleEnabled = false))
-            .commit()
+    private fun setupNestButtons() {
+        btnNestIn = binding.btnNestsIn
+        btnNestOut = binding.btnNestsOut
 
         binding.btnEditNests.setOnClickListener {
             openIntent(this, "", NestsActivity::class.java)
         }
 
-        // --- LISTEN FOR TRANSACTION SAVE RESULT (from NewTransactionFragment) ---
-        // NewTransactionFragment should call:
-        // parentFragmentManager.setFragmentResult("tx_saved", bundleOf("addedPhoto" to true/false))
-        supportFragmentManager.setFragmentResultListener("tx_saved", this) { _, bundle ->
-            val addedPhoto = bundle.getBoolean("addedPhoto", false)
-            // Award XP (mood affects final XP internally)
-            val game = DragonGameProvider.get(this)
-            game.onExpenseLogged(addedPhoto)
-            // Tell HomeActivity (and any observers) to refresh UI
-            DragonGameEvents.notifyChanged(game.state)
-
-
-            // Recompute & persist overall mood (based on EXPENSE nests)
-            updateOverallMoodFromVm(NestType.EXPENSE)
-        }
-
-        if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainerTransactions, TransactionFragment())
-                .commit()
-
-            loadNestFragment(NestType.EXPENSE)
-        }
-
-        btnNestIn = binding.btnNestsIn
-        btnNestOut = binding.btnNestsOut
-
         btnNestIn.setOnClickListener {
             updateNestToggleSelection(R.id.btnNestsIn)
             loadNestFragment(NestType.INCOME)
-            // If you want only EXPENSE nests to drive dragon mood, keep EXPENSE here:
             updateOverallMoodFromVm(NestType.EXPENSE)
         }
 
@@ -115,10 +99,37 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         updateNestToggleSelection(R.id.btnNestsOut)
     }
 
-    override fun onResume() {
-        super.onResume()
-        // Keep Home/XP in sync if anything changed while away
-        updateOverallMoodFromVm(NestType.EXPENSE)
+    private fun setupFragments(savedInstanceState: Bundle?) {
+        // Setup month summary fragment
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.month_summary, StatsFragment.newInstance(toggleEnabled = false))
+            .commit()
+
+        // Setup initial fragments on first launch
+        if (savedInstanceState == null) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainerTransactions, TransactionFragment())
+                .commit()
+
+            loadNestFragment(NestType.EXPENSE)
+        }
+    }
+
+    private fun setupTransactionListener() {
+        // Listen for transaction save events from NewTransactionFragment
+        supportFragmentManager.setFragmentResultListener("tx_saved", this) { _, bundle ->
+            val addedPhoto = bundle.getBoolean("addedPhoto", false)
+
+            // Award XP for logging expense
+            val game = DragonGameProvider.get(this)
+            game.onExpenseLogged(addedPhoto)
+
+            // Notify listeners of game state change
+            DragonGameEvents.notifyChanged(game.state)
+
+            // Update mood based on new transaction
+            updateOverallMoodFromVm(NestType.EXPENSE)
+        }
     }
 
     private fun loadNestFragment(nestType: NestType) {
@@ -129,8 +140,8 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
     }
 
     private fun updateNestToggleSelection(selectedId: Int) {
-        btnNestIn.isSelected = selectedId == R.id.btnNestsIn
-        btnNestOut.isSelected = selectedId == R.id.btnNestsOut
+        btnNestIn.isSelected = (selectedId == R.id.btnNestsIn)
+        btnNestOut.isSelected = (selectedId == R.id.btnNestsOut)
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -143,20 +154,24 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         return true
     }
 
-    // Map app Nest mood -> Dragon mood
-    private fun com.TheBudgeteers.dragonomics.models.Mood.toDragonMood(): DragonRules.Mood =
-        when (this) {
-            com.TheBudgeteers.dragonomics.models.Mood.POSITIVE -> DragonRules.Mood.HAPPY
-            com.TheBudgeteers.dragonomics.models.Mood.NEUTRAL  -> DragonRules.Mood.NEUTRAL
-            com.TheBudgeteers.dragonomics.models.Mood.NEGATIVE -> DragonRules.Mood.ANGRY
-        }
-
     private fun updateOverallMoodFromVm(type: NestType) {
         lifecycleScope.launch {
+            // Get current user ID from session
+            val userId = sessionStore.userId.firstOrNull()
+
+            if (userId == null) {
+                // No user logged in - could redirect to login or show error
+                return@launch
+            }
+
+            // Calculate overall mood based on user's nests
             val (mood, _) = nestVm.getOverallMood(
+                userId = userId,
                 type = type,
                 weighting = NestViewModel.Weighting.BUDGET
             )
+
+            // Update dragon mood managers
             DragonMoodManager.setOverallMood(this@ExpensesActivity, mood)
 
             val game = DragonGameProvider.get(this@ExpensesActivity)
@@ -164,5 +179,10 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         }
     }
 
-
+    private fun com.TheBudgeteers.dragonomics.models.Mood.toDragonMood(): DragonRules.Mood =
+        when (this) {
+            com.TheBudgeteers.dragonomics.models.Mood.POSITIVE -> DragonRules.Mood.HAPPY
+            com.TheBudgeteers.dragonomics.models.Mood.NEUTRAL -> DragonRules.Mood.NEUTRAL
+            com.TheBudgeteers.dragonomics.models.Mood.NEGATIVE -> DragonRules.Mood.ANGRY
+        }
 }
