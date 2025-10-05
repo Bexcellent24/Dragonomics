@@ -123,7 +123,6 @@
                 app:trackCornerRadius="5dp"
                 app:trackThickness="10dp" />
 
-            <!-- Overlay frame must stretch exactly to container -->
             <ImageView
                 android:id="@+id/xpImg"
                 android:layout_width="match_parent"

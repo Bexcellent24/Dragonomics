@@ -31,25 +31,32 @@ References:
 Author: Android | Date: 2025-10-05
 */
 
+//Core progression
 data class DragonUiState(
     val level: Int = 1,
     val xpIntoLevel: Int = 0,
     val xpProgress: Int = 0,
+
+    //Current mood & visual assets resolved from DragonRules
     val mood: DragonRules.Mood = DragonRules.Mood.NEUTRAL,
     val dragonImageRes: Int = 0,
     val moodIconRes: Int = 0,
+
+    //UI-only state and equipped cosmetics by default
     val isExpanded: Boolean = false,
     val equippedHornsId: String? = "horns_chipped",
     val equippedWingsId: String? = "wings_ragged"
 )
 
+//ViewModel that observes the domain game
 class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
 
+    //Mutable inside ViewModel, exposed as read-only to the UI.
     private val _uiState = MutableStateFlow(DragonUiState())
     val uiState: StateFlow<DragonUiState> = _uiState.asStateFlow()
 
     init {
-        // Trigger daily login on initialisation
+        //Trigger daily login on initialisation
         dragonGame.onDailyLogin()
 
         // Observe dragon game state changes
@@ -65,6 +72,12 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
         updateUiState()
     }
 
+    /*
+      Pull the latest domain state and map it into bindable UI values
+      Notes:
+       - xpProgress uses integer math; ensure XP_PER_LEVEL > 0 in DragonRules.
+       - Visuals (dragon/mood icons) are resolved centrally via DragonRules.
+     */
     private fun updateUiState() {
         val state = dragonGame.state
         val xpPercent = (state.xpIntoLevel * 100) / DragonRules.XP_PER_LEVEL
@@ -81,12 +94,12 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
         }
     }
 
-    // Function called by HomeActivity to toggle view size
+    //Function called by HomeActivity to toggle view size
     fun toggleExpansion() {
         _uiState.update { it.copy(isExpanded = !it.isExpanded) }
     }
 
-    // Function called by ShopViewModel to update equipped item
+    //Function called by ShopViewModel to update equipped item
     fun setEquippedAccessory(accessoryType: String, itemId: String) {
         _uiState.update { state ->
             when(accessoryType) {
@@ -97,12 +110,13 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
         }
     }
 
-
+    //Domain event: user logged an expense
     fun onExpenseLogged(addedPhoto: Boolean) {
         dragonGame.onExpenseLogged(addedPhoto)
         updateUiState()
     }
 
+    //Domain event: user evaluated their budget
     fun onBudgetEvaluated(
         under80Percent: Boolean,
         between80And100: Boolean,
@@ -120,11 +134,14 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
         updateUiState()
     }
 
+    // Force the overall mood and refresh visuals.
     fun setOverallMood(mood: DragonRules.Mood) {
         dragonGame.setOverallMood(mood)
         updateUiState()
     }
 
+
+     // Factory for constructing DragonViewModel with a DragonGame dependency
     class Factory(private val context: Context) : androidx.lifecycle.ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

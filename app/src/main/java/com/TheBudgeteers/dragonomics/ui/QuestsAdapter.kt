@@ -13,6 +13,7 @@ import com.TheBudgeteers.dragonomics.R
 import com.TheBudgeteers.dragonomics.models.Quest
 import com.google.android.material.card.MaterialCardView
 
+//Placeholder class, functionality won't be implemented until part 3
 class QuestsAdapter(
     private val onClick: (Quest) -> Unit = {}
 ) : ListAdapter<Quest, QuestsAdapter.VH>(Diff) {

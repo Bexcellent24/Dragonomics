@@ -2,9 +2,26 @@ package com.TheBudgeteers.dragonomics.utils
 
 import android.util.Patterns
 
+/*
+Validators
+
+Purpose:
+  - Reusable input validation for username, email, password, and confirmation.
+  - Each function returns an error message or null when the input is valid.
+
+References:
+ - Android official docs: Text input, error presentation, and email patterns.
+     * Text fields (Material): https://developer.android.com/develop/ui/views/components/text-fields
+     * TextInputLayout#setError (if used in layout): https://developer.android.com/reference/com/google/android/material/textfield/TextInputLayout
+     * android.util.Patterns.EMAIL_ADDRESS: https://developer.android.com/reference/android/util/Patterns#EMAIL_ADDRESS
+
+Author: Android | Date: 2025-10-05
+*/
+
 object Validators {
 
-    private val ALNUM_6PLUS = Regex("^[A-Za-z0-9]{6,}$") // letters + numbers, at least 6 chars
+    // Alphanumeric only, at least 6 characters
+    private val ALNUM_6PLUS = Regex("^[A-Za-z0-9]{6,}$")
 
     // Validate username format and length
     fun username(u: String): String? {
@@ -16,7 +33,7 @@ object Validators {
         return null
     }
 
-    // Validate email format
+    // Validate email format using Android's built-in EMAIL_ADDRESS heuristic.
     fun email(e: String): String? {
         if (e.isBlank()) return "Email is required"
         if (!Patterns.EMAIL_ADDRESS.matcher(e).matches())

@@ -30,14 +30,41 @@ import java.util.Locale
 
 class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
+/*
+Purpose:
+  - Displays and edits user profile information
+  - Orchestrates profile UI wiring and session checks.
+  - Bridges ViewModel with lightweight UI prefs
+
+References:
+ - Android official docs: Activities & lifecycle, ViewModel & factories, coroutines with Lifecycle, and ViewBinding.
+     * Activities & lifecycle: https://developer.android.com/guide/components/activities/intro-activities
+     * Lifecycle-aware coroutines (lifecycleScope/Flow): https://developer.android.com/topic/libraries/architecture/coroutines
+ - Android official docs: RecyclerView.
+     * Create a list with RecyclerView: https://developer.android.com/develop/ui/views/layout/recyclerview#kotlin
+ - Android official docs: Photo Picker & Activity Result APIs.
+     * Jetpack Photo Picker (PickVisualMedia): https://developer.android.com/training/data-storage/shared/photopicker
+     * Register for activity results: https://developer.android.com/training/basics/intents/result
+ - Android official docs: UI & navigation bits.
+     * Tasks & back stack (Intent flags): https://developer.android.com/guide/components/activities/tasks-and-back-stack
+     * InputMethodManager (hide keyboard): https://developer.android.com/reference/android/view/inputmethod/InputMethodManager
+
+Author: Android | Date: 2025-10-05
+*/
+
+    // ViewBinding & adapters
     private lateinit var binding: ActivityProfileBinding
     private lateinit var questsAdapter: QuestsAdapter
+
+    // Session + ViewModel
     private lateinit var session: SessionStore
     private lateinit var viewModel: ProfileViewModel
 
+    // Per-user state
     private var currentUserId: Long = -1L
     private var avatarLocalUri: Uri? = null
 
+    // Jetpack Photo Picker: pick an image and persist a local copy for this user
     private object PrefKeys {
         const val AVATAR_LOCAL = "avatar_local_uri"
         const val FIRST = "first_name"
@@ -69,6 +96,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         setupQuestsList()
         setupHeaderActions()
 
+        // Session check + bootstrap: ensure we have a userId before wiring user-specific UI
         lifecycleScope.launch {
             val userId = session.userId.firstOrNull()
             if (userId == null) {
@@ -76,10 +104,10 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 return@launch
             }
 
-            // CRITICAL: Set user ID FIRST before any UI operations
+            //Set user ID FIRST before any UI operations
             currentUserId = userId
 
-            // Initialize ViewModel - this starts loading user data
+            // Initialise ViewModel
             initViewModel(userId)
 
             // Then setup UI components
@@ -87,6 +115,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
+    //Build ViewModel with repository + userId
     private fun initViewModel(userId: Long) {
         val repository = RepositoryProvider.getRepository(this)
         viewModel = ViewModelProvider(
@@ -94,7 +123,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             ProfileViewModelFactory(repository, userId)
         )[ProfileViewModel::class.java]
 
-        // Observe user data from database - this is the single source of truth for goals
+        //Observe user data from database
         lifecycleScope.launch {
             viewModel.user.collect { user ->
                 user?.let {
@@ -110,6 +139,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
+
     private fun setupBottomNav() {
         binding.bottomNavigationView.itemIconTintList = null
         binding.bottomNavigationView.setOnItemSelectedListener {
@@ -122,6 +152,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
+    //RecyclerView + adapter: demo quests
     private fun setupQuestsList() {
         binding.rvQuests.apply {
             if (layoutManager == null) layoutManager = LinearLayoutManager(this@ProfileActivity)
@@ -129,15 +160,15 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
 
         questsAdapter = QuestsAdapter {
-            // Handle quest click - for now just show edit overlay as placeholder
             binding.profileEditOverlay.visibility = View.VISIBLE
         }
         binding.rvQuests.adapter = questsAdapter
 
-        // Load demo quests (will be replaced with real data later)
+        // Load demo quests
         questsAdapter.submitList(getDemoQuests())
     }
 
+    //Demo Quests
     private fun getDemoQuests(): List<Quest> {
         return listOf(
             Quest(
@@ -164,6 +195,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         )
     }
 
+    //Sign out: clear UI prefs for this profile + SessionStore
     private fun setupHeaderActions() {
         binding.btnLogout.setOnClickListener {
             lifecycleScope.launch {
@@ -174,6 +206,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
+    //Restore avatar/name and wire edit panel actions for this specific user
     private fun initPerUserUi() {
         val prefs = getProfilePrefs()
 
@@ -191,18 +224,17 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             }
         }
 
-        // Apply name from SharedPreferences
-        // Goals will be applied by ViewModel Flow observer
+        //Name, surname from UI prefs
         val first = prefs.getString(PrefKeys.FIRST, "") ?: ""
         val last = prefs.getString(PrefKeys.LAST, "") ?: ""
         binding.txtUsername.text = viewModel.getDisplayName(first, last)
 
-        // Setup edit button
+        //Setup edit button
         binding.btnEdit.setOnClickListener {
             showEditOverlay()
         }
 
-        // Setup overlay buttons
+        //Setup overlay buttons
         binding.btnClosePanel.setOnClickListener { closeOverlay() }
         binding.btnCancel.setOnClickListener { closeOverlay() }
         binding.btnSave.setOnClickListener { saveProfileChanges() }
@@ -211,13 +243,14 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
+    //Populate edit overlay fields and show it.
     private fun showEditOverlay() {
         val prefs = getProfilePrefs()
         binding.apply {
             etFirstName.setText(prefs.getString(PrefKeys.FIRST, "") ?: "")
             etLastName.setText(prefs.getString(PrefKeys.LAST, "") ?: "")
 
-            // Load goals from ViewModel/database
+            //Load goals from ViewModel/database
             viewModel.user.value?.let { user ->
                 etMinAmount.setText(user.minGoal?.toInt()?.toString() ?: "")
                 etMaxAmount.setText(user.maxGoal?.toInt()?.toString() ?: "")
@@ -227,6 +260,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
+    //Persist name to prefs, goals via ViewModel, update the display, and close panel
     private fun saveProfileChanges() {
         val prefs = getProfilePrefs()
 
@@ -236,19 +270,18 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             val minStr = etMinAmount.text.toString().trim()
             val maxStr = etMaxAmount.text.toString().trim()
 
-            // Save name to SharedPreferences (UI-only data)
+            //Save name to SharedPreferences
             prefs.edit {
                 putString(PrefKeys.FIRST, first)
                 putString(PrefKeys.LAST, last)
             }
 
-            // Save goals to database through ViewModel
+            //Save goals to database through ViewModel
             val minGoal = minStr.toDoubleOrNull()
             val maxGoal = maxStr.toDoubleOrNull()
             viewModel.updateGoals(minGoal, maxGoal)
 
-            // Update name display immediately
-            // Goals will update automatically via Flow observer
+            //Update name display immediately
             binding.txtUsername.text = viewModel.getDisplayName(first, last)
 
             closeOverlay()
@@ -261,7 +294,6 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
     }
 
     private fun formatAmount(amount: Double?): String {
-        // FIXED: Removed hardcoded "13,000" fallback
         if (amount == null) return "Not Set"
         return NumberFormat.getNumberInstance(Locale.getDefault()).format(amount.toInt())
     }
@@ -295,6 +327,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         finish()
     }
 
+    //Profile preferences are per-user
     private fun getProfilePrefs() =
         getSharedPreferences("profile_prefs_u_$currentUserId", Context.MODE_PRIVATE)
 

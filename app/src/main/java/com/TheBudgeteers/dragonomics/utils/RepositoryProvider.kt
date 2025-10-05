@@ -8,6 +8,7 @@ object RepositoryProvider {
     @Volatile
     private var INSTANCE: Repository? = null
 
+    //Returns the singleton Repository.
     fun getRepository(context: Context): Repository {
         return INSTANCE ?: synchronized(this) {
             val db = AppDatabase.Companion.getDatabase(context)

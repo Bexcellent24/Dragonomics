@@ -6,31 +6,48 @@ import androidx.annotation.DrawableRes
 import com.TheBudgeteers.dragonomics.R
 import java.util.Calendar
 
-/**
- * Core numbers:
- * - XP per level: 50
- * - Base XP per expense: +5, photo bonus: +2
- * - XP modifier: ONLY the dragon’s mood (HAPPY +3, NEUTRAL +0, ANGRY -1) — flat bonuses
- * - Mood bands from score: >= +2 = HAPPY, <= -2 = ANGRY, else NEUTRAL
+/*
+ Purpose:
+  - Central place for all tunable gameplay numbers and mapping rules
+    (XP curve, moods, icon selection).
+
+ References:
+  - Android official docs: SharedPreferences, resources/drawables, logging, and annotations.
+     * SharedPreferences: https://developer.android.com/reference/android/content/SharedPreferences
+     * @DrawableRes annotation: https://developer.android.com/reference/androidx/annotation/DrawableRes
+
+      Author: Android | Date: 2025-10-05
+
+  - Kotlin/Java time & language basics used here:
+      * java.util.Calendar (date parts): https://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html
+      * Kotlin data classes (DragonState): https://kotlinlang.org/docs/data-classes.html
+      * Kotlin when/enum classes: https://kotlinlang.org/docs/enum-classes.html
+
+       Author: Kotlin | Date: 2025-10-05
  */
+
 object DragonRules {
+
+    //Tunable progression values
     const val XP_PER_LEVEL = 25
     const val XP_EXPENSE = 5
     const val XP_PHOTO_BONUS = 2
 
-    // Flat mood bonuses
+    //Tunable dragon mood bonuses
     const val HAPPY_BONUS = 3
     const val NEUTRAL_BONUS = 0
     const val ANGRY_BONUS = -1
 
-    // Optional guard so an action always grants at least 1 XP
+    //Guard so an action always grants at least 1 XP
     const val MIN_XP_PER_ACTION = 1
 
     fun levelFromXp(totalXp: Int): Int = totalXp / XP_PER_LEVEL
     fun xpIntoLevel(totalXp: Int): Int = totalXp % XP_PER_LEVEL
 
+    //Mood type enums
     enum class Mood { HAPPY, NEUTRAL, ANGRY }
 
+    //Maps numeric int to the associated mood
     fun moodFromScore(score: Int): Mood =
         when {
             score >= 2  -> Mood.HAPPY
@@ -38,7 +55,7 @@ object DragonRules {
             else        -> Mood.NEUTRAL
         }
 
-    /** Apply flat mood bonus to base XP (clamped to at least MIN_XP_PER_ACTION). */
+    // Apply flat mood bonus to base XP
     fun applyMoodBonus(base: Int, mood: Mood): Int {
         val bonus = when (mood) {
             Mood.HAPPY   -> HAPPY_BONUS
@@ -48,7 +65,7 @@ object DragonRules {
         return maxOf(MIN_XP_PER_ACTION, base + bonus)
     }
 
-
+    //Displays the relevant dragon image based on dragon's level and mood
     @DrawableRes
     fun dragonImageFor(level: Int, mood: Mood): Int = when {
         level >= 10 -> when (mood) { // Adult from (Level >= 10)
@@ -62,21 +79,14 @@ object DragonRules {
             Mood.NEUTRAL -> R.drawable.teen_dragon_neutral
             Mood.ANGRY   -> R.drawable.teen_dragon_angry
         }
-        else       -> when (mood) {           // baby start
+        else       -> when (mood) {    // baby start
             Mood.HAPPY   -> R.drawable.baby_dragon_happy
             Mood.NEUTRAL -> R.drawable.baby_dragon_neutral
             Mood.ANGRY   -> R.drawable.baby_dragon_sad
         }
     }
 
-
-    @DrawableRes
-    fun dragonImageFor(level: Int): Int = when {
-        level >= 10 -> R.drawable.adult_dragon_happy
-        level >= 5 -> R.drawable.teen_dragon_happy
-        else       -> R.drawable.baby_dragon_happy
-    }
-
+    //Displays the relevant icons based on dragon's mood
     @DrawableRes
     fun moodIconFor(mood: Mood): Int = when (mood) {
         Mood.HAPPY   -> R.drawable.happy_mood
@@ -85,19 +95,22 @@ object DragonRules {
     }
 }
 
+//Dragon's current game state
 data class DragonState(
     val totalXp: Int = 0,
     val level: Int = 0,
     val xpIntoLevel: Int = 0,
     val moodScore: Int = 0,
     val mood: DragonRules.Mood = DragonRules.Mood.NEUTRAL,
-    val lastLoginYmd: Int = 0 // YYYYMMDD to grant daily login once
+    val lastLoginYmd: Int = 0
 )
+
 
 class DragonStore(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences("dragon_store", Context.MODE_PRIVATE)
 
+    //Load persisted values and rebuild a consistent DragonState.
     fun load(): DragonState {
         val xp = prefs.getInt("xp", 0)
         val moodScore = prefs.getInt("moodScore", 0)
@@ -107,7 +120,7 @@ class DragonStore(context: Context) {
         val last = prefs.getInt("lastLoginYmd", 0)
         return DragonState(xp, level, into, moodScore, mood, last)
     }
-
+    //Persist only the authoritative fields
     fun save(state: DragonState) {
         prefs.edit()
             .putInt("xp", state.totalXp)
@@ -117,12 +130,13 @@ class DragonStore(context: Context) {
     }
 }
 
-/** Facade used by Activities/Fragments */
 class DragonGame(private val store: DragonStore) {
 
     var state: DragonState = store.load()
         private set
 
+
+     //Centralised recomputation: Accepts XP, moodScore, lastLogin and rebuilds a new state
     private fun recomputeAndPersist(
         totalXp: Int? = null,
         moodScore: Int? = null,
@@ -140,39 +154,40 @@ class DragonGame(private val store: DragonStore) {
             "New state: L${state.level} ${state.xpIntoLevel}/${DragonRules.XP_PER_LEVEL}, total=${state.totalXp}, mood=${state.mood} (score=${state.moodScore})"
         )
         store.save(state)
+        // Broadcast to any collectors
         DragonGameEvents.notifyChanged(state)
-
-
     }
 
-    /** Call once per real day on app open (grants +1 Mood once per day) */
+    // Call once per real day on app open
     fun onDailyLogin() {
         val today = todayYmd()
         if (state.lastLoginYmd == today) return
         recomputeAndPersist(moodScore = state.moodScore + 1, lastLoginYmd = today)
     }
 
+    //Award XP for logging an expense then re-evaluate mood state
     fun onExpenseLogged(addedPhoto: Boolean) {
         var base = DragonRules.XP_EXPENSE
         if (addedPhoto) base += DragonRules.XP_PHOTO_BONUS
         val effective = DragonRules.applyMoodBonus(base, state.mood)
 
+        //Debugging
         android.util.Log.d("DragonXP",
-            "Expense BEFORE: base=$base mood=${state.mood} effective=$effective total=${state.totalXp}"
+            "Expense BEFORE: base=$base mood=${state.mood} effective=$effective " +
+                    "total=${state.totalXp}"
         )
 
         recomputeAndPersist(totalXp = state.totalXp + effective)
 
+        //Debugging
         android.util.Log.d("DragonXP",
-            "Expense AFTER:  L${state.level} ${state.xpIntoLevel}/${DragonRules.XP_PER_LEVEL} total=${state.totalXp}"
+            "Expense AFTER:  L${state.level} ${state.xpIntoLevel}/${DragonRules.XP_PER_LEVEL} " +
+                    "total=${state.totalXp}"
         )
     }
 
-
-    /**
-     * Call whenever you evaluate budget status (daily/weekly/monthly).
-     * Inputs are flags derived from your budget calculations.
-     */
+    //Update moodScore based on nest mood averages
+    //Positive nests brings mood up, overspending brings it down.
     fun onBudgetEvaluated(
         under80Percent: Boolean = false,
         between80And100: Boolean = false,
@@ -189,6 +204,7 @@ class DragonGame(private val store: DragonStore) {
         recomputeAndPersist(moodScore = state.moodScore + delta)
     }
 
+    //Current date as YYYYMMDD
     private fun todayYmd(): Int {
         val c = Calendar.getInstance()
         val y = c.get(Calendar.YEAR)
@@ -197,15 +213,14 @@ class DragonGame(private val store: DragonStore) {
         return y * 10000 + m * 100 + d
     }
 
+    //Force a specific mood band and refresh dependent visuals.
     fun setOverallMood(m: DragonRules.Mood) {
-        // pick representative band edges so moodFromScore() returns exactly this mood
+        //pick representative band edges so moodFromScore() returns exactly this mood
         val targetScore = when (m) {
             DragonRules.Mood.HAPPY   ->  2
             DragonRules.Mood.NEUTRAL ->  0
             DragonRules.Mood.ANGRY   -> -2
         }
-        // This recompute persists, rebuilds state, and notifies observers.
         recomputeAndPersist(moodScore = targetScore)
     }
-
 }
