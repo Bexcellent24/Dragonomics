@@ -9,6 +9,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+/*
+AuthViewModel
+
+Purpose:
+  - Owns authentication state for the UI.
+  - Coordinates sign-up and login calls to the Repository layer.
+
+References:
+ - Kotlin stdlib: Result and fold.
+     * Result API: https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-result/
+ - Coroutines Dispatchers and threading:
+     * Dispatchers.IO: https://kotlinlang.org/docs/coroutines-basics.html#dispatchers-and-threads
+
+Author: Kotlin | Date: 2025-10-05
+*/
+
 sealed class AuthState {
     data object Idle : AuthState()
     data object Loading : AuthState()
@@ -22,6 +38,14 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
     private val _state = MutableStateFlow<AuthState>(AuthState.Idle)
     val state: StateFlow<AuthState> = _state
 
+    /*
+     Register a new user.
+     Threading:
+      - Set Loading on the main thread
+      - Do the DB call on Dispatchers.IO
+      - Update StateFlow with success/error
+     */
+
     fun signUp(username: String, email: String, password: String) {
         _state.value = AuthState.Loading
         viewModelScope.launch(Dispatchers.IO) {
@@ -33,7 +57,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-
+    // Repository returns user result and fold(return) into success/error for the UI.
     fun logIn(u: String, p: String) = viewModelScope.launch {
         _state.value = AuthState.Loading
         _state.value = repo.loginUser(u, p)

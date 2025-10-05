@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+//Placeholder class, all achievements are hard code, functionality won't be implemented until part 3
 class AchievementsViewModel : ViewModel() {
 
     private val _achievements = MutableStateFlow<List<Achievement>>(emptyList())
@@ -18,10 +19,9 @@ class AchievementsViewModel : ViewModel() {
         loadAchievements()
     }
 
+    //Placeholder achievements to match the part 1 wireframes
     private fun loadAchievements() {
         viewModelScope.launch {
-            // TODO: Load from database/repository instead of hard-coding
-            // For now, keeping the hard-coded ones but making them configurable
             val list = listOf(
                 Achievement(
                     id = "master",
@@ -73,7 +73,6 @@ class AchievementsViewModel : ViewModel() {
                 if (it.id == achievementId) it.copy(achieved = true) else it
             }
             _achievements.value = updated
-            // TODO: Persist to database
         }
     }
 }

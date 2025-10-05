@@ -15,25 +15,48 @@ import com.TheBudgeteers.dragonomics.viewmodel.AuthState
 import com.TheBudgeteers.dragonomics.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
+/*
+LoginActivity
+
+Purpose:
+  - Presents the login UI and coordinates authentication.
+  - Validates inputs locally and delegates to [AuthViewModel].
+  - Observes [AuthState] to show loading, surface errors, and navigate.
+
+References:
+ - AndroidX KTX utilities for cleaner Kotlin syntax.
+    * doAfterTextChanged: https://developer.android.com/reference/kotlin/androidx/core/widget/package-summary#doaftertextchanged
+    * View.isVisible extension: https://developer.android.com/kotlin/ktx/extensions-list
+ - Android official docs: Tasks and the back stack (Intent flags NEW_TASK, CLEAR_TASK, CLEAR_TOP).
+     * https://developer.android.com/guide/components/activities/tasks-and-back-stack
+
+   Author: Android | Date: 2025-10-05
+ */
+
 class LoginActivity : AppCompatActivity() {
 
+    //ViewBinding to access layout views.
     private lateinit var binding: ActivityLoginBinding
     private val vm: AuthViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
+        //Local helper to update button state
         val updateStateFromInputs = {
-            binding.tvError?.text = ""
 
+            //Clear top-level error on any edit
+            binding.tvError?.text = ""
             binding.btnLogin.isEnabled = looksValid()
         }
 
+        //Live UX validation
         binding.etUsername.doAfterTextChanged {
+            //If field previously showed an error, re-validate on edit
             if (binding.etUsername.error != null) {
                 binding.etUsername.error = Validators.username(binding.etUsername.text?.toString().orEmpty())
             }
@@ -46,15 +69,20 @@ class LoginActivity : AppCompatActivity() {
             updateStateFromInputs()
         }
 
+        //Initial button state
         binding.btnLogin.isEnabled = looksValid()
 
+        //Navigate to sign up page.
         binding.btnGoToSignUp.setOnClickListener {
             startActivity(Intent(this, SignUpActivity::class.java))
         }
 
+        //Call to action when user attempts to login.
         binding.btnLogin.setOnClickListener {
-            if (!validateHard()) return@setOnClickListener
 
+            // Perform validation, sets field errors if needed
+            // Similar logic to the SignUpActivity btnCreateAccount
+            if (!validateHard()) return@setOnClickListener
             val u = binding.etUsername.text?.toString()?.trim().orEmpty()
             val p = binding.etPassword.text?.toString()?.trim().orEmpty()
             vm.logIn(u, p)
@@ -70,11 +98,11 @@ class LoginActivity : AppCompatActivity() {
                     is AuthState.Success -> {
                         setLoading(false)
 
-                        // Persist session
+                        //Persist session for user info
                         val userId = s.userId
                         SessionStore(this@LoginActivity).setUser(userId)
 
-                        // Go to Home
+                        //Go to HomeActivity on successful login and clears the back stack
                         val i = Intent(this@LoginActivity, HomeActivity::class.java).apply {
                             addFlags(
                                 Intent.FLAG_ACTIVITY_NEW_TASK or
@@ -85,16 +113,20 @@ class LoginActivity : AppCompatActivity() {
                         startActivity(i)
                         finish()
                     }
+
+                    //On failed validation
                     is AuthState.Error -> {
                         setLoading(false)
 
-                        // Map server error to fields when possible
+                        //Error message handling depending on the error case
                         val msg = (s.message ?: "").trim()
                         when {
                             msg.contains("username", ignoreCase = true) ->
                                 binding.etUsername.error = msg.ifEmpty { "Invalid username" }
+
                             msg.contains("password", ignoreCase = true) ->
                                 binding.etPassword.error = msg.ifEmpty { "Invalid password" }
+
                             else ->
                                 binding.tvError?.text = msg.ifEmpty { "Login failed. Please try again." }
                         }
@@ -105,12 +137,14 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    //Returns true when both fields are not empty.
     private fun looksValid(): Boolean {
         val u = binding.etUsername.text?.toString()?.trim().orEmpty()
         val p = binding.etPassword.text?.toString()?.trim().orEmpty()
         return Validators.username(u) == null && Validators.password(p) == null
     }
 
+    //Actual validation of EditText fields.
     private fun validateHard(): Boolean {
         val u = binding.etUsername.text?.toString()?.trim().orEmpty()
         val p = binding.etPassword.text?.toString()?.trim().orEmpty()
@@ -121,6 +155,7 @@ class LoginActivity : AppCompatActivity() {
         return ok
     }
 
+    //Toggles loading UI and prevents duplicate user submissions.
     private fun setLoading(loading: Boolean) {
         binding.progressBar.isVisible = loading
         binding.btnLogin.isEnabled = !loading && looksValid()

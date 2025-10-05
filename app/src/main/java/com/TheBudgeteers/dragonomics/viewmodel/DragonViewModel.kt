@@ -13,6 +13,24 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/*
+DragonViewModel
+
+Purpose:
+  - Holds and exposes UI-facing dragon state for the Home/Shop screens
+  - Bridges the domain/game layer and UI via StateFlow<DragonUiState>
+  - Listens to DragonGameEvents and maps domain state
+
+References:
+ - Kotlin Flow for UI state:
+     * StateFlow & asStateFlow: https://developer.android.com/kotlin/flow/stateflow-and-sharedflow
+     * Flow collection basics: https://developer.android.com/kotlin/flow
+ - ViewModelProvider.Factory:
+     * https://developer.android.com/reference/androidx/lifecycle/ViewModelProvider.Factory
+
+Author: Android | Date: 2025-10-05
+*/
+
 data class DragonUiState(
     val level: Int = 1,
     val xpIntoLevel: Int = 0,
@@ -20,10 +38,9 @@ data class DragonUiState(
     val mood: DragonRules.Mood = DragonRules.Mood.NEUTRAL,
     val dragonImageRes: Int = 0,
     val moodIconRes: Int = 0,
-    // Fields for Customization and View State
     val isExpanded: Boolean = false,
-    val equippedHornsId: String? = "horns_chipped", // Default items
-    val equippedWingsId: String? = "wings_ragged"    // Default items
+    val equippedHornsId: String? = "horns_chipped",
+    val equippedWingsId: String? = "wings_ragged"
 )
 
 class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
@@ -32,7 +49,7 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
     val uiState: StateFlow<DragonUiState> = _uiState.asStateFlow()
 
     init {
-        // Trigger daily login on initialization
+        // Trigger daily login on initialisation
         dragonGame.onDailyLogin()
 
         // Observe dragon game state changes
@@ -58,7 +75,6 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
                 xpIntoLevel = state.xpIntoLevel,
                 xpProgress = xpPercent,
                 mood = state.mood,
-                // Pass mood and level to dragonImage
                 dragonImageRes = DragonRules.dragonImageFor(state.level, state.mood),
                 moodIconRes = DragonRules.moodIconFor(state.mood)
             )
@@ -70,13 +86,13 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
         _uiState.update { it.copy(isExpanded = !it.isExpanded) }
     }
 
-    // Function called by ShopViewModel (via an interface) to update equipped item
+    // Function called by ShopViewModel to update equipped item
     fun setEquippedAccessory(accessoryType: String, itemId: String) {
         _uiState.update { state ->
             when(accessoryType) {
                 "horns" -> state.copy(equippedHornsId = itemId)
                 "wings" -> state.copy(equippedWingsId = itemId)
-                else -> state // Palette is handled by dragonImageRes, ignore here
+                else -> state
             }
         }
     }

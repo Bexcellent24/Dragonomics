@@ -7,9 +7,12 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
+//Placeholder class, functionality won't be implemented until part 3
+
 class AchievementsAdapter(
     private var items: List<Achievement>
 ) : RecyclerView.Adapter<AchievementsAdapter.VH>() {
+
 
     class VH(v: View) : RecyclerView.ViewHolder(v) {
         val imgMedal: ImageView = v.findViewById(R.id.imgMedal)
