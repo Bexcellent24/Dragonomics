@@ -63,3 +63,6 @@ object DragonSockets {
         wingRight = AttachmentPoint(x = 25, y = -78, width = 300, height = 300)
     )
 }
+//Reference List
+// Kotlin Documentation, (2024). Data Classes. [online] Available at: <https://kotlinlang.org/docs/data-classes.html> [Accessed 03 October 2025].
+

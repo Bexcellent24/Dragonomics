@@ -32,6 +32,7 @@ import com.TheBudgeteers.dragonomics.DragonSockets.ADULT_DRAGON_SOCKETS
 import com.TheBudgeteers.dragonomics.DragonSockets.BABY_DRAGON_SOCKETS
 import com.TheBudgeteers.dragonomics.DragonSockets.DRAGON_REFERENCE_WIDTH_DP
 import com.TheBudgeteers.dragonomics.DragonSockets.DRAGON_SMALL_DP
+import com.TheBudgeteers.dragonomics.DragonSockets.DRAGON_VIEW_PADDING_DP
 import com.TheBudgeteers.dragonomics.DragonSockets.TEEN_DRAGON_SOCKETS
 import com.TheBudgeteers.dragonomics.utilities.PaletteColors
 import com.TheBudgeteers.dragonomics.utilities.PaletteMapper
@@ -87,7 +88,8 @@ class HomeActivity : AppCompatActivity(),
     }
 
     private fun initializeDragonDisplay() {
-        lifecycleScope.launch { //------------CODE ATTRIBUTION------------
+        lifecycleScope.launch {
+            //------------CODE ATTRIBUTION------------
 //Title: Getting started with glider
 //Author: Glider
 //Date: 05/10/2025
@@ -126,37 +128,39 @@ class HomeActivity : AppCompatActivity(),
     private fun updateDragonCustomization(state: DragonUiState) {
         binding.dragon.post {
             val currentSocketSet = when {
-                state.level >= 10 -> DragonSockets.ADULT_DRAGON_SOCKETS
-                state.level >= 5 -> DragonSockets.TEEN_DRAGON_SOCKETS
-                else -> DragonSockets.BABY_DRAGON_SOCKETS
+                state.level >= 10 -> ADULT_DRAGON_SOCKETS
+                state.level >= 5 -> TEEN_DRAGON_SOCKETS
+                else -> BABY_DRAGON_SOCKETS
             }
 
             // gets the dual color IDs from the mapper
-            val paletteColors: PaletteColors? = PaletteMapper.mapPaletteIdToColors(this, state.equippedPaletteId)
+            val paletteColors: PaletteColors? =
+                PaletteMapper.mapPaletteIdToColors(this, state.equippedPaletteId)
 
             // color Filter creation logic
             val bodyColorFilter: ColorFilter? = paletteColors?.bodyColorRes?.let { resId ->
                 val colorInt = ContextCompat.getColor(this, resId)
                 PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY)
             }
-            val accessoryColorFilter: ColorFilter? = paletteColors?.accessoryColorRes?.let { resId ->
-                val colorInt = ContextCompat.getColor(this, resId)
-                PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY)
-            }
+            val accessoryColorFilter: ColorFilter? =
+                paletteColors?.accessoryColorRes?.let { resId ->
+                    val colorInt = ContextCompat.getColor(this, resId)
+                    PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY)
+                }
             binding.dragon.colorFilter = bodyColorFilter
 
             // scaling cal. To ensure its the same across the board, no matter the screen size
             val dragonPxWidth = binding.dragon.width.toFloat()
 
             // Use the ratio of the physical width (PX) to the design reference DP width.
-            val finalScaleRatio = dragonPxWidth / DragonSockets.DRAGON_REFERENCE_WIDTH_DP.toFloat()
+            val finalScaleRatio = dragonPxWidth / DRAGON_REFERENCE_WIDTH_DP.toFloat()
 
             fun dpToPx(dp: Int): Int {
                 return (dp * finalScaleRatio).roundToInt()
             }
 
 
-            val DRAGON_PADDING_DP = 70
+            val DRAGON_PADDING_DP = DRAGON_VIEW_PADDING_DP
             val paddingOffsetPx = dpToPx(DRAGON_PADDING_DP)
 
             fun updateAccessoryView(
@@ -182,14 +186,15 @@ class HomeActivity : AppCompatActivity(),
                     val w = dpToPx(socket.width)
                     val h = dpToPx(socket.height)
 
-                    imageView.layoutParams = (imageView.layoutParams as ConstraintLayout.LayoutParams).apply {
-                        width = w
-                        height = h
-                        marginStart = x
-                        topMargin = y
-                        marginEnd = 0
-                        bottomMargin = 0
-                    }
+                    imageView.layoutParams =
+                        (imageView.layoutParams as ConstraintLayout.LayoutParams).apply {
+                            width = w
+                            height = h
+                            marginStart = x
+                            topMargin = y
+                            marginEnd = 0
+                            bottomMargin = 0
+                        }
 
                     Glide.with(this@HomeActivity).load(accessoryRes).into(imageView)
                     imageView.colorFilter = colorFilter
@@ -201,14 +206,41 @@ class HomeActivity : AppCompatActivity(),
             }
 
             // passes the specific accessoryColorFilter to all accessory updates
-            updateAccessoryView(binding.hornLeft, currentSocketSet.hornLeft, state.equippedHornsId, state.level, accessoryColorFilter)
-            updateAccessoryView(binding.hornRight, currentSocketSet.hornRight, state.equippedHornsId, state.level, accessoryColorFilter)
-            updateAccessoryView(binding.wingLeft, currentSocketSet.wingLeft, state.equippedWingsId, state.level, accessoryColorFilter)
-            updateAccessoryView(binding.wingRight, currentSocketSet.wingRight, state.equippedWingsId, state.level, accessoryColorFilter)
+            updateAccessoryView(
+                binding.hornLeft,
+                currentSocketSet.hornLeft,
+                state.equippedHornsId,
+                state.level,
+                accessoryColorFilter
+            )
+            updateAccessoryView(
+                binding.hornRight,
+                currentSocketSet.hornRight,
+                state.equippedHornsId,
+                state.level,
+                accessoryColorFilter
+            )
+            updateAccessoryView(
+                binding.wingLeft,
+                currentSocketSet.wingLeft,
+                state.equippedWingsId,
+                state.level,
+                accessoryColorFilter
+            )
+            updateAccessoryView(
+                binding.wingRight,
+                currentSocketSet.wingRight,
+                state.equippedWingsId,
+                state.level,
+                accessoryColorFilter
+            )
         }
     }
 
-    private fun getAccessoryDrawables(itemId: String, level: Int): DragonSockets.AccessoryDrawables {
+    private fun getAccessoryDrawables(
+        itemId: String,
+        level: Int
+    ): DragonSockets.AccessoryDrawables {
         val prefix = when {
             level >= 10 -> "adult_"
             level >= 5 -> "teen_"
