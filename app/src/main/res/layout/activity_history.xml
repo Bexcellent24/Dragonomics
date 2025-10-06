@@ -16,7 +16,7 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:padding="8dp"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="28dp">
 
         <!-- Left arrow -->
         <ImageView
