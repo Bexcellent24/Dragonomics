@@ -1,6 +1,8 @@
 # Draconomics – Gamified Budgeting App
 
-![Draconomics Logo](https://github.com/Bexcellent24/Dragonomics/blob/master/Logos/Pages/Login_SignUp%20Page/home_page_logo.png)
+<p align="center">
+  <img src="https://github.com/Bexcellent24/Dragonomics/blob/master/Logos/Pages/Login_SignUp%20Page/home_page_logo.png" alt="Draconomics Logo" width="400">
+</p>
 
 ---
 
