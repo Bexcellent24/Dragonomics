@@ -77,7 +77,7 @@ object DragonRules {
         level >= 5 -> when (mood) {   // Teen from 5 to 9
             Mood.HAPPY   -> R.drawable.teen_happy
             Mood.NEUTRAL -> R.drawable.teen_neutral
-            Mood.ANGRY   -> R.drawable.teen_angry
+            Mood.ANGRY   -> R.drawable.teen_angry /// just double checking this works
         }
         else       -> when (mood) {    // baby start
             Mood.HAPPY   -> R.drawable.baby_happy
