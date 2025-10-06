@@ -3,25 +3,22 @@ package com.TheBudgeteers.dragonomics.utils
 import android.util.Patterns
 
 /*
-Validators
-
 Purpose:
   - Reusable input validation for username, email, password, and confirmation.
   - Each function returns an error message or null when the input is valid.
-
-References:
- - Android official docs: Text input, error presentation, and email patterns.
-     * Text fields (Material): https://developer.android.com/develop/ui/views/components/text-fields
-     * TextInputLayout#setError (if used in layout): https://developer.android.com/reference/com/google/android/material/textfield/TextInputLayout
-     * android.util.Patterns.EMAIL_ADDRESS: https://developer.android.com/reference/android/util/Patterns#EMAIL_ADDRESS
-
-Author: Android | Date: 2025-10-05
 */
 
 object Validators {
 
+    // begin code attribution
+    // Simple alphanumeric-only validation using a Kotlin Regex pattern.
+    // Adapted from:
+    // Kotlin, 2024. Regular expressions. [online]
+    // Available at: <https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/-regex/> [Accessed 6 October 2025].
+
     // Alphanumeric only, at least 6 characters
     private val ALNUM_6PLUS = Regex("^[A-Za-z0-9]{6,}$")
+    // end code attribution (Kotlin, 2024)
 
     // Validate username format and length
     fun username(u: String): String? {
@@ -33,6 +30,13 @@ object Validators {
         return null
     }
 
+    // begin code attribution
+    // Validate email format using Android’s built-in EMAIL_ADDRESS regex pattern.
+    // Adapted from:
+    // Android Developers, 2020. android.util.Patterns.EMAIL_ADDRESS. [online]
+    // Available at: <https://developer.android.com/reference/android/util/Patterns#EMAIL_ADDRESS>
+    // [Accessed 6 October 2025].
+
     // Validate email format using Android's built-in EMAIL_ADDRESS heuristic.
     fun email(e: String): String? {
         if (e.isBlank()) return "Email is required"
@@ -40,6 +44,8 @@ object Validators {
             return "Not a correct email format"
         return null
     }
+    // end code attribution (Android Developers, 2020)
+
 
     // Validate password format and length
     fun password(p: String): String? {
@@ -58,3 +64,9 @@ object Validators {
         return null
     }
 }
+
+// reference list
+// Android Developers, 2020. android.util.Patterns.EMAIL_ADDRESS. [online]
+// Available at: <https://developer.android.com/reference/android/util/Patterns#EMAIL_ADDRESS> [Accessed 6 October 2025].
+// Kotlin, 2024. Regular expressions. [online]
+// Available at: <https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.text/-regex/> [Accessed 6 October 2025].

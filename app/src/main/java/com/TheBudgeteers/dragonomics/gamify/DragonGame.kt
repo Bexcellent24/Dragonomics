@@ -10,20 +10,6 @@ import java.util.Calendar
  Purpose:
   - Central place for all tunable gameplay numbers and mapping rules
     (XP curve, moods, icon selection).
-
- References:
-  - Android official docs: SharedPreferences, resources/drawables, logging, and annotations.
-     * SharedPreferences: https://developer.android.com/reference/android/content/SharedPreferences
-     * @DrawableRes annotation: https://developer.android.com/reference/androidx/annotation/DrawableRes
-
-      Author: Android | Date: 2025-10-05
-
-  - Kotlin/Java time & language basics used here:
-      * java.util.Calendar (date parts): https://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html
-      * Kotlin data classes (DragonState): https://kotlinlang.org/docs/data-classes.html
-      * Kotlin when/enum classes: https://kotlinlang.org/docs/enum-classes.html
-
-       Author: Kotlin | Date: 2025-10-05
  */
 
 object DragonRules {
@@ -65,6 +51,12 @@ object DragonRules {
         return maxOf(MIN_XP_PER_ACTION, base + bonus)
     }
 
+    // begin code attribution
+    // Annotate functions that return drawable resource IDs with @DrawableRes for Lint/type safety.
+    // Adapted from:
+    // Android Developers, 2020. androidx.annotation.DrawableRes. [online]
+    // Available at: <https://developer.android.com/reference/androidx/annotation/DrawableRes> [Accessed 6 October 2025].
+
     //Displays the relevant dragon image based on dragon's level and mood
     @DrawableRes
     fun dragonImageFor(level: Int, mood: Mood): Int = when {
@@ -85,6 +77,7 @@ object DragonRules {
             Mood.ANGRY   -> R.drawable.baby_sad
         }
     }
+    // end code attribution (Android Developers, 2020)
 
     //Displays the relevant icons based on dragon's mood
     @DrawableRes
@@ -204,6 +197,12 @@ class DragonGame(private val store: DragonStore) {
         recomputeAndPersist(moodScore = state.moodScore + delta)
     }
 
+    // begin code attribution
+    // Construct an integer date stamp (YYYYMMDD) using java.util.Calendar (note: MONTH is zero-based).
+    // Adapted from:
+    // Oracle, 2024. java.util.Calendar. [online]
+    // Available at: <https://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html> [Accessed 6 October 2025].
+
     //Current date as YYYYMMDD
     private fun todayYmd(): Int {
         val c = Calendar.getInstance()
@@ -212,6 +211,7 @@ class DragonGame(private val store: DragonStore) {
         val d = c.get(Calendar.DAY_OF_MONTH)
         return y * 10000 + m * 100 + d
     }
+    // end code attribution (Oracle, 2024)
 
     //Force a specific mood band and refresh dependent visuals.
     fun setOverallMood(m: DragonRules.Mood) {
@@ -224,3 +224,8 @@ class DragonGame(private val store: DragonStore) {
         recomputeAndPersist(moodScore = targetScore)
     }
 }
+// reference list
+// Android Developers, 2020. androidx.annotation.DrawableRes. [online]
+// Available at: <https://developer.android.com/reference/androidx/annotation/DrawableRes> [Accessed 6 October 2025].
+// Oracle, 2024. java.util.Calendar. [online]
+// Available at: <https://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html> [Accessed 6 October 2025].

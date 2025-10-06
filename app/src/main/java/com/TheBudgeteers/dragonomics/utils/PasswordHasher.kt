@@ -23,6 +23,14 @@ object PasswordHasher {
         return Base64.encodeToString(b, Base64.NO_WRAP)
     }
 
+
+    // begin code attribution
+    // Derive a key with PBKDF2WithHmacSHA256 using SecretKeyFactory and PBEKeySpec.
+    // Adapted from:
+    // Oracle, 2024. Java Cryptography Architecture (JCA) Reference Guide – SecretKeyFactory & PBEKeySpec. [online]
+    // Available at: <https://docs.oracle.com/javase/8/docs/api/javax/crypto/SecretKeyFactory.html> [Accessed 6 October 2025].
+    // OWASP, 2024. Password Storage Cheat Sheet (PBKDF2 guidance). [online]
+    // Available at: <https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html> [Accessed 6 October 2025].
     // Creates a Base64-encoded PBKDF2 hash from a password and salt
     fun hash(password: CharArray, saltB64: String): String {
         val salt = Base64.decode(saltB64, Base64.NO_WRAP)
@@ -32,6 +40,13 @@ object PasswordHasher {
         spec.clearPassword()
         return Base64.encodeToString(key, Base64.NO_WRAP)
     }
+    // end code attribution (Oracle, 2024; OWASP, 2024)
+
+    // begin code attribution
+    // Compare Base64 hashes in constant time to mitigate timing side-channels.
+    // Adapted from:
+    // OWASP, 2024. Timing Attack guidance (constant-time comparison). [online]
+    // Available at: <https://cheatsheetseries.owasp.org/cheatsheets/Timing_Attack.html> [Accessed 6 October 2025].
 
     // Verifies a password by hashing and comparing to the expected hash
     // Comparison uses constant-time logic to reduce timing attack risk
@@ -42,4 +57,13 @@ object PasswordHasher {
         for (i in h.indices) diff = diff or (h[i].code xor expectedHashB64[i].code)
         return diff == 0
     }
+    // end code attribution (OWASP, 2024)
 }
+// reference list
+// Oracle, 2024. Java Cryptography Architecture (JCA) Reference Guide – SecretKeyFactory & PBEKeySpec. [online]
+// Available at: <https://docs.oracle.com/javase/8/docs/api/javax/crypto/SecretKeyFactory.html> [Accessed 6 October 2025].
+// OWASP, 2024. Password Storage Cheat Sheet. [online]
+// Available at: <https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html> [Accessed 6 October 2025].
+// OWASP, 2024. Timing Attack. [online]
+// Available at: <https://cheatsheetseries.owasp.org/cheatsheets/Timing_Attack.html> [Accessed 6 October 2025].
+

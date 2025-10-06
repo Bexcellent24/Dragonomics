@@ -14,21 +14,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /*
-DragonViewModel
-
 Purpose:
   - Holds and exposes UI-facing dragon state for the Home/Shop screens
   - Bridges the domain/game layer and UI via StateFlow<DragonUiState>
   - Listens to DragonGameEvents and maps domain state
-
-References:
- - Kotlin Flow for UI state:
-     * StateFlow & asStateFlow: https://developer.android.com/kotlin/flow/stateflow-and-sharedflow
-     * Flow collection basics: https://developer.android.com/kotlin/flow
- - ViewModelProvider.Factory:
-     * https://developer.android.com/reference/androidx/lifecycle/ViewModelProvider.Factory
-
-Author: Android | Date: 2025-10-05
 */
 
 //Core progression
@@ -52,13 +41,29 @@ data class DragonUiState(
 //ViewModel that observes the domain game
 class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
 
+
+    // begin code attribution
+    // Hold mutable UI state internally and expose a read-only StateFlow to the UI.
+    // Adapted from:
+    // Android Developers, 2021. StateFlow and SharedFlow. [online]
+    // Available at: <https://developer.android.com/kotlin/flow/stateflow-and-sharedflow>
+    // [Accessed 6 October 2025].
     //Mutable inside ViewModel, exposed as read-only to the UI.
     private val _uiState = MutableStateFlow(DragonUiState())
     val uiState: StateFlow<DragonUiState> = _uiState.asStateFlow()
+    // end code attribution (Android Developers, 2021)
+
 
     init {
         //Trigger daily login on initialisation
         dragonGame.onDailyLogin()
+
+        // begin code attribution
+        // Collect domain events in a lifecycle-aware way using viewModelScope + Flow.
+        // Adapted from:
+        // Android Developers, 2020. Kotlin coroutines on Android (lifecycle-aware). [online]
+        // Available at: <https://developer.android.com/topic/libraries/architecture/coroutines>
+        // [Accessed 6 October 2025].
 
         // Observe dragon game state changes
         viewModelScope.launch {
@@ -67,6 +72,7 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
                     updateUiState()
                 }
             }
+            // end code attribution (Android Developers, 2020)
         }
 
         // Initial UI update
@@ -152,3 +158,8 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
         }
     }
 }
+// reference list
+// Android Developers, 2021. StateFlow and SharedFlow. [online]
+// Available at: <https://developer.android.com/kotlin/flow/stateflow-and-sharedflow> [Accessed 6 October 2025].
+// Android Developers, 2020. Kotlin coroutines on Android (lifecycle-aware). [online]
+// Available at: <https://developer.android.com/topic/libraries/architecture/coroutines> [Accessed 6 October 2025].

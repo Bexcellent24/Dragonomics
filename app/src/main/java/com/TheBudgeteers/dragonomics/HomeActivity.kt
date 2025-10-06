@@ -221,7 +221,7 @@ class HomeActivity : AppCompatActivity(),
             val resourceName = "${prefix}${itemId}_$suffix"
             return resources.getIdentifier(resourceName, "drawable", packageName)
         }
-// suffix will alwayss return both left and right so we can get both the compoents
+// suffix will alwayss return both left and right so we can get both the components
         return DragonSockets.AccessoryDrawables(
             leftResId = getResId("left"),
             rightResId = getResId("right")

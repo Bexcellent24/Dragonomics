@@ -35,21 +35,6 @@ Purpose:
   - Displays and edits user profile information
   - Orchestrates profile UI wiring and session checks.
   - Bridges ViewModel with lightweight UI prefs
-
-References:
- - Android official docs: Activities & lifecycle, ViewModel & factories, coroutines with Lifecycle, and ViewBinding.
-     * Activities & lifecycle: https://developer.android.com/guide/components/activities/intro-activities
-     * Lifecycle-aware coroutines (lifecycleScope/Flow): https://developer.android.com/topic/libraries/architecture/coroutines
- - Android official docs: RecyclerView.
-     * Create a list with RecyclerView: https://developer.android.com/develop/ui/views/layout/recyclerview#kotlin
- - Android official docs: Photo Picker & Activity Result APIs.
-     * Jetpack Photo Picker (PickVisualMedia): https://developer.android.com/training/data-storage/shared/photopicker
-     * Register for activity results: https://developer.android.com/training/basics/intents/result
- - Android official docs: UI & navigation bits.
-     * Tasks & back stack (Intent flags): https://developer.android.com/guide/components/activities/tasks-and-back-stack
-     * InputMethodManager (hide keyboard): https://developer.android.com/reference/android/view/inputmethod/InputMethodManager
-
-Author: Android | Date: 2025-10-05
 */
 
     // ViewBinding & adapters
@@ -71,6 +56,15 @@ Author: Android | Date: 2025-10-05
         const val LAST = "last_name"
     }
 
+
+    // begin code attribution
+    // Pick an image with Jetpack Photo Picker and handle the result via the Activity Result API.
+    // Adapted from:
+    // Android Developers, 2023. Photo Picker. [online]
+    // Available at: <https://developer.android.com/training/data-storage/shared/photopicker> [Accessed 6 October 2025].
+    // Android Developers, 2020. Get results from an activity. [online]
+    // Available at: <https://developer.android.com/training/basics/intents/result> [Accessed 6 October 2025].
+
     private val pickImage = registerForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { pickerUri ->
@@ -82,6 +76,8 @@ Author: Android | Date: 2025-10-05
             getProfilePrefs().edit { putString(PrefKeys.AVATAR_LOCAL, local.toString()) }
         }
     }
+    // end code attribution (Android Developers, 2023; Android Developers, 2020)
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -152,6 +148,11 @@ Author: Android | Date: 2025-10-05
         }
     }
 
+    // begin code attribution
+    // Set up a RecyclerView list with a LinearLayoutManager and adapter.
+    // Adapted from:
+    // Android Developers, 2020. Create a list with RecyclerView. [online]
+    // Available at: <https://developer.android.com/develop/ui/views/layout/recyclerview#kotlin> [Accessed 6 October 2025].
     //RecyclerView + adapter: demo quests
     private fun setupQuestsList() {
         binding.rvQuests.apply {
@@ -167,6 +168,8 @@ Author: Android | Date: 2025-10-05
         // Load demo quests
         questsAdapter.submitList(getDemoQuests())
     }
+    // end code attribution (Android Developers, 2020)
+
 
     //Demo Quests
     private fun getDemoQuests(): List<Quest> {
@@ -341,3 +344,10 @@ Author: Android | Date: 2025-10-05
         return true
     }
 }
+// reference list
+// Android Developers, 2023. Photo Picker. [online]
+// Available at: <https://developer.android.com/training/data-storage/shared/photopicker> [Accessed 6 October 2025].
+// Android Developers, 2020. Get results from an activity. [online]
+// Available at: <https://developer.android.com/training/basics/intents/result> [Accessed 6 October 2025].
+// Android Developers, 2020. Create a list with RecyclerView. [online]
+// Available at: <https://developer.android.com/develop/ui/views/layout/recyclerview#kotlin> [Accessed 6 October 2025].

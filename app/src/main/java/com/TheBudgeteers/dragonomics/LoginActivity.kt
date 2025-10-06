@@ -16,21 +16,10 @@ import com.TheBudgeteers.dragonomics.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
 /*
-LoginActivity
-
 Purpose:
   - Presents the login UI and coordinates authentication.
   - Validates inputs locally and delegates to [AuthViewModel].
   - Observes [AuthState] to show loading, surface errors, and navigate.
-
-References:
- - AndroidX KTX utilities for cleaner Kotlin syntax.
-    * doAfterTextChanged: https://developer.android.com/reference/kotlin/androidx/core/widget/package-summary#doaftertextchanged
-    * View.isVisible extension: https://developer.android.com/kotlin/ktx/extensions-list
- - Android official docs: Tasks and the back stack (Intent flags NEW_TASK, CLEAR_TASK, CLEAR_TOP).
-     * https://developer.android.com/guide/components/activities/tasks-and-back-stack
-
-   Author: Android | Date: 2025-10-05
  */
 
 class LoginActivity : AppCompatActivity() {
@@ -54,6 +43,13 @@ class LoginActivity : AppCompatActivity() {
             binding.btnLogin.isEnabled = looksValid()
         }
 
+        // begin code attribution
+        // Live field validation using AndroidX Core KTX text-change callbacks.
+        // Adapted from:
+        // Android Developers, 2020. androidx.core.widget.doAfterTextChanged. [online]
+        // Available at: <https://developer.android.com/reference/kotlin/androidx/core/widget/package-summary#doaftertextchanged>
+        // [Accessed 6 October 2025].
+
         //Live UX validation
         binding.etUsername.doAfterTextChanged {
             //If field previously showed an error, re-validate on edit
@@ -68,6 +64,8 @@ class LoginActivity : AppCompatActivity() {
             }
             updateStateFromInputs()
         }
+
+        // end code attribution (Android Developers, 2020)
 
         //Initial button state
         binding.btnLogin.isEnabled = looksValid()
@@ -102,6 +100,12 @@ class LoginActivity : AppCompatActivity() {
                         val userId = s.userId
                         SessionStore(this@LoginActivity).setUser(userId)
 
+                        // begin code attribution
+                        // Navigate to Home and clear the back stack using Intent flags NEW_TASK, CLEAR_TASK, and CLEAR_TOP.
+                        // Adapted from:
+                        // Android Developers, 2020. Tasks and the back stack. [online]
+                        // Available at: <https://developer.android.com/guide/components/activities/tasks-and-back-stack>
+                        // [Accessed 6 October 2025].
                         //Go to HomeActivity on successful login and clears the back stack
                         val i = Intent(this@LoginActivity, HomeActivity::class.java).apply {
                             addFlags(
@@ -112,6 +116,7 @@ class LoginActivity : AppCompatActivity() {
                         }
                         startActivity(i)
                         finish()
+                        // end code attribution (Android Developers, 2020)
                     }
 
                     //On failed validation
@@ -164,3 +169,8 @@ class LoginActivity : AppCompatActivity() {
         binding.etPassword.isEnabled = !loading
     }
 }
+// reference list
+// Android Developers, 2020. androidx.core.widget.doAfterTextChanged. [online]
+// Available at: <https://developer.android.com/reference/kotlin/androidx/core/widget/package-summary#doaftertextchanged> [Accessed 6 October 2025].
+// Android Developers, 2020. Tasks and the back stack. [online]
+// Available at: <https://developer.android.com/guide/components/activities/tasks-and-back-stack> [Accessed 6 October 2025].

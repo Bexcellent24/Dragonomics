@@ -14,20 +14,10 @@ import com.TheBudgeteers.dragonomics.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
 
 /*
-SignUpActivity
-
 Purpose:
     - Presents the registration UI and coordinates user sign-up.
     - Validates user input locally before delegating to AuthViewModel.
     - Reacts to authentication state.
-
-References:
-- Android official docs: Activities & lifecycle, ViewBinding, and coroutines with Lifecycle.
-    * Lifecycle-aware coroutines: https://developer.android.com/topic/libraries/architecture/coroutines
-    * ViewBinding: https://developer.android.com/topic/libraries/view-binding
-    * MVVM on Android: https://developer.android.com/topic/libraries/architecture/viewmodel
-
-    Author: Android | Date: 2025-10-05
  */
 
 class SignUpActivity : AppCompatActivity() {
@@ -82,6 +72,12 @@ class SignUpActivity : AppCompatActivity() {
             vm.signUp(u, e, p)
         }
 
+        // begin code attribution
+        // Collect AuthState from ViewModel using lifecycle-aware coroutines.
+        // Adapted from:
+        // Android Developers, 2020. Kotlin coroutines on Android. [online]
+        // Available at: <https://developer.android.com/topic/libraries/architecture/coroutines> [Accessed 6 October 2025].
+
         //Observe authentication state using lifecycle coroutine
         lifecycleScope.launch {
 
@@ -110,7 +106,15 @@ class SignUpActivity : AppCompatActivity() {
                     }
                     else -> Unit
                 }
+
+            // end code attribution (Android Developers, 2020)
+
             }
         }
     }
 }
+// reference list
+// Android Developers, 2020. Kotlin coroutines on Android. [online]
+// Available at: <https://developer.android.com/topic/libraries/architecture/coroutines>
+// [Accessed 6 October 2025].
+

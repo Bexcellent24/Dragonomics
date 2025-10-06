@@ -8,13 +8,6 @@ import com.TheBudgeteers.dragonomics.models.Mood as NestMood
 Purpose:
   - Helper for the dragon’s overall mood (POSITIVE / NEUTRAL / NEGATIVE).
   - Stores the current overall mood in SharedPreferences and exposes a simple XP multiplier.
-
-  References:
-  - Kotlin language: Enums, exception-safe parsing, and when-expressions.
-     * Enum classes: https://kotlinlang.org/docs/enum-classes.html
-
-      Author: Kotlin | Date: 2025-10-05
-
  */
 
 object DragonMoodManager {
@@ -25,9 +18,17 @@ object DragonMoodManager {
     private fun prefs(ctx: Context): SharedPreferences =
         ctx.getSharedPreferences(PREF, Context.MODE_PRIVATE)
 
-    //Persist the overall mood as the enum name
+    // begin code attribution
+    // Store the enum as its stable String name in SharedPreferences.
+    // Adapted from:
+    // Android Developers, 2020. SharedPreferences. [online]
+    // Available at: <https://developer.android.com/reference/android/content/SharedPreferences> [Accessed 6 October 2025].
+    // Persist the overall mood as the enum name
     fun setOverallMood(ctx: Context, mood: NestMood) {
         prefs(ctx).edit().putString(KEY_OVERALL, mood.name).apply()
     }
-
+    // end code attribution (Android Developers, 2020)
 }
+// reference list
+// Android Developers, 2020. SharedPreferences. [online]
+// Available at: <https://developer.android.com/reference/android/content/SharedPreferences> [Accessed 6 October 2025].
