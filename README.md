@@ -1,68 +1,131 @@
+# Draconomics – Gamified Budgeting App
 
-# 🐉 Draconomics – Gamified Budgeting App
+![Draconomics Logo](https://github.com/Bexcellent24/Dragonomics/blob/master/Logos/Pages/Login_SignUp%20Page/home_page_logo.png)
 
-A gamified budgeting app created as part of the Open Source Coding (OPSC7311) module.
-Draconomics helps users build stronger financial habits by raising and evolving a dragon that grows happier and stronger as their budgeting improves.
+---
 
-## 📖 Features
+## 1. Overview
 
-- 💸 **Expense Tracking:** Add, edit, and view transactions by category.
-- 📊 **Analytics:** Visual charts display monthly spending patterns and category breakdowns.
-- 🐲 **Dragon Growth System:** The dragon’s mood and evolution reflect how well you manage your budget.
-- 🎨 **Customization:** Unlock new colours, wings, and horns through achievements and progress.
-- 🏆 **Achievements & Rewards:** Earn XP and unlock items by meeting budgeting goals.
-- 🔐 **Persistent Data:** All expenses, progress, and dragon states are saved locally via Room database.
-- 🪵 **Logging:** Key actions (expense creation, mood updates, XP calculations) are logged for debugging and code transparency.
+**Draconomics** is a gamified budgeting application developed for the **OPSC7311 (Open Source Coding)** module. The app encourages users to build stronger financial habits through interactive gameplay, where managing your budget helps a dragon grow and evolve. Each financial decision influences the dragon's mood and growth, turning financial responsibility into a rewarding and engaging experience.
 
-## 🎯 Purpose
+---
 
-This project was developed as part of the **OPSC7311 (Open Source Coding)** module.
-It demonstrates the integration of financial education and gamified mechanics to create a more engaging personal budgeting experience.
+## 2. Purpose
 
-## ⚙️ Technical Overview
+The primary goal of Draconomics is to make personal finance management approachable and motivating. By integrating game mechanics with traditional budgeting features, users are encouraged to maintain consistent saving and spending habits. The project demonstrates the use of open-source tools, proper version control, and collaborative development through GitHub.
+
+---
+
+## 3. Design Considerations
+
+Draconomics was designed with three priorities in mind:
+
+1. **Engagement:** Financial management is often boring or intimidating. The game mechanics (dragon evolution, quests, and achievements) make it fun and goal-driven.
+2. **Accessibility:** The UI follows Material Design principles for intuitive navigation and visual consistency.
+3. **Scalability:** The app uses the MVVM architecture to separate data, logic, and presentation layers. This makes future development (such as cloud storage and analytics) easier to implement.
+
+The app currently stores data locally using Room, ensuring users' financial records persist between sessions. Multi-user functionality supports individual profiles with unique progress and data.
+
+---
+
+## 4. Current Features
+
+- Custom **expense and income nests** for financial organisation
+- **Transactions** recorded with "to" and "from" nests for category tracking
+- **Dragon customisation**, growth, and mood changes based on budgeting performance
+- **Quests and achievements** (currently implemented as hardcoded placeholders)
+- **History page** showing transactions by selected time periods
+- **Multi-user support** with login and sign-up
+- **Goal setting** with minimum and maximum monthly targets
+- **Persistent local storage** using Room database
+- **Monthly income and expense tracking**
+
+---
+
+## 5. Future Features
+
+- Cloud synchronisation and backup using **Firebase**
+- Fully functional **achievements and badge system**
+- Editing and deletion of existing nests
+- Automatic **monthly reset** of transaction data
+- Visual representation of user habits through **graphs and charts**
+
+---
+
+## 6. Technical Overview
 
 - **Language:** Kotlin
 - **Architecture:** MVVM (Model-View-ViewModel)
 - **Database:** Room (SQLite)
-- **UI:** Material Design with ViewBinding
-- **Asynchronous Operations:** Kotlin Coroutines & Flow
-- **Logging:** Android Logcat (Log.d, Log.i, Log.e) used throughout code for key lifecycle and user actions.
-- **Version Control:** GitHub repository.
+- **UI Framework:** Material Design with ViewBinding
+- **Asynchronous Operations:** Kotlin Coroutines and Flow
+- **Logging:** Android Logcat used to monitor lifecycle events, data changes, and user actions
+- **Version Control:** Managed collaboratively through GitHub
 
-## 🧪 How to Run
+---
 
-- **Clone the repository:** git clone [repo](https://github.com/<Bexcellent24>/Draconomics.git)
-- **Open in Android Studio** (Koala / Jellyfish or newer)
-- **Let Gradle sync automatically**
-- **Connect an Android device or start an emulator**
-- **Run the app:** ▶️ Run → app
+## 7. Using GitHub for Version Control
 
-## 📦 APK Download
+All project source code and documentation are stored in a public GitHub repository. Team members use branches for feature development and merge requests to maintain a clean main branch.
 
-**The built .apk file can be found under:** app/build/outputs/apk/release/app-release.apk
+**Repository Link:** [https://github.com/Bexcellent24/Dragonomics](https://github.com/Bexcellent24/Dragonomics)
 
-## 🎥 Demo Video
+---
 
-A short demonstration video showcasing the app’s key features and gameplay loop can be viewed here:
-[Youtube Link](https://Youtube.com)
+## 8. Continuous Integration (GitHub Actions)
 
-## 👥 Team:	           
+GitHub Actions has been implemented to automatically build and test the app whenever code is pushed to the repository. This ensures that the project compiles correctly and passes all automated tests across different environments.
 
-- Rebecca Goodall	   
-- Daniel Dennison	   
-- Caitlin Jacobs	   
-- Njabulo Zikhali
+---
 
-## 🧾 References
+## 9. How to Run
 
-- Android Developers (Room, ViewModel, LiveData, Permissions).
-- Google Material Design Guidelines.
-- Kotlin Coroutines Documentation.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/Bexcellent24/Dragonomics.git
+   ```
 
-## ✅ Submission includes:
+2. Open the project in Android Studio (Koala / Jellyfish or newer).
 
-- Full Kotlin source code (on GitHub)
-- Commented & logged codebase
-- README file
+3. Allow Gradle to sync automatically.
+
+4. Connect an Android device or start an emulator.
+
+5. Run the app using **Run → app**.
+
+---
+
+## 10. Demonstration Video
+
+A short presentation video demonstrating the app's key features, gameplay loop, and development process is available on YouTube:
+
+[Insert YouTube Link Here]
+
+---
+
+## 11. Team
+
+- **Rebecca Goodall**
+- **Daniel Dennison**
+- **Caitlin Jacobs**
+- **Njabulo Zikhali**
+
+---
+
+## 12. Submission Includes
+
+- Full Kotlin source code
+- Commented and logged codebase
+- README file (this document)
 - Linked video presentation
-- Built .apk
+- Built .apk file
+
+---
+
+## Licence
+
+This project is developed for educational purposes as part of the OPSC7311 module.
+
+---
+
+**© 2025 Draconomics Team. All rights reserved.**
