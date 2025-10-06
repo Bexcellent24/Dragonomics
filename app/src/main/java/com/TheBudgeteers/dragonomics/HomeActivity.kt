@@ -131,31 +131,26 @@ class HomeActivity : AppCompatActivity(),
                 else -> BABY_DRAGON_SOCKETS
             }
 
-            // gets the dual color IDs from the mapper
+            //  gets the dual color IDs from the mapper
             val paletteColors: PaletteColors? = PaletteMapper.mapPaletteIdToColors(this, state.equippedPaletteId)
 
-            // gets the Body Color Filter
+            //  color Filter creation logic
             val bodyColorFilter: ColorFilter? = paletteColors?.bodyColorRes?.let { resId ->
                 val colorInt = ContextCompat.getColor(this, resId)
                 PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY)
             }
-
-            //  creates the Accessory Color Filter
             val accessoryColorFilter: ColorFilter? = paletteColors?.accessoryColorRes?.let { resId ->
                 val colorInt = ContextCompat.getColor(this, resId)
                 PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY)
             }
-
-            //  applies filter to the main dragon body
             binding.dragon.colorFilter = bodyColorFilter
+            //scaling cal. To ensure its the same across the board, no matter the screen size
+            val dragonPxWidth = binding.dragon.width.toFloat()
 
-
-            val dragonWidthDp = DRAGON_SMALL_DP
-            val scaleFactor = dragonWidthDp / DRAGON_REFERENCE_WIDTH_DP.toFloat()
+            val finalScaleRatio = dragonPxWidth / DRAGON_REFERENCE_WIDTH_DP.toFloat()
 
             fun dpToPx(dp: Int): Int {
-                val scaledDp = dp * scaleFactor
-                return (scaledDp * displayMetrics.density).roundToInt()
+                return (dp * finalScaleRatio).roundToInt()
             }
 
             fun updateAccessoryView(
@@ -163,7 +158,7 @@ class HomeActivity : AppCompatActivity(),
                 socket: DragonSockets.AttachmentPoint,
                 itemId: String?,
                 currentLevel: Int,
-                colorFilter: ColorFilter? // Now expects the ACCESSORY filter
+                colorFilter: ColorFilter? 
             ) {
                 val safeItemId = itemId ?: ""
                 val drawables = getAccessoryDrawables(safeItemId, currentLevel)
@@ -175,6 +170,7 @@ class HomeActivity : AppCompatActivity(),
                 }
 
                 if (accessoryRes != 0) {
+                    // sockets are now placed correctly regardless of screen size
                     val x = dpToPx(socket.x)
                     val y = dpToPx(socket.y)
                     val w = dpToPx(socket.width)
@@ -190,10 +186,7 @@ class HomeActivity : AppCompatActivity(),
                     }
 
                     Glide.with(this@HomeActivity).load(accessoryRes).into(imageView)
-
-                    // applies the Accessory Color Filter
                     imageView.colorFilter = colorFilter
-
                     imageView.visibility = ImageView.VISIBLE
                 } else {
                     imageView.setImageDrawable(null)
