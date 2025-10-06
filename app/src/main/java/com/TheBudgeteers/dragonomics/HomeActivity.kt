@@ -126,15 +126,15 @@ class HomeActivity : AppCompatActivity(),
     private fun updateDragonCustomization(state: DragonUiState) {
         binding.dragon.post {
             val currentSocketSet = when {
-                state.level >= 10 -> ADULT_DRAGON_SOCKETS
-                state.level >= 5 -> TEEN_DRAGON_SOCKETS
-                else -> BABY_DRAGON_SOCKETS
+                state.level >= 10 -> DragonSockets.ADULT_DRAGON_SOCKETS
+                state.level >= 5 -> DragonSockets.TEEN_DRAGON_SOCKETS
+                else -> DragonSockets.BABY_DRAGON_SOCKETS
             }
 
-            //  gets the dual color IDs from the mapper
+            // gets the dual color IDs from the mapper
             val paletteColors: PaletteColors? = PaletteMapper.mapPaletteIdToColors(this, state.equippedPaletteId)
 
-            //  color Filter creation logic
+            // color Filter creation logic
             val bodyColorFilter: ColorFilter? = paletteColors?.bodyColorRes?.let { resId ->
                 val colorInt = ContextCompat.getColor(this, resId)
                 PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY)
@@ -144,21 +144,27 @@ class HomeActivity : AppCompatActivity(),
                 PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY)
             }
             binding.dragon.colorFilter = bodyColorFilter
-            //scaling cal. To ensure its the same across the board, no matter the screen size
+
+            // scaling cal. To ensure its the same across the board, no matter the screen size
             val dragonPxWidth = binding.dragon.width.toFloat()
 
-            val finalScaleRatio = dragonPxWidth / DRAGON_REFERENCE_WIDTH_DP.toFloat()
+            // Use the ratio of the physical width (PX) to the design reference DP width.
+            val finalScaleRatio = dragonPxWidth / DragonSockets.DRAGON_REFERENCE_WIDTH_DP.toFloat()
 
             fun dpToPx(dp: Int): Int {
                 return (dp * finalScaleRatio).roundToInt()
             }
+
+
+            val DRAGON_PADDING_DP = 70
+            val paddingOffsetPx = dpToPx(DRAGON_PADDING_DP)
 
             fun updateAccessoryView(
                 imageView: ImageView,
                 socket: DragonSockets.AttachmentPoint,
                 itemId: String?,
                 currentLevel: Int,
-                colorFilter: ColorFilter? 
+                colorFilter: ColorFilter?
             ) {
                 val safeItemId = itemId ?: ""
                 val drawables = getAccessoryDrawables(safeItemId, currentLevel)
@@ -170,9 +176,9 @@ class HomeActivity : AppCompatActivity(),
                 }
 
                 if (accessoryRes != 0) {
-                    // sockets are now placed correctly regardless of screen size
-                    val x = dpToPx(socket.x)
-                    val y = dpToPx(socket.y)
+
+                    val x = dpToPx(socket.x) + paddingOffsetPx
+                    val y = dpToPx(socket.y) + paddingOffsetPx
                     val w = dpToPx(socket.width)
                     val h = dpToPx(socket.height)
 

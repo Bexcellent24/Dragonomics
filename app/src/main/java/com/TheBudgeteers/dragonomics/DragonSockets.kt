@@ -14,6 +14,8 @@ object DragonSockets {
     // Used for scaling
     const val DRAGON_REFERENCE_WIDTH_DP = DRAGON_SMALL_DP
 
+    const val DRAGON_VIEW_PADDING_DP = 70
+
     // class to hold the attachement points co-ords and size
     data class AttachmentPoint(val x: Int, val y: Int, val width: Int, val height: Int)
     data class SocketSet(
@@ -27,25 +29,37 @@ object DragonSockets {
 
     // sockets for little baby
     val BABY_DRAGON_SOCKETS = SocketSet(
-        hornLeft = AttachmentPoint(x = 115, y = 27, width = 75, height = 75),
-        hornRight = AttachmentPoint(x = 157, y = 32, width = 75, height = 75),
-        wingLeft = AttachmentPoint(x = -70, y = -3, width = 300, height = 300),
-        wingRight = AttachmentPoint(x = 105, y = -10, width = 300, height = 300)
+
+        hornLeft = AttachmentPoint(x = 45, y = -43, width = 75, height = 75),
+
+        hornRight = AttachmentPoint(x = 87, y = -38, width = 75, height = 75),
+
+        wingLeft = AttachmentPoint(x = -140, y = -73, width = 300, height = 300),
+
+        wingRight = AttachmentPoint(x = 35, y = -80, width = 300, height = 300)
     )
 
-    // sockets for the teen
+    // sockets for teen
     val TEEN_DRAGON_SOCKETS = SocketSet(
-        hornLeft = AttachmentPoint(x = 125, y = 44, width = 50, height = 50),
-        hornRight = AttachmentPoint(x = 153, y = 55, width = 50, height = 50),
-        wingLeft = AttachmentPoint(x = -70, y = -3, width = 300, height = 300),
-        wingRight = AttachmentPoint(x = 85, y = -8, width = 300, height = 300)
+
+        hornLeft = AttachmentPoint(x = 55, y = -26, width = 50, height = 50),
+
+        hornRight = AttachmentPoint(x = 83, y = -15, width = 50, height = 50),
+
+        wingLeft = AttachmentPoint(x = -140, y = -73, width = 300, height = 300),
+
+        wingRight = AttachmentPoint(x = 15, y = -78, width = 300, height = 300)
     )
 
-    // sockets for the adult
+    // sockets for adult
     val ADULT_DRAGON_SOCKETS = SocketSet(
-        hornLeft = AttachmentPoint(x = 118, y = 38, width = 75, height = 75),
-        hornRight = AttachmentPoint(x = 131, y = 58, width = 75, height = 75),
-        wingLeft = AttachmentPoint(x = -70, y = -3, width = 300, height = 300),
-        wingRight = AttachmentPoint(x = 95, y = -8, width = 300, height = 300)
+
+        hornLeft = AttachmentPoint(x = 48, y = -32, width = 75, height = 75),
+
+        hornRight = AttachmentPoint(x = 61, y = -12, width = 75, height = 75),
+
+        wingLeft = AttachmentPoint(x = -140, y = -73, width = 300, height = 300),
+
+        wingRight = AttachmentPoint(x = 25, y = -78, width = 300, height = 300)
     )
 }
