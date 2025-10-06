@@ -101,7 +101,7 @@ GitHub Actions has been implemented to automatically build and test the app when
 
 A short presentation video demonstrating the app's key features, gameplay loop, and development process is available on YouTube:
 
-[https://youtu.be/S4rcMa9e2Gk]
+https://youtu.be/_9OLgA84ICY
 
 ---
 
@@ -117,7 +117,7 @@ A short presentation video demonstrating the app's key features, gameplay loop, 
 ## 12. Submission Includes
 
 - Full Kotlin source code
-- Commented and logged codebase
+- Commented codebase
 - README file (this document)
 - Linked video presentation
 - Built .apk file
