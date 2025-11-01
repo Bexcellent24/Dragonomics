@@ -78,7 +78,7 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
 
             // Get start and end timestamps for current month
             val (start, end) = DateUtils.getMonthRange()
-            viewModel.loadMonthlyStats(userId, start, end)
+            viewModel.loadCurrentPeriodStats(userId)
             viewModel.loadUser(userId)
         }
     }

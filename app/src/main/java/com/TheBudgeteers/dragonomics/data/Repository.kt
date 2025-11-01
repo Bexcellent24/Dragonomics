@@ -220,4 +220,64 @@ class Repository {
             Log.d("Repository", "Final stats: Income=$income, Expenses=$expenses, Remaining=${income - expenses}")
             stats
         }
+
+    fun getCurrentPeriodStatsFlow(userId: String): Flow<MonthlyStats> {
+        // Get current month date range
+        val calendar = java.util.Calendar.getInstance()
+        val year = calendar.get(java.util.Calendar.YEAR)
+        val month = calendar.get(java.util.Calendar.MONTH)
+
+        val startCal = java.util.Calendar.getInstance().apply {
+            set(year, month, 1, 0, 0, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }
+
+        val endCal = java.util.Calendar.getInstance().apply {
+            set(year, month, getActualMaximum(java.util.Calendar.DAY_OF_MONTH), 23, 59, 59)
+            set(java.util.Calendar.MILLISECOND, 999)
+        }
+
+        return transactionRepo.getCurrentPeriodTransactionsFlow(userId, startCal.timeInMillis, endCal.timeInMillis)
+            .map { transactions ->
+                val allNests = nestRepo.getAll(userId).associateBy { it.id }
+
+                var income = 0.0
+                var expenses = 0.0
+
+                transactions.forEach { transaction ->
+                    val nest = allNests[transaction.categoryId]
+                    when (nest?.type) {
+                        NestType.INCOME -> income += transaction.amount
+                        NestType.EXPENSE -> expenses += transaction.amount
+                        null -> {}
+                    }
+                }
+
+                MonthlyStats(income = income, expenses = expenses, remaining = income - expenses)
+            }
+    }
+    /**
+     * Reset budgets for a new month period.
+     *
+     * This marks all current transactions with the current budget period,
+     * effectively "closing" them. New transactions won't have this field,
+     * so budget calculations will start fresh while history remains intact.
+     */
+    suspend fun resetForNewMonth(userId: String): Result<Unit> {
+        return try {
+            // Close the current budget period for all transactions
+            transactionRepo.closeCurrentBudgetPeriod(userId).getOrThrow()
+
+            // Mark nests as reset
+            nestRepo.markBudgetPeriodReset(userId).getOrThrow()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getTransactionsByNestIdCurrentPeriod(userId: String, nestId: String): List<Transaction> =
+        transactionRepo.getByCategoryIdCurrentPeriod(userId, nestId)
+
 }

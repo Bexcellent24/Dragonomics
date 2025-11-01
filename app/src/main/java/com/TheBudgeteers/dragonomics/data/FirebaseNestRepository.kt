@@ -163,4 +163,42 @@ class FirebaseNestRepository {
             null
         }
     }
+
+    /**
+     * Mark nests as reset for the new budget period.
+     * Adds a timestamp to track when the last reset occurred.
+     */
+    suspend fun markBudgetPeriodReset(userId: String): Result<Unit> {
+        return try {
+            val allNests = getAll(userId)
+            val currentPeriod = getCurrentMonthPeriod()
+
+            val updates = hashMapOf<String, Any>(
+                "lastResetDate" to System.currentTimeMillis(),
+                "lastResetPeriod" to currentPeriod
+            )
+
+            // Update all nests with reset timestamp
+            allNests.forEach { nest ->
+                nestsCollection(userId)
+                    .document(nest.id)
+                    .update(updates)
+                    .await()
+            }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Get current month period as a string (e.g., "2024-11")
+     */
+    private fun getCurrentMonthPeriod(): String {
+        val calendar = java.util.Calendar.getInstance()
+        val year = calendar.get(java.util.Calendar.YEAR)
+        val month = calendar.get(java.util.Calendar.MONTH) + 1
+        return "$year-${month.toString().padStart(2, '0')}"
+    }
 }

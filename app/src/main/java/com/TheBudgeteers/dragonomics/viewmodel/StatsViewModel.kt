@@ -36,6 +36,14 @@ class StatsViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
+    fun loadCurrentPeriodStats(userId: String) {
+        viewModelScope.launch {
+            repository.getCurrentPeriodStatsFlow(userId).collect { stats ->
+                _monthlyStats.value = stats
+            }
+        }
+    }
+
     /**
      * Load user profile including savings goals.
      * UPDATED: Now accepts String userId and returns UserProfile.

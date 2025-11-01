@@ -39,27 +39,25 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
             ?: return@flow // Exit if nest doesn't exist
 
         if (nest.type == NestType.INCOME) {
-            // Income nests: budget = total income, spent = amount spent FROM this income
-            val totalIncome = repository.getTransactionsByNestId(userId, nestId)
-                .sumOf { it.amount }
-                .coerceAtLeast(0.0)
-
-            // Observe spent FROM this income source (fromCategoryId)
-            repository.getSpentAmountFromNestFlow(userId, nestId).collect { spent ->
-                val displayedSpent = spent
-                val remaining = totalIncome - displayedSpent
-                val progress = calculateNestProgress(nest, displayedSpent)
+            // Income nests: budget = total income IN CURRENT PERIOD, spent = amount spent FROM this income
+            // Observe both total income (categoryId) and spent from income (fromCategoryId)
+            kotlinx.coroutines.flow.combine(
+                repository.getSpentInCategoryFlow(userId, nestId), // Total income in current period
+                repository.getSpentAmountFromNestFlow(userId, nestId) // Amount spent from this income
+            ) { totalIncome, spentFromIncome ->
+                val remaining = totalIncome - spentFromIncome
+                val progress = if (totalIncome > 0) 1.0 else 0.0 // Income always happy if non-zero
                 val mood = calculateMood(progress)
 
-                emit(NestUiState(
+                NestUiState(
                     nest = nest,
-                    spent = displayedSpent,
+                    spent = spentFromIncome,
                     budget = totalIncome,
                     remaining = remaining,
                     progress = progress,
                     mood = mood
-                ))
-            }
+                )
+            }.collect { emit(it) }
         } else {
             // For expense type nests use set budget
             val budget = nest.budget ?: 0.0
@@ -86,6 +84,7 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
     /**
      * Returns UI state for a nest as a single snapshot.
      * UPDATED: Now accepts String userId and nestId.
+     * UPDATED: Now uses current period filtering for income nests.
      */
     suspend fun getNestUiState(userId: String, nestId: String): NestUiState {
         val nest = repository.getNestById(userId, nestId)
@@ -106,12 +105,12 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
                 mood = Mood.NEGATIVE
             )
 
-        val spent = repository.getTransactionsByNestId(userId, nestId)
-            .sumOf { it.amount }
-            .coerceAtLeast(0.0)
+        // Get current period transactions only (using the repo method that filters)
+        val currentPeriodTransactions = repository.getTransactionsByNestIdCurrentPeriod(userId, nestId)
+        val spent = currentPeriodTransactions.sumOf { it.amount }.coerceAtLeast(0.0)
 
         val budget = if (nest.type == NestType.INCOME) {
-            spent // For income, budget = total income
+            spent // For income, budget = total income in current period
         } else {
             nest.budget ?: 0.0
         }
@@ -208,6 +207,24 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
             .map { list -> list.associate { it.nestId to it.spent } }
     }
 
+    //Reset all nests for a new month.
+    // Archives transactions and resets budget tracking.
+    fun resetForNewMonth(
+        userId: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            val result = repository.resetForNewMonth(userId)
+
+            if (result.isSuccess) {
+                onSuccess()
+            } else {
+                onError(result.exceptionOrNull()?.message ?: "Unknown error occurred")
+            }
+        }
+    }
+
     enum class Weighting { EQUAL, BUDGET, SPENT }
 
     /**
@@ -257,4 +274,6 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         val avg = computeOverallProgress(userId, type, weighting)
         return calculateMood(avg) to avg
     }
+
+
 }

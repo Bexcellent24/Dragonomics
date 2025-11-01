@@ -158,7 +158,10 @@ class FirebaseTransactionRepository {
                     return@addSnapshotListener
                 }
 
-                val total = snapshot?.documents?.sumOf { doc ->
+                // Filter to only current period (transactions without budgetPeriod field)
+                val total = snapshot?.documents?.filter { doc ->
+                    !doc.contains("budgetPeriod") || doc.get("budgetPeriod") == null
+                }?.sumOf { doc ->
                     (doc.getDouble("amount") ?: 0.0)
                 } ?: 0.0
 
@@ -208,9 +211,11 @@ class FirebaseTransactionRepository {
                     return@addSnapshotListener
                 }
 
-                // Group by categoryId and sum amounts
+                // Filter to only current period and group by category
                 val grouped = mutableMapOf<String, Double>()
-                snapshot?.documents?.forEach { doc ->
+                snapshot?.documents?.filter { doc ->
+                    !doc.contains("budgetPeriod") || doc.get("budgetPeriod") == null
+                }?.forEach { doc ->
                     val categoryId = doc.getString("categoryId") ?: return@forEach
                     val amount = doc.getDouble("amount") ?: 0.0
                     grouped[categoryId] = (grouped[categoryId] ?: 0.0) + amount
@@ -238,7 +243,10 @@ class FirebaseTransactionRepository {
                     return@addSnapshotListener
                 }
 
-                val total = snapshot?.documents?.sumOf { doc ->
+                // Filter to only current period (transactions without budgetPeriod field)
+                val total = snapshot?.documents?.filter { doc ->
+                    !doc.contains("budgetPeriod") || doc.get("budgetPeriod") == null
+                }?.sumOf { doc ->
                     (doc.getDouble("amount") ?: 0.0)
                 } ?: 0.0
 
@@ -257,7 +265,10 @@ class FirebaseTransactionRepository {
             .get()
             .await()
 
-        return snapshot.documents.sumOf { doc ->
+        // Filter to only current period
+        return snapshot.documents.filter { doc ->
+            !doc.contains("budgetPeriod") || doc.get("budgetPeriod") == null
+        }.sumOf { doc ->
             doc.getDouble("amount") ?: 0.0
         }
     }
@@ -314,4 +325,75 @@ class FirebaseTransactionRepository {
             null
         }
     }
+
+    suspend fun closeCurrentBudgetPeriod(userId: String): Result<Unit> {
+        return try {
+            val currentPeriod = getCurrentMonthPeriod()
+
+            // Get all transactions - we'll filter client-side
+            val snapshot = transactionsCollection(userId)
+                .get()
+                .await()
+
+            // Mark only transactions that don't have a budgetPeriod field yet
+            snapshot.documents.filter { doc ->
+                !doc.contains("budgetPeriod") || doc.get("budgetPeriod") == null
+            }.forEach { doc ->
+                doc.reference.update("budgetPeriod", currentPeriod).await()
+            }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Get current month period as a string (e.g., "2024-11")
+     */
+    private fun getCurrentMonthPeriod(): String {
+        val calendar = java.util.Calendar.getInstance()
+        val year = calendar.get(java.util.Calendar.YEAR)
+        val month = calendar.get(java.util.Calendar.MONTH) + 1
+        return "$year-${month.toString().padStart(2, '0')}"
+    }
+
+    suspend fun getByCategoryIdCurrentPeriod(userId: String, nestId: String): List<Transaction> {
+        val snapshot = transactionsCollection(userId)
+            .whereEqualTo("categoryId", nestId)
+            .get()
+            .await()
+
+        // Filter to only current period (no budgetPeriod field)
+        return snapshot.documents.filter { doc ->
+            !doc.contains("budgetPeriod") || doc.get("budgetPeriod") == null
+        }.mapNotNull { doc ->
+            documentToTransaction(userId, doc.id, doc.data)
+        }
+    }
+
+    fun getCurrentPeriodTransactionsFlow(userId: String, start: Long, end: Long): Flow<List<Transaction>> = callbackFlow {
+        val listener = transactionsCollection(userId)
+            .whereGreaterThanOrEqualTo("date", start)
+            .whereLessThanOrEqualTo("date", end)
+            .orderBy("date", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                // Filter to only current period (transactions without budgetPeriod field)
+                val transactions = snapshot?.documents?.filter { doc ->
+                    !doc.contains("budgetPeriod") || doc.get("budgetPeriod") == null
+                }?.mapNotNull { doc ->
+                    documentToTransaction(userId, doc.id, doc.data)
+                } ?: emptyList()
+
+                trySend(transactions)
+            }
+
+        awaitClose { listener.remove() }
+    }
+
 }
