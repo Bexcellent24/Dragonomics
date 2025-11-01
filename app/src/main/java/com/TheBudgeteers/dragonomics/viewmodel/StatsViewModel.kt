@@ -4,35 +4,31 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.TheBudgeteers.dragonomics.data.MonthlyStats
 import com.TheBudgeteers.dragonomics.data.Repository
-import com.TheBudgeteers.dragonomics.models.UserEntity
+import com.TheBudgeteers.dragonomics.data.UserProfile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-// StatsViewModel manages financial statistics and user data for the stats screen
-// Loads monthly income/expense summaries for a given date range
-// Provides user information for goal comparison and personalization
-// Reactive flows automatically update when data changes
-
+/**
+ * StatsViewModel manages financial statistics and user data for the stats screen.
+ * UPDATED FOR FIREBASE: Uses String userId and UserProfile instead of Long/UserEntity.
+ */
 class StatsViewModel(private val repository: Repository) : ViewModel() {
-
-    // begin code attribution
-    // StateFlow usage adapted from Kotlin Coroutines documentation
 
     // Monthly financial statistics (income, expenses, balance)
     private val _monthlyStats = MutableStateFlow<MonthlyStats?>(null)
     val monthlyStats: StateFlow<MonthlyStats?> = _monthlyStats
 
-    // User entity for goals and personal information
-    private val _userEntity = MutableStateFlow<UserEntity?>(null)
-    val userEntity: StateFlow<UserEntity?> = _userEntity.asStateFlow()
-    // end code attribution (Kotlin Documentation, 2021)
+    // User profile for goals and personal information (Firebase version)
+    private val _userProfile = MutableStateFlow<UserProfile?>(null)
+    val userProfile: StateFlow<UserProfile?> = _userProfile.asStateFlow()
 
-
-    // Load monthly statistics for a specific time period
-    // Automatically updates when transactions in the range change
-    fun loadMonthlyStats(userId: Long, start: Long, end: Long) {
+    /**
+     * Load monthly statistics for a specific time period.
+     * UPDATED: Now accepts String userId (Firebase UID).
+     */
+    fun loadMonthlyStats(userId: String, start: Long, end: Long) {
         viewModelScope.launch {
             repository.getMonthlyStatsFlow(userId, start, end).collect { stats ->
                 _monthlyStats.value = stats
@@ -40,16 +36,15 @@ class StatsViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    // Load user data including savings goals
-    // Automatically updates when user information changes
-    fun loadUser(userId: Long) {
+    /**
+     * Load user profile including savings goals.
+     * UPDATED: Now accepts String userId and returns UserProfile.
+     */
+    fun loadUser(userId: String) {
         viewModelScope.launch {
             repository.getUserFlow(userId).collect { user ->
-                _userEntity.value = user
+                _userProfile.value = user
             }
         }
     }
 }
-
-// reference list
-// Kotlin Documentation, 2021. StateFlow and MutableStateFlow. [online] Available at: <https://kotlinlang.org/docs/flow-stateflow-and-sharedflow.html#stateflow> [Accessed 5 October 2025].

@@ -8,25 +8,24 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.TheBudgeteers.dragonomics.R
-import com.TheBudgeteers.dragonomics.data.AppDatabase
-import com.TheBudgeteers.dragonomics.data.Repository
+import com.TheBudgeteers.dragonomics.data.NestType
 import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.models.Nest
-import com.TheBudgeteers.dragonomics.models.NestType
+import com.TheBudgeteers.dragonomics.ui.adapters.ColourAdapter
+import com.TheBudgeteers.dragonomics.ui.adapters.IconAdapter
+import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import com.TheBudgeteers.dragonomics.viewmodel.NestViewModel
-import com.TheBudgeteers.dragonomics.viewmodel.NestViewModelFactory
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-// DialogFragment for creating a new nest.
-// Lets the user choose nest name, type (income or expense), icon, colour, and budget.
-// Handles validation, nest creation, and notifies parent fragment when a new nest is created.
-
+/**
+ * DialogFragment for creating a new nest.
+ * UPDATED FOR FIREBASE: Uses String userId instead of Long.
+ */
 class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
 
     private lateinit var edtName: EditText
@@ -57,11 +56,7 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
-        // begin code attribution
-        // Fragment view inflation pattern adapted from:
-        // Android Developers guide to Fragment lifecycle
         val view = inflater.inflate(R.layout.dialog_new_nest, container, false)
-        // end code attribution (Android Developers, 2020)
 
         // Initialise UI components
         session = SessionStore(requireContext())
@@ -82,9 +77,6 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
         return view
     }
 
-    // begin code attribution
-    // Dialog size adjustment adapted from:
-    // Android Developers guide to DialogFragment
     override fun onStart() {
         super.onStart()
         // Make dialog take full width
@@ -93,7 +85,6 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
     }
-    // end code attribution (Android Developers, 2020)
 
     private fun setupIconGrid() {
         val adapter = IconAdapter(iconList) { iconName ->
@@ -137,10 +128,6 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
         val icon = selectedIcon
         val colour = selectedColour
 
-        // begin code attribution
-        // Input validation pattern adapted from:
-        // Android Developers guide to Input Validation
-
         edtName.error = null
         edtAmount.error = null
 
@@ -160,8 +147,6 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
             Toast.makeText(requireContext(), "Please select a colour", Toast.LENGTH_SHORT).show()
             return
         }
-
-        // end code attribution (Android Developers, 2020)
 
         val type = if (isIncome) NestType.INCOME else NestType.EXPENSE
         var amount: Double? = null
@@ -189,12 +174,14 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
         }
 
         lifecycleScope.launch {
+            // Get userId as String (Firebase UID)
             val userId = session.userId.firstOrNull()
             if (userId == null) {
                 Toast.makeText(requireContext(), "Error: No user logged in", Toast.LENGTH_SHORT).show()
                 return@launch
             }
 
+            // Create nest with String userId (no ID needed - Firebase generates it)
             val nest = Nest(
                 userId = userId,
                 name = name,
@@ -204,11 +191,11 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
                 type = type
             )
 
-            val repository = Repository(AppDatabase.getDatabase(requireContext()))
-            val factory = NestViewModelFactory(repository)
-            val vm = ViewModelProvider(this@NewNestDialogFragment, factory)[NestViewModel::class.java]
+            val repository = RepositoryProvider.getRepository(requireContext())
+            val vm = NestViewModel(repository)
 
-            vm.addNest(nest) {
+            // Add nest with userId
+            vm.addNest(userId, nest) {
                 parentFragmentManager.setFragmentResult("new_nest_created", Bundle.EMPTY)
                 Toast.makeText(requireContext(), "Nest created successfully", Toast.LENGTH_SHORT).show()
                 view?.postDelayed({ dismiss() }, 200)
@@ -216,7 +203,3 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
         }
     }
 }
-
-// reference list
-// Android Developers, 2020. Fragments guide. [online] Available at: <https://developer.android.com/guide/fragments> [Accessed 1 October 2025]
-// Android Developers, 2020. Input validation guide. [online] Available at: <https://developer.android.com/training/data-storage> [Accessed 2 October 2025]

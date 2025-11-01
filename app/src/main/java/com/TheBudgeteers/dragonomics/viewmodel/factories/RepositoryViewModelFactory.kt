@@ -1,4 +1,4 @@
-package com.TheBudgeteers.dragonomics.viewmodel
+package com.TheBudgeteers.dragonomics.viewmodel.factories
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

@@ -4,14 +4,12 @@ import android.os.Bundle
 import android.view.MenuItem
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.TheBudgeteers.dragonomics.data.NestLayoutType
-import com.TheBudgeteers.dragonomics.databinding.ActivityExpensesBinding
+import com.TheBudgeteers.dragonomics.data.NestType
 import com.TheBudgeteers.dragonomics.databinding.ActivityNestsBinding
-import com.TheBudgeteers.dragonomics.models.NestType
 import com.TheBudgeteers.dragonomics.ui.NestFragment
 import com.TheBudgeteers.dragonomics.ui.NewNestDialogFragment
+import com.TheBudgeteers.dragonomics.utils.openIntent
 import com.google.android.material.navigation.NavigationView
 
 // NestsActivity is the nest management screen

@@ -12,25 +12,23 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.TheBudgeteers.dragonomics.R
 import com.TheBudgeteers.dragonomics.data.SessionStore
+import com.TheBudgeteers.dragonomics.ui.adapters.TransactionAdapter
 import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import com.TheBudgeteers.dragonomics.viewmodel.TransactionViewModel
-import com.TheBudgeteers.dragonomics.viewmodel.RepositoryViewModelFactory
+import com.TheBudgeteers.dragonomics.viewmodel.factories.RepositoryViewModelFactory
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-// Fragment that shows a scrollable list of all user's transactions.
-// Gets transaction data from the TransactionViewModel.
-// Automatically updates the list when new transactions are added.
-// Only shows transactions for the currently logged-in user.
-
+/**
+ * Fragment that shows a scrollable list of all user's transactions.
+ * UPDATED FOR FIREBASE: Uses String userId instead of Long.
+ */
 class TransactionFragment : Fragment() {
 
     private lateinit var viewModel: TransactionViewModel
     private lateinit var adapter: TransactionAdapter
     private lateinit var sessionStore: SessionStore
 
-    // begin code attribution
-    // Inflating fragment layout adapted from Android Developers guide to Fragments
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -43,13 +41,11 @@ class TransactionFragment : Fragment() {
 
         return view
     }
-    // end code attribution (Android Developers, 2020)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         loadTransactions()
     }
-
 
     private fun setupRecyclerView(view: View) {
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerTransactions)
@@ -66,13 +62,13 @@ class TransactionFragment : Fragment() {
         viewModel = ViewModelProvider(this, factory)[TransactionViewModel::class.java]
     }
 
-
-    // begin code attribution
-    // Data loading adapted from Kotlin Coroutines documentation
-
+    /**
+     * Load transactions for the current user.
+     * UPDATED: Now uses String userId (Firebase UID).
+     */
     private fun loadTransactions() {
         viewLifecycleOwner.lifecycleScope.launch {
-            // Get current user ID from session
+            // Get current user ID from session as String
             val userId = sessionStore.userId.firstOrNull()
 
             if (userId == null) {
@@ -87,7 +83,6 @@ class TransactionFragment : Fragment() {
             observeTransactions()
         }
     }
-    // end code attribution (Kotlin Documentation, 2025)
 
     private suspend fun observeTransactions() {
         viewModel.transactionsWithNestsFlow.collect { transactions ->
@@ -95,12 +90,7 @@ class TransactionFragment : Fragment() {
         }
     }
 
-    //Error handling
     private fun showNoUserError() {
         Toast.makeText(requireContext(), "No user logged in", Toast.LENGTH_SHORT).show()
     }
 }
-
-// reference list
-// Android Developers, 2020. Fragments Overview. [online] Available at: <https://developer.android.com/guide/fragments> [Accessed 2 October 2025].
-// Kotlin Documentation, 2025. Coroutines Flow. [online] Available at: <https://kotlinlang.org/docs/flow.html> [Accessed 2 October 2025].

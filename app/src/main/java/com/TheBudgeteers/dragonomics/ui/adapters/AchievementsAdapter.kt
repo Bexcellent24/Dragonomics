@@ -1,4 +1,4 @@
-package com.TheBudgeteers.dragonomics
+package com.TheBudgeteers.dragonomics.ui.adapters
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,8 +6,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-
-//Placeholder class, functionality won't be implemented until part 3
+import com.TheBudgeteers.dragonomics.R
+import com.TheBudgeteers.dragonomics.gamify.Achievement
 
 class AchievementsAdapter(
     private var items: List<Achievement>
@@ -16,9 +16,9 @@ class AchievementsAdapter(
 
     class VH(v: View) : RecyclerView.ViewHolder(v) {
         val imgMedal: ImageView = v.findViewById(R.id.imgMedal)
-        val txtTitle: TextView  = v.findViewById(R.id.txtTitle)
-        val txtDesc: TextView   = v.findViewById(R.id.txtDesc)
-        val imgTick: ImageView  = v.findViewById(R.id.imgTick)
+        val txtTitle: TextView = v.findViewById(R.id.txtTitle)
+        val txtDesc: TextView = v.findViewById(R.id.txtDesc)
+        val imgTick: ImageView = v.findViewById(R.id.imgTick)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {

@@ -1,8 +1,9 @@
-package com.TheBudgeteers.dragonomics.viewmodel
+package com.TheBudgeteers.dragonomics.viewmodel.factories
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.TheBudgeteers.dragonomics.data.Repository
+import com.TheBudgeteers.dragonomics.viewmodel.TransactionViewModel
 
 class TransactionViewModelFactory(private val repository: Repository) :
     ViewModelProvider.Factory {

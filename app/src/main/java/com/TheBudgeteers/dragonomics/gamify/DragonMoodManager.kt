@@ -2,7 +2,7 @@ package com.TheBudgeteers.dragonomics.gamify
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.TheBudgeteers.dragonomics.models.Mood as NestMood
+import com.TheBudgeteers.dragonomics.data.Mood as NestMood
 
 /*
 Purpose:

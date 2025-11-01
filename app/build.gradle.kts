@@ -2,7 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
-    //kotlin("kapt")
+    alias(libs.plugins.google.gms.google.services)
 }
 
 android {
@@ -35,6 +35,21 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidbrowserhelper)
     implementation(libs.volley)
+    
+    // Firebase BoM - ADD THIS FIRST
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+
+    // Firebase dependencies (versions managed by BoM)
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
+    // Coroutines support for Firebase - THIS WAS MISSING
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+
 
     // Unit tests (JVM)
     testImplementation("junit:junit:4.13.2")
@@ -77,7 +92,7 @@ dependencies {
 
     ksp("com.github.bumptech.glide:compiler:4.16.0")
 
-    // DO NOT include Room kapt/annotationProcessor lines anymore
+
 }
 
 // Optional: generate schemas

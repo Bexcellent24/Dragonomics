@@ -2,17 +2,18 @@ package com.TheBudgeteers.dragonomics.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.TheBudgeteers.dragonomics.data.Mood
+import com.TheBudgeteers.dragonomics.data.NestType
 import com.TheBudgeteers.dragonomics.data.Repository
-import com.TheBudgeteers.dragonomics.models.Mood
 import com.TheBudgeteers.dragonomics.models.Nest
-import com.TheBudgeteers.dragonomics.models.NestType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-
- // UI state for a single nest with all computed values
+/**
+ * UI state for a single nest with all computed values
+ */
 data class NestUiState(
     val nest: Nest,
     val spent: Double,
@@ -22,75 +23,89 @@ data class NestUiState(
     val mood: Mood
 )
 
-
-
-// ViewModel for the Nest entity.
-// Handles calculating progress, moods, and providing reactive UI state for nests.
-// Used by the UI layer (Adapters, Fragments, Activities) to display nest data and state.
-// Also handles CRUD operations for nests and aggregate mood calculations.
-
-
+/**
+ * ViewModel for the Nest entity.
+ * UPDATED FOR FIREBASE: Uses String IDs instead of Long.
+ */
 class NestViewModel(private val repository: Repository) : ViewModel() {
 
-    // begin code attribution
-    // Flow collection and emission pattern adapted from Kotlin Coroutines Flow documentation
+    /**
+     * Returns a Flow emitting UI state for a single nest.
+     * Automatically updates when spent amounts change.
+     * UPDATED: Now accepts String userId and nestId (Firebase).
+     */
+    fun getNestUiStateFlow(userId: String, nestId: String): Flow<NestUiState> = flow {
+        val nest = repository.getNestById(userId, nestId)
+            ?: return@flow // Exit if nest doesn't exist
 
-     //Returns a Flow emitting UI state for a single nest.
-     //Automatically updates when spent amounts change.
-     fun getNestUiStateFlow(userId: Long, nestId: Long): Flow<NestUiState> = flow {
-         val nest = repository.getNestById(nestId)
+        if (nest.type == NestType.INCOME) {
+            // Income nests: budget = total income, spent = amount spent FROM this income
+            val totalIncome = repository.getTransactionsByNestId(userId, nestId)
+                .sumOf { it.amount }
+                .coerceAtLeast(0.0)
 
-         if (nest.type == NestType.INCOME) {
-             // Income nests: budget = total income, spent = amount spent FROM this income.
-             val totalIncome = repository.getTransactionsByNestId(userId, nestId)
-                 .sumOf { it.amount }
-                 .coerceAtLeast(0.0)
+            // Observe spent FROM this income source (fromCategoryId)
+            repository.getSpentAmountFromNestFlow(userId, nestId).collect { spent ->
+                val displayedSpent = spent
+                val remaining = totalIncome - displayedSpent
+                val progress = calculateNestProgress(nest, displayedSpent)
+                val mood = calculateMood(progress)
 
-             // Observe spent FROM this income source (fromCategoryId)
-             repository.getSpentAmountFromNestFlow(userId, nestId).collect { spent ->
-                 val displayedSpent = spent ?: 0.0
-                 val remaining = totalIncome - displayedSpent
-                 val progress = calculateNestProgress(nest, displayedSpent)
-                 val mood = calculateMood(progress)
+                emit(NestUiState(
+                    nest = nest,
+                    spent = displayedSpent,
+                    budget = totalIncome,
+                    remaining = remaining,
+                    progress = progress,
+                    mood = mood
+                ))
+            }
+        } else {
+            // For expense type nests use set budget
+            val budget = nest.budget ?: 0.0
 
-                 emit(NestUiState(
-                     nest = nest,
-                     spent = displayedSpent,
-                     budget = totalIncome,
-                     remaining = remaining,
-                     progress = progress,
-                     mood = mood
-                 ))
-             }
-         } else {
-             // For expense type nests use set budget
-             val budget = nest.budget ?: 0.0
+            // Observe spent IN this expense category (categoryId)
+            repository.getSpentInCategoryFlow(userId, nestId).collect { spent ->
+                val displayedSpent = spent
+                val remaining = budget - displayedSpent
+                val progress = calculateNestProgress(nest, displayedSpent)
+                val mood = calculateMood(progress)
 
-             // Observe spent IN this expense category (categoryId)
-             repository.getSpentInCategoryFlow(userId, nestId).collect { spent ->
-                 val displayedSpent = spent
-                 val remaining = budget - displayedSpent
-                 val progress = calculateNestProgress(nest, displayedSpent)
-                 val mood = calculateMood(progress)
+                emit(NestUiState(
+                    nest = nest,
+                    spent = displayedSpent,
+                    budget = budget,
+                    remaining = remaining,
+                    progress = progress,
+                    mood = mood
+                ))
+            }
+        }
+    }
 
-                 emit(NestUiState(
-                     nest = nest,
-                     spent = displayedSpent,
-                     budget = budget,
-                     remaining = remaining,
-                     progress = progress,
-                     mood = mood
-                 ))
-             }
-         }
-     }
-    // end code attribution (Kotlin Documentation, 2021)
+    /**
+     * Returns UI state for a nest as a single snapshot.
+     * UPDATED: Now accepts String userId and nestId.
+     */
+    suspend fun getNestUiState(userId: String, nestId: String): NestUiState {
+        val nest = repository.getNestById(userId, nestId)
+            ?: return NestUiState(
+                nest = Nest(
+                    id = nestId,
+                    userId = userId,
+                    name = "Unknown",
+                    budget = null,
+                    icon = "",
+                    colour = "#000000",
+                    type = NestType.EXPENSE
+                ),
+                spent = 0.0,
+                budget = 0.0,
+                remaining = 0.0,
+                progress = 0.0,
+                mood = Mood.NEGATIVE
+            )
 
-
-     // Returns UI state for a nest as a single snapshot.
-
-    suspend fun getNestUiState(userId: Long, nestId: Long): NestUiState {
-        val nest = repository.getNestById(nestId)
         val spent = repository.getTransactionsByNestId(userId, nestId)
             .sumOf { it.amount }
             .coerceAtLeast(0.0)
@@ -119,12 +134,9 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         )
     }
 
-
-
-     // Calculate progress (0.0 to 1.0) for a nest
-     // - EXPENSE: (budget - spent) / budget, clamped to 0..1
-     // - INCOME: always 1.0 (doesn't affect overall mood)
-
+    /**
+     * Calculate progress (0.0 to 1.0) for a nest
+     */
     fun calculateNestProgress(nest: Nest, totalSpent: Double): Double {
         return if (nest.type == NestType.EXPENSE) {
             val b = nest.budget
@@ -139,52 +151,71 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-
-     // Converts progress to a mood state.
+    /**
+     * Converts progress to a mood state.
+     */
     fun calculateMood(progress: Double): Mood = when {
         progress >= 0.75 -> Mood.POSITIVE
         progress >= 0.4  -> Mood.NEUTRAL
         else             -> Mood.NEGATIVE
     }
 
+    /**
+     * Get a single nest by ID.
+     * UPDATED: Now accepts String userId and nestId.
+     */
+    suspend fun getNestById(userId: String, nestId: String): Nest? =
+        repository.getNestById(userId, nestId)
 
-    suspend fun getNestById(nestId: Long): Nest = repository.getNestById(nestId)
-
-    // begin code attribution
-    // viewModelScope coroutine launching pattern adapted from Android Developers ViewModelScope guide
-
-    fun addNest(nest: Nest, onDone: (() -> Unit)? = null) {
+    /**
+     * Add a new nest.
+     * UPDATED: Now accepts String userId.
+     */
+    fun addNest(userId: String, nest: Nest, onDone: (() -> Unit)? = null) {
         viewModelScope.launch {
-            repository.addNest(nest)
+            repository.addNest(userId, nest)
             onDone?.invoke()
         }
     }
 
-    // end code attribution (Android Developers, 2021)
-
-    suspend fun getNestsByType(userId: Long, type: NestType): List<Nest> =
+    /**
+     * Get nests filtered by type.
+     * UPDATED: Now accepts String userId.
+     */
+    suspend fun getNestsByType(userId: String, type: NestType): List<Nest> =
         repository.getNests(userId).filter { it.type == type }
 
-
-    fun getSpentAmountFlow(userId: Long, nestId: Long): Flow<Double?> =
+    /**
+     * Get spent amount flow for a nest.
+     * UPDATED: Now accepts String userId and nestId.
+     */
+    fun getSpentAmountFlow(userId: String, nestId: String): Flow<Double> =
         repository.getSpentAmountFromNestFlow(userId, nestId)
 
-
-    fun getNestsByTypeLive(userId: Long, type: NestType): Flow<List<Nest>> =
+    /**
+     * Get nests by type as reactive Flow.
+     * UPDATED: Now accepts String userId.
+     */
+    fun getNestsByTypeLive(userId: String, type: NestType): Flow<List<Nest>> =
         repository.getNestsFlowByType(userId, type)
 
-
-    fun getSpentAmountsInRange(userId: Long, start: Long, end: Long): Flow<Map<Long, Double>> {
+    /**
+     * Get spent amounts grouped by nest within date range.
+     * UPDATED: Now accepts String userId and returns Map<String, Double>.
+     */
+    fun getSpentAmountsInRange(userId: String, start: Long, end: Long): Flow<Map<String, Double>> {
         return repository.getSpentAmountsInRange(userId, start, end)
             .map { list -> list.associate { it.nestId to it.spent } }
     }
 
-
     enum class Weighting { EQUAL, BUDGET, SPENT }
 
-    // Computes weighted average progress across all nests of a type.
+    /**
+     * Computes weighted average progress across all nests of a type.
+     * UPDATED: Now accepts String userId.
+     */
     suspend fun computeOverallProgress(
-        userId: Long,
+        userId: String,
         type: NestType = NestType.EXPENSE,
         weighting: Weighting = Weighting.BUDGET
     ): Double {
@@ -214,18 +245,16 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    // Returns overall mood and average progress for a type of nest.
+    /**
+     * Returns overall mood and average progress for a type of nest.
+     * UPDATED: Now accepts String userId.
+     */
     suspend fun getOverallMood(
-        userId: Long,
+        userId: String,
         type: NestType = NestType.EXPENSE,
         weighting: Weighting = Weighting.BUDGET
     ): Pair<Mood, Double> {
         val avg = computeOverallProgress(userId, type, weighting)
         return calculateMood(avg) to avg
     }
-
 }
-
-// reference list
-// Android Developers, 2021. ViewModelScope Overview. [online] Available at: <https://developer.android.com/topic/libraries/architecture/coroutines> [Accessed 3 October 2025].
-// Kotlin Documentation, 2021. Flow API Overview. [online] Available at: <https://kotlinlang.org/docs/flow.html> [Accessed 3 October 2025].

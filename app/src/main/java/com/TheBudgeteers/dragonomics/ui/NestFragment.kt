@@ -12,29 +12,26 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.TheBudgeteers.dragonomics.R
-import com.TheBudgeteers.dragonomics.data.AppDatabase
 import com.TheBudgeteers.dragonomics.data.NestLayoutType
-import com.TheBudgeteers.dragonomics.data.Repository
+import com.TheBudgeteers.dragonomics.data.NestType
 import com.TheBudgeteers.dragonomics.data.SessionStore
-import com.TheBudgeteers.dragonomics.models.NestType
+import com.TheBudgeteers.dragonomics.ui.adapters.NestAdapter
+import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import com.TheBudgeteers.dragonomics.viewmodel.HistoryViewModel
-import com.TheBudgeteers.dragonomics.viewmodel.HistoryViewModelFactory
+import com.TheBudgeteers.dragonomics.viewmodel.factories.HistoryViewModelFactory
 import com.TheBudgeteers.dragonomics.viewmodel.NestViewModel
-import com.TheBudgeteers.dragonomics.viewmodel.NestViewModelFactory
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-// Fragment for displaying nests in different layouts (Grid, List, or History).
-// Sets up RecyclerView and NestAdapter, observes nest data, and handles user interaction.
-// Supports nests filtered by type (Income or Expense) and displays them according to chosen layout.
-
-
+/**
+ * Fragment for displaying nests in different layouts (Grid, List, or History).
+ * UPDATED FOR FIREBASE: Uses String userId instead of Long.
+ */
 class NestFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
     private var adapter: NestAdapter? = null
     private lateinit var nestViewModel: NestViewModel
-    private lateinit var repository: Repository
     private lateinit var sessionStore: SessionStore
 
     private lateinit var layoutType: NestLayoutType
@@ -44,10 +41,9 @@ class NestFragment : Fragment() {
         private const val ARG_NEST_TYPE = "nest_type"
         private const val ARG_LAYOUT_TYPE = "layout_type"
 
-        // Factory pattern for fragment creation adapted from:
-        // Android Developers guide to Fragments and Bundles
-
-        // Create a new instance of NestFragment with the specified nest type and layout type
+        /**
+         * Create a new instance of NestFragment with the specified nest type and layout type.
+         */
         fun newInstance(nestType: NestType, layoutType: NestLayoutType): NestFragment {
             val fragment = NestFragment()
             val args = Bundle()
@@ -56,25 +52,16 @@ class NestFragment : Fragment() {
             fragment.arguments = args
             return fragment
         }
-
-        // end code attribution (Android Developers, 2020)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
-        // begin code attribution
-        // Argument retrieval pattern adapted from:
-        // Android Developers guide to Fragment arguments
 
         // Retrieve nest type and layout type from arguments or set defaults
         nestType = arguments?.getString(ARG_NEST_TYPE)?.let { NestType.valueOf(it) }
             ?: NestType.EXPENSE
         layoutType = arguments?.getString(ARG_LAYOUT_TYPE)?.let { NestLayoutType.valueOf(it) }
             ?: NestLayoutType.GRID
-
-        // end code attribution (Android Developers, 2020)
     }
 
     override fun onCreateView(
@@ -100,14 +87,13 @@ class NestFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // Initialise repository and session store
-        repository = Repository(AppDatabase.getDatabase(requireContext()))
+        val repository = RepositoryProvider.getRepository(requireContext())
         sessionStore = SessionStore(requireContext())
-
-        val factory = NestViewModelFactory(repository)
-        nestViewModel = ViewModelProvider(this, factory)[NestViewModel::class.java]
+        nestViewModel = NestViewModel(repository)
 
         // Launch coroutine to setup adapter once userId is available
         viewLifecycleOwner.lifecycleScope.launch {
+            // Get userId as String (Firebase UID)
             val userId = sessionStore.userId.firstOrNull()
 
             if (userId == null) {
@@ -118,16 +104,10 @@ class NestFragment : Fragment() {
             adapter = createAdapter(userId)
             recyclerView.adapter = adapter
 
-            // begin code attribution
-            // Collecting Flow and updating UI adapted from:
-            // Kotlin Coroutines Flow documentation
-
             // Observe nests of this type for the given user and update adapter when data changes
             repository.getReactiveNestsFlowByType(userId, nestType).collect { nests ->
                 adapter?.setNests(nests)
             }
-
-            // end code attribution (Kotlinlang.org, 2020)
         }
 
         // Listen for new nest creation events
@@ -136,9 +116,13 @@ class NestFragment : Fragment() {
         }
     }
 
-    // Create the NestAdapter for the given user and layout type
-    private fun createAdapter(userId: Long): NestAdapter {
+    /**
+     * Create the NestAdapter for the given user and layout type.
+     * UPDATED: Now accepts String userId.
+     */
+    private fun createAdapter(userId: String): NestAdapter {
         return if (layoutType == NestLayoutType.HISTORY) {
+            val repository = RepositoryProvider.getRepository(requireContext())
             val historyViewModel = ViewModelProvider(
                 requireActivity(),
                 HistoryViewModelFactory(repository, userId)
@@ -152,7 +136,8 @@ class NestFragment : Fragment() {
                 historyViewModel.startDate,
                 historyViewModel.endDate
             ) { clickedNest ->
-                Toast.makeText(requireContext(), "Clicked ${clickedNest.name}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Clicked ${clickedNest.name}", Toast.LENGTH_SHORT)
+                    .show()
             }
         } else {
             NestAdapter(
@@ -163,13 +148,9 @@ class NestFragment : Fragment() {
                 null,
                 null
             ) { clickedNest ->
-                Toast.makeText(requireContext(), "Clicked ${clickedNest.name}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Clicked ${clickedNest.name}", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
 }
-
-// reference list
-// Android Developers, 2020. Fragments guide. [online] Available at: <https://developer.android.com/guide/fragments> [Accessed 1 October 2025]
-// Android Developers, 2020. RecyclerView guide. [online] Available at: <https://developer.android.com/guide/topics/ui/layout/recyclerview> [Accessed 1 October 2025]
-// Kotlinlang.org, 2020. Flow API guide. [online] Available at: <https://kotlinlang.org/docs/flow.html> [Accessed 1 October 2025]

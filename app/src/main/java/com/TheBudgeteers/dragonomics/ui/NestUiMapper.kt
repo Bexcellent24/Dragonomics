@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import androidx.annotation.DrawableRes
 import com.TheBudgeteers.dragonomics.R
-import com.TheBudgeteers.dragonomics.models.Mood
+import com.TheBudgeteers.dragonomics.data.Mood
 
 // Maps domain models and raw data to UI representations
 // Keeps UI-related transformations out of ViewModels and Adapters

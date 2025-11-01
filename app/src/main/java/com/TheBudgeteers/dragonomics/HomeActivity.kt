@@ -14,34 +14,41 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.TheBudgeteers.dragonomics.data.Mood
+import com.TheBudgeteers.dragonomics.data.NestType
+import com.TheBudgeteers.dragonomics.data.Repository
 import com.bumptech.glide.Glide
 import com.TheBudgeteers.dragonomics.databinding.ActivityHomeBinding
 import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.gamify.DragonMoodManager
-import com.TheBudgeteers.dragonomics.models.NestType
 import com.TheBudgeteers.dragonomics.ui.AchievementsDialogFragment
 import com.TheBudgeteers.dragonomics.ui.ShopDialogFragment
-import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import com.TheBudgeteers.dragonomics.viewmodel.AchievementsViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.DragonUiState
 import com.TheBudgeteers.dragonomics.viewmodel.DragonViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.NestViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.ShopViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.AccessoryEquipListener
-import com.TheBudgeteers.dragonomics.DragonSockets.ADULT_DRAGON_SOCKETS
-import com.TheBudgeteers.dragonomics.DragonSockets.BABY_DRAGON_SOCKETS
-import com.TheBudgeteers.dragonomics.DragonSockets.DRAGON_REFERENCE_WIDTH_DP
-import com.TheBudgeteers.dragonomics.DragonSockets.DRAGON_SMALL_DP
-import com.TheBudgeteers.dragonomics.DragonSockets.DRAGON_VIEW_PADDING_DP
-import com.TheBudgeteers.dragonomics.DragonSockets.TEEN_DRAGON_SOCKETS
+import com.TheBudgeteers.dragonomics.viewmodel.factories.NestViewModelFactory
+import com.TheBudgeteers.dragonomics.ui.dragon.DragonSockets.ADULT_DRAGON_SOCKETS
+import com.TheBudgeteers.dragonomics.ui.dragon.DragonSockets.BABY_DRAGON_SOCKETS
+import com.TheBudgeteers.dragonomics.ui.dragon.DragonSockets.DRAGON_REFERENCE_WIDTH_DP
+import com.TheBudgeteers.dragonomics.ui.dragon.DragonSockets.DRAGON_VIEW_PADDING_DP
+import com.TheBudgeteers.dragonomics.ui.dragon.DragonSockets.TEEN_DRAGON_SOCKETS
 import com.TheBudgeteers.dragonomics.utilities.PaletteColors
 import com.TheBudgeteers.dragonomics.utilities.PaletteMapper
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import com.TheBudgeteers.dragonomics.gamify.DragonRules
+import com.TheBudgeteers.dragonomics.ui.dragon.DragonSockets
+import com.TheBudgeteers.dragonomics.utils.openIntent
 import kotlin.math.roundToInt
 
+/**
+ * HomeActivity - Main screen showing the dragon and its progression.
+ * UPDATED FOR FIREBASE: Now initializes ViewModels with userId from SessionStore.
+ */
 class HomeActivity : AppCompatActivity(),
     NavigationView.OnNavigationItemSelectedListener,
     AccessoryEquipListener {
@@ -62,17 +69,34 @@ class HomeActivity : AppCompatActivity(),
         setContentView(binding.root)
 
         displayMetrics = resources.displayMetrics
+        sessionStore = SessionStore(this)
 
-        initializeViewModels()
-        initializeDragonDisplay()
-        setupButtons()
-        setupBottomNavigation()
-        setupBackButton()
+        // Initialize ViewModels and load user data
+        lifecycleScope.launch {
+            val userId = sessionStore.userId.firstOrNull()
+            android.util.Log.d("HomeActivity", "Got userId: $userId")
 
-        shopViewModel.setEquipListener(this)
+            if (userId == null) {
+                android.util.Log.e("HomeActivity", "No userId found!")
+                return@launch
+            }
 
-        // Calculate mood on activity creation
-        updateOverallMoodFromNests()
+            initializeViewModels()
+
+            // Initialize ViewModels with userId to load Firebase data
+            dragonViewModel.initialize(userId)
+            shopViewModel.initialize(userId)
+
+            initializeDragonDisplay()
+            setupButtons()
+            setupBottomNavigation()
+            setupBackButton()
+
+            shopViewModel.setEquipListener(this@HomeActivity)
+
+            // Calculate mood on activity creation
+            updateOverallMoodFromNests(userId)
+        }
     }
 
     private fun initializeViewModels() {
@@ -82,24 +106,17 @@ class HomeActivity : AppCompatActivity(),
         shopViewModel = ViewModelProvider(this)[ShopViewModel::class.java]
         achievementsViewModel = ViewModelProvider(this)[AchievementsViewModel::class.java]
 
-        val repository = RepositoryProvider.getRepository(this)
-        nestViewModel = NestViewModel(repository)
-        sessionStore = SessionStore(this)
+        val repository = Repository()
+        nestViewModel = ViewModelProvider(this, NestViewModelFactory(repository))[NestViewModel::class.java]
     }
 
     private fun initializeDragonDisplay() {
         lifecycleScope.launch {
-            //------------CODE ATTRIBUTION------------
-//Title: Getting started with glider
-//Author: Glider
-//Date: 05/10/2025
-//Code Version: v4
-//Availability: https://bumptech.github.io/glide/doc/getting-started.html
             dragonViewModel.uiState.collect { state ->
                 Glide.with(this@HomeActivity)
                     .load(state.dragonImageRes)
                     .into(binding.dragon)
-//------------ END OF CODE ATTRIBUTION------------ ( Glider, 2025)
+
                 binding.xpTxt.text =
                     "XP L${state.level} ${state.xpIntoLevel}/${DragonRules.XP_PER_LEVEL}"
                 binding.xpProgress.setProgress(state.xpProgress, true)
@@ -133,11 +150,11 @@ class HomeActivity : AppCompatActivity(),
                 else -> BABY_DRAGON_SOCKETS
             }
 
-            // gets the dual color IDs from the mapper
+            // Get the dual color IDs from the mapper
             val paletteColors: PaletteColors? =
                 PaletteMapper.mapPaletteIdToColors(this, state.equippedPaletteId)
 
-            // color Filter creation logic
+            // Color Filter creation logic
             val bodyColorFilter: ColorFilter? = paletteColors?.bodyColorRes?.let { resId ->
                 val colorInt = ContextCompat.getColor(this, resId)
                 PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY)
@@ -149,16 +166,13 @@ class HomeActivity : AppCompatActivity(),
                 }
             binding.dragon.colorFilter = bodyColorFilter
 
-            // scaling cal. To ensure its the same across the board, no matter the screen size
+            // Scaling calculation to ensure it's the same across the board
             val dragonPxWidth = binding.dragon.width.toFloat()
-
-            // Use the ratio of the physical width (PX) to the design reference DP width.
             val finalScaleRatio = dragonPxWidth / DRAGON_REFERENCE_WIDTH_DP.toFloat()
 
             fun dpToPx(dp: Int): Int {
                 return (dp * finalScaleRatio).roundToInt()
             }
-
 
             val DRAGON_PADDING_DP = DRAGON_VIEW_PADDING_DP
             val paddingOffsetPx = dpToPx(DRAGON_PADDING_DP)
@@ -180,7 +194,6 @@ class HomeActivity : AppCompatActivity(),
                 }
 
                 if (accessoryRes != 0) {
-
                     val x = dpToPx(socket.x) + paddingOffsetPx
                     val y = dpToPx(socket.y) + paddingOffsetPx
                     val w = dpToPx(socket.width)
@@ -205,7 +218,7 @@ class HomeActivity : AppCompatActivity(),
                 }
             }
 
-            // passes the specific accessoryColorFilter to all accessory updates
+            // Apply equipped accessories
             updateAccessoryView(
                 binding.hornLeft,
                 currentSocketSet.hornLeft,
@@ -246,14 +259,12 @@ class HomeActivity : AppCompatActivity(),
             level >= 5 -> "teen_"
             else -> "baby_"
         }
-// helper method that helps us dynamically finds the names of our accessories. It checks what level the user is on
-        // then based on that level, we will get the first prefix. Whatever the user selects in the  store will be the second prefix
 
         fun getResId(suffix: String): Int {
             val resourceName = "${prefix}${itemId}_$suffix"
             return resources.getIdentifier(resourceName, "drawable", packageName)
         }
-// suffix will alwayss return both left and right so we can get both the components
+
         return DragonSockets.AccessoryDrawables(
             leftResId = getResId("left"),
             rightResId = getResId("right")
@@ -302,17 +313,14 @@ class HomeActivity : AppCompatActivity(),
 
     override fun onResume() {
         super.onResume()
-        updateOverallMoodFromNests()
+        lifecycleScope.launch {
+            val userId = sessionStore.userId.firstOrNull() ?: return@launch
+            updateOverallMoodFromNests(userId)
+        }
     }
 
-    private fun updateOverallMoodFromNests() {
+    private fun updateOverallMoodFromNests(userId: String) {
         lifecycleScope.launch {
-            val userId = sessionStore.userId.firstOrNull()
-
-            if (userId == null) {
-                return@launch
-            }
-
             val (mood, _) = nestViewModel.getOverallMood(
                 userId = userId,
                 type = NestType.EXPENSE,
@@ -324,11 +332,11 @@ class HomeActivity : AppCompatActivity(),
         }
     }
 
-    private fun com.TheBudgeteers.dragonomics.models.Mood.toDragonMood(): DragonRules.Mood {
+    private fun Mood.toDragonMood(): DragonRules.Mood {
         return when (this) {
-            com.TheBudgeteers.dragonomics.models.Mood.POSITIVE -> DragonRules.Mood.HAPPY
-            com.TheBudgeteers.dragonomics.models.Mood.NEUTRAL -> DragonRules.Mood.NEUTRAL
-            com.TheBudgeteers.dragonomics.models.Mood.NEGATIVE -> DragonRules.Mood.ANGRY
+            Mood.POSITIVE -> DragonRules.Mood.HAPPY
+            Mood.NEUTRAL -> DragonRules.Mood.NEUTRAL
+            Mood.NEGATIVE -> DragonRules.Mood.ANGRY
         }
     }
 
@@ -362,5 +370,3 @@ class HomeActivity : AppCompatActivity(),
         return true
     }
 }
-// reference list
-//The Independent Institute of Education. 2025. Open Source Coding Module Manuel  [OPSC 7311]. nt. [online via internal VLE] The Independent Institute of Education. Available at: <https://advtechonline.sharepoint.com/:w:/r/sites/TertiaryStudents/_layouts/15/Doc.aspx?sourcedoc=%7BD5C243B5-895D-4B63-B083-140930EF9734%7D&file=OPSC7311MM.docx&action=default&mobileredirect=true> [Accessed Date 03 October 2025].

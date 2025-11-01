@@ -15,19 +15,21 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.TheBudgeteers.dragonomics.R
+import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.databinding.DialogShopBinding
 import com.TheBudgeteers.dragonomics.models.ShopTab
+import com.TheBudgeteers.dragonomics.ui.adapters.ShopAdapter
 import com.TheBudgeteers.dragonomics.viewmodel.PurchaseResult
 import com.TheBudgeteers.dragonomics.viewmodel.ShopViewModel
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-// Full-screen dialog that displays the shop interface.
-// Has tabs for different item categories (palette, horns, wings).
-// Shows user's currency balance and lets them buy/equip items.
-// Communicates with ShopViewModel to handle purchases and equipment changes.
-
+/**
+ * ShopDialogFragment - Full-screen shop dialog.
+ * UPDATED FOR FIREBASE: Now initializes with userId from SessionStore.
+ */
 class ShopDialogFragment : DialogFragment() {
 
     private var _binding: DialogShopBinding? = null
@@ -36,6 +38,7 @@ class ShopDialogFragment : DialogFragment() {
     // Using activityViewModels() so the ViewModel survives dialog dismissal
     private val shopViewModel: ShopViewModel by activityViewModels()
     private lateinit var shopAdapter: ShopAdapter
+    private lateinit var sessionStore: SessionStore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,11 +51,20 @@ class ShopDialogFragment : DialogFragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = DialogShopBinding.inflate(inflater, container, false)
+        sessionStore = SessionStore(requireContext())
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Initialize ShopViewModel with userId
+        lifecycleScope.launch {
+            val userId = sessionStore.userId.firstOrNull()
+            if (userId != null) {
+                shopViewModel.initialize(userId)
+            }
+        }
 
         setupRecyclerView()
         setupTabs()
@@ -68,13 +80,8 @@ class ShopDialogFragment : DialogFragment() {
             adapter = shopAdapter
             setHasFixedSize(true)
             layoutManager = GridLayoutManager(requireContext(), 2)
-            //addItemDecoration(createSpacingDecoration())
         }
     }
-
-    // begin code attribution
-    // ItemDecoration for spacing adapted from:
-    // Android Developers guide to RecyclerView ItemDecoration
 
     // Add spacing between grid items for better visual separation
     private fun createSpacingDecoration(): RecyclerView.ItemDecoration {
@@ -87,7 +94,6 @@ class ShopDialogFragment : DialogFragment() {
             }
         }
     }
-    // end code attribution (Android Developers, 2020)
 
     private fun setupTabs() {
         createTabs()
@@ -150,11 +156,6 @@ class ShopDialogFragment : DialogFragment() {
         }
     }
 
-
-    // begin code attribution
-    // Tab icon resizing adapted from:
-    // Stack Overflow answer on resizing TabLayout icons
-
     // Make tab icons bigger and easier to tap
     private fun resizeTabIcons(sizeDp: Int = 80, tabHeightDp: Int = 80, horizPadDp: Int = 10) {
         binding.shopTabs.post {
@@ -180,8 +181,6 @@ class ShopDialogFragment : DialogFragment() {
         }
     }
 
-    // end code attribution (Bill Shannon, 2018)
-
     private fun setupCloseButton() {
         binding.shopCloseX.setOnClickListener {
             dismiss()
@@ -192,6 +191,11 @@ class ShopDialogFragment : DialogFragment() {
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             shopViewModel.state.collect { state ->
+                // Show loading indicator if needed
+                if (state.isLoading) {
+                    // Could show a progress bar here
+                }
+
                 updateCurrencyDisplay(state.currency)
                 updateShopItems()
                 handlePurchaseResult(state.purchaseResult)
@@ -234,7 +238,3 @@ class ShopDialogFragment : DialogFragment() {
         const val TAG = "ShopDialogFragment"
     }
 }
-
-
-// Android Developers, 2020. ItemDecoration. [online] Available at: <https://developer.android.com/reference/androidx/recyclerview/widget/RecyclerView.ItemDecoration> [Accessed 5 October 2025]
-// Bill Shannon, 2020. How to resize TabLayout icon (Stack Overflow). [online] Available at: <https://stackoverflow.com/questions/48411243/how-to-change-tab-icon-size-in-tablayout> [Accessed 5 October 2025]

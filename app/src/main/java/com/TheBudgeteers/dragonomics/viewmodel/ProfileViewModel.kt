@@ -3,7 +3,7 @@ package com.TheBudgeteers.dragonomics.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.TheBudgeteers.dragonomics.data.Repository
-import com.TheBudgeteers.dragonomics.models.UserEntity
+import com.TheBudgeteers.dragonomics.data.UserProfile
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,12 +16,12 @@ import kotlinx.coroutines.launch
 
 class ProfileViewModel(
     private val repository: Repository,
-    private val userId: Long
+    private val userId: String  // Changed from Long to String for Firebase UID
 ) : ViewModel() {
 
-    // Current user entity with all profile information
-    private val _user = MutableStateFlow<UserEntity?>(null)
-    val user: StateFlow<UserEntity?> = _user.asStateFlow()
+    // Current user profile with all profile information
+    private val _user = MutableStateFlow<UserProfile?>(null)
+    val user: StateFlow<UserProfile?> = _user.asStateFlow()
 
     // Loading indicator for goal updates
     private val _isLoading = MutableStateFlow(false)
@@ -39,8 +39,8 @@ class ProfileViewModel(
     // Updates automatically when user info changes
     private fun loadUser() {
         viewModelScope.launch {
-            repository.getUserFlow(userId).collect { userEntity ->
-                _user.value = userEntity
+            repository.getUserFlow(userId).collect { userProfile ->
+                _user.value = userProfile
             }
         }
     }
@@ -53,14 +53,12 @@ class ProfileViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val currentUser = _user.value ?: return@launch
                 repository.updateUserGoals(userId, minGoal, maxGoal)
             } finally {
                 _isLoading.value = false
             }
         }
     }
-
 
     // Get formatted display name based on available information
     // Priority: Full name > First name > Last name > Username > "User Name"

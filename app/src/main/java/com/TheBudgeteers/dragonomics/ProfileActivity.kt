@@ -15,13 +15,15 @@ import androidx.core.content.edit
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.databinding.ActivityProfileBinding
 import com.TheBudgeteers.dragonomics.models.Quest
-import com.TheBudgeteers.dragonomics.ui.QuestsAdapter
+import com.TheBudgeteers.dragonomics.ui.adapters.QuestsAdapter
+import com.TheBudgeteers.dragonomics.ui.profile.AvatarManager
+import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
+import com.TheBudgeteers.dragonomics.utils.openIntent
 import com.TheBudgeteers.dragonomics.viewmodel.ProfileViewModel
-import com.TheBudgeteers.dragonomics.viewmodel.ProfileViewModelFactory
+import com.TheBudgeteers.dragonomics.viewmodel.factories.ProfileViewModelFactory
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -30,12 +32,12 @@ import java.util.Locale
 
 class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
-/*
-Purpose:
-  - Displays and edits user profile information
-  - Orchestrates profile UI wiring and session checks.
-  - Bridges ViewModel with lightweight UI prefs
-*/
+    /*
+    Purpose:
+      - Displays and edits user profile information
+      - Orchestrates profile UI wiring and session checks.
+      - Bridges ViewModel with lightweight UI prefs
+    */
 
     // ViewBinding & adapters
     private lateinit var binding: ActivityProfileBinding
@@ -45,8 +47,8 @@ Purpose:
     private lateinit var session: SessionStore
     private lateinit var viewModel: ProfileViewModel
 
-    // Per-user state
-    private var currentUserId: Long = -1L
+    // Per-user state - Changed from Long to String for Firebase UID
+    private var currentUserId: String = ""
     private var avatarLocalUri: Uri? = null
 
     // Jetpack Photo Picker: pick an image and persist a local copy for this user
@@ -55,7 +57,6 @@ Purpose:
         const val FIRST = "first_name"
         const val LAST = "last_name"
     }
-
 
     // begin code attribution
     // Pick an image with Jetpack Photo Picker and handle the result via the Activity Result API.
@@ -78,7 +79,6 @@ Purpose:
     }
     // end code attribution (Android Developers, 2023; Android Developers, 2020)
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -100,7 +100,7 @@ Purpose:
                 return@launch
             }
 
-            //Set user ID FIRST before any UI operations
+            // Set user ID FIRST before any UI operations
             currentUserId = userId
 
             // Initialise ViewModel
@@ -111,15 +111,15 @@ Purpose:
         }
     }
 
-    //Build ViewModel with repository + userId
-    private fun initViewModel(userId: Long) {
+    // Build ViewModel with repository + userId
+    private fun initViewModel(userId: String) {
         val repository = RepositoryProvider.getRepository(this)
         viewModel = ViewModelProvider(
             this,
             ProfileViewModelFactory(repository, userId)
         )[ProfileViewModel::class.java]
 
-        //Observe user data from database
+        // Observe user data from database
         lifecycleScope.launch {
             viewModel.user.collect { user ->
                 user?.let {
@@ -134,7 +134,6 @@ Purpose:
             }
         }
     }
-
 
     private fun setupBottomNav() {
         binding.bottomNavigationView.itemIconTintList = null
@@ -153,7 +152,7 @@ Purpose:
     // Adapted from:
     // Android Developers, 2020. Create a list with RecyclerView. [online]
     // Available at: <https://developer.android.com/develop/ui/views/layout/recyclerview#kotlin> [Accessed 6 October 2025].
-    //RecyclerView + adapter: demo quests
+    // RecyclerView + adapter: demo quests
     private fun setupQuestsList() {
         binding.rvQuests.apply {
             if (layoutManager == null) layoutManager = LinearLayoutManager(this@ProfileActivity)
@@ -170,8 +169,7 @@ Purpose:
     }
     // end code attribution (Android Developers, 2020)
 
-
-    //Demo Quests
+    // Demo Quests
     private fun getDemoQuests(): List<Quest> {
         return listOf(
             Quest(
@@ -198,7 +196,7 @@ Purpose:
         )
     }
 
-    //Sign out: clear UI prefs for this profile + SessionStore
+    // Sign out: clear UI prefs for this profile + SessionStore
     private fun setupHeaderActions() {
         binding.btnLogout.setOnClickListener {
             lifecycleScope.launch {
@@ -209,7 +207,7 @@ Purpose:
         }
     }
 
-    //Restore avatar/name and wire edit panel actions for this specific user
+    // Restore avatar/name and wire edit panel actions for this specific user
     private fun initPerUserUi() {
         val prefs = getProfilePrefs()
 
@@ -227,17 +225,17 @@ Purpose:
             }
         }
 
-        //Name, surname from UI prefs
+        // Name, surname from UI prefs
         val first = prefs.getString(PrefKeys.FIRST, "") ?: ""
         val last = prefs.getString(PrefKeys.LAST, "") ?: ""
         binding.txtUsername.text = viewModel.getDisplayName(first, last)
 
-        //Setup edit button
+        // Setup edit button
         binding.btnEdit.setOnClickListener {
             showEditOverlay()
         }
 
-        //Setup overlay buttons
+        // Setup overlay buttons
         binding.btnClosePanel.setOnClickListener { closeOverlay() }
         binding.btnCancel.setOnClickListener { closeOverlay() }
         binding.btnSave.setOnClickListener { saveProfileChanges() }
@@ -246,14 +244,14 @@ Purpose:
         }
     }
 
-    //Populate edit overlay fields and show it.
+    // Populate edit overlay fields and show it.
     private fun showEditOverlay() {
         val prefs = getProfilePrefs()
         binding.apply {
             etFirstName.setText(prefs.getString(PrefKeys.FIRST, "") ?: "")
             etLastName.setText(prefs.getString(PrefKeys.LAST, "") ?: "")
 
-            //Load goals from ViewModel/database
+            // Load goals from ViewModel/database
             viewModel.user.value?.let { user ->
                 etMinAmount.setText(user.minGoal?.toInt()?.toString() ?: "")
                 etMaxAmount.setText(user.maxGoal?.toInt()?.toString() ?: "")
@@ -263,7 +261,7 @@ Purpose:
         }
     }
 
-    //Persist name to prefs, goals via ViewModel, update the display, and close panel
+    // Persist name to prefs, goals via ViewModel, update the display, and close panel
     private fun saveProfileChanges() {
         val prefs = getProfilePrefs()
 
@@ -273,18 +271,18 @@ Purpose:
             val minStr = etMinAmount.text.toString().trim()
             val maxStr = etMaxAmount.text.toString().trim()
 
-            //Save name to SharedPreferences
+            // Save name to SharedPreferences
             prefs.edit {
                 putString(PrefKeys.FIRST, first)
                 putString(PrefKeys.LAST, last)
             }
 
-            //Save goals to database through ViewModel
+            // Save goals to database through ViewModel
             val minGoal = minStr.toDoubleOrNull()
             val maxGoal = maxStr.toDoubleOrNull()
             viewModel.updateGoals(minGoal, maxGoal)
 
-            //Update name display immediately
+            // Update name display immediately
             binding.txtUsername.text = viewModel.getDisplayName(first, last)
 
             closeOverlay()
@@ -330,7 +328,7 @@ Purpose:
         finish()
     }
 
-    //Profile preferences are per-user
+    // Profile preferences are per-user (using Firebase UID)
     private fun getProfilePrefs() =
         getSharedPreferences("profile_prefs_u_$currentUserId", Context.MODE_PRIVATE)
 

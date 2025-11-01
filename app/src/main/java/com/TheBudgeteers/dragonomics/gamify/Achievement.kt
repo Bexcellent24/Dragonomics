@@ -1,10 +1,4 @@
-package com.TheBudgeteers.dragonomics
-
-/*
-Purpose:
-  - Immutable value object representing a single achievement row.
-  - Consumed by AchievementsAdapter to render medal/title/description and completion state.
-*/
+package com.TheBudgeteers.dragonomics.gamify
 
 // begin code attribution
 // Use a Kotlin data class to model an immutable value object with auto-generated
@@ -19,4 +13,3 @@ data class Achievement(
     val medalRes: Int,
     val achieved: Boolean
 )
-// end code attribution (Kotlin, 2024)

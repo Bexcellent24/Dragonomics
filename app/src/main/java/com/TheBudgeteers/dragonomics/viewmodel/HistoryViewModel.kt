@@ -19,9 +19,8 @@ import java.util.Date
 
 class HistoryViewModel(
     private val repository: Repository,
-    private val userId: Long
+    private val userId: String  // Changed from Long to String for Firebase UID
 ) : ViewModel() {
-
 
     private var currentYear: Int
     private var currentMonth: Int
@@ -63,7 +62,6 @@ class HistoryViewModel(
 
     // end code attribution (Kotlin Documentation, 2020)
 
-
     // Monthly statistics: total income, expenses, and balance
     val monthlyStats: StateFlow<MonthlyStats> =
         combine(_startDate, _endDate) { start, end ->
@@ -71,7 +69,6 @@ class HistoryViewModel(
         }.flatMapLatest { (start, end) ->
             repository.getMonthlyStatsFlow(userId, start, end)
         }.stateIn(viewModelScope, SharingStarted.Lazily, MonthlyStats(0.0, 0.0, 0.0))
-
 
     // begin code attribution
     // groupBy() for grouping list items adapted from:
@@ -138,7 +135,6 @@ class HistoryViewModel(
         val year = (currentYear % 100).toString().padStart(2, '0') // Last 2 digits of year
         return "$monthName $year"
     }
-
 
     // Remove time component from date to group transactions by day only
     private fun stripTime(date: Date): Date {

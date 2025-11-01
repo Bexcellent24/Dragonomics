@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.TheBudgeteers.dragonomics" />
+                  <option name="mobileSdkAppId" value="1:33440750383:android:f6abb5a7757464a10f9fda" />
+                  <option name="projectId" value="dragonomics-budgeting-app" />
+                  <option name="projectNumber" value="33440750383" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

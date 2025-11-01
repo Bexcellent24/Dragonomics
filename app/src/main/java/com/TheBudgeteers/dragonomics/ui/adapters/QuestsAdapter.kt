@@ -1,4 +1,4 @@
-package com.TheBudgeteers.dragonomics.ui
+package com.TheBudgeteers.dragonomics.ui.adapters
 
 import android.view.LayoutInflater
 import android.view.View

@@ -15,9 +15,10 @@ import kotlinx.coroutines.launch
 
 /*
 Purpose:
-    - Presents the registration UI and coordinates user sign-up.
+    - Presents the registration UI and coordinates user sign-up with Firebase.
     - Validates user input locally before delegating to AuthViewModel.
     - Reacts to authentication state.
+    - Updated to work with Firebase Authentication instead of Room
  */
 
 class SignUpActivity : AppCompatActivity() {
@@ -68,7 +69,7 @@ class SignUpActivity : AppCompatActivity() {
             //If local validation ok == false, stop here and return.
             if (!ok) return@setOnClickListener
 
-            //Store the sign up values to the view model.
+            //Store the sign up values to the view model (Firebase handles it now)
             vm.signUp(u, e, p)
         }
 
@@ -86,9 +87,11 @@ class SignUpActivity : AppCompatActivity() {
                 when (s) {
                     is AuthState.Loading -> {
                         binding.progressBar.visibility = View.VISIBLE
+                        setFormEnabled(false)
                     }
                     is AuthState.Success -> {
                         binding.progressBar.visibility = View.GONE
+                        setFormEnabled(true)
 
                         //Once finished authentication - take user to the login page.
                         startActivity(Intent(this@SignUpActivity, LoginActivity::class.java))
@@ -98,23 +101,43 @@ class SignUpActivity : AppCompatActivity() {
                     //If authentication has failed, toggle progress bar off and display error message.
                     is AuthState.Error -> {
                         binding.progressBar.visibility = View.GONE
-                        if ((s.message ?: "").contains("Username", ignoreCase = true)) {
-                            binding.etUsername.error = s.message
-                        } else {
+                        setFormEnabled(true)
 
+                        val msg = s.message ?: ""
+                        when {
+                            msg.contains("Username", ignoreCase = true) ->
+                                binding.etUsername.error = msg
+
+                            msg.contains("Email", ignoreCase = true) ->
+                                binding.etEmail.error = msg
+
+                            msg.contains("Password", ignoreCase = true) ->
+                                binding.etPassword.error = msg
+
+                            else ->
+                                binding.etUsername.error = msg.ifEmpty { "Sign up failed" }
                         }
                     }
                     else -> Unit
                 }
-
-            // end code attribution (Android Developers, 2020)
-
             }
         }
+        // end code attribution (Android Developers, 2020)
+    }
+
+    /**
+     * Enable/disable form inputs during loading
+     */
+    private fun setFormEnabled(enabled: Boolean) {
+        binding.etUsername.isEnabled = enabled
+        binding.etEmail.isEnabled = enabled
+        binding.etPassword.isEnabled = enabled
+        binding.etConfirmPassword.isEnabled = enabled
+        binding.btnCreateAccount.isEnabled = enabled
+        binding.btnGoToLogIn.isEnabled = enabled
     }
 }
 // reference list
 // Android Developers, 2020. Kotlin coroutines on Android. [online]
 // Available at: <https://developer.android.com/topic/libraries/architecture/coroutines>
 // [Accessed 6 October 2025].
-

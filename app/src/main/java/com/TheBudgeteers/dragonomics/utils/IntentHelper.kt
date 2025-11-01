@@ -1,8 +1,8 @@
-package com.TheBudgeteers.dragonomics
+package com.TheBudgeteers.dragonomics.utils
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.os.Bundle
 
 fun openIntent(context: Context, order: String, activityToOpen: Class<*>) {
     //Declare Intent with context and class to pass the value to
@@ -10,7 +10,7 @@ fun openIntent(context: Context, order: String, activityToOpen: Class<*>) {
     //pass through the string value with key "order"
     intent.putExtra("order", order)
     //if the context is not an activity, add FLAG_ACTIVITY_NEW_TASK
-    if (context !is android.app.Activity) {
+    if (context !is Activity) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
     //start the activity
@@ -27,7 +27,7 @@ fun shareIntent(context: Context, order: String) {
     //show the share sheet
     val shareIntent = Intent.createChooser(sendIntent, null)
     //if the context is not an activity, add FLAG_ACTIVITY_NEW_TASK
-    if (context !is android.app.Activity) {
+    if (context !is Activity) {
         shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     }
     //start the activity

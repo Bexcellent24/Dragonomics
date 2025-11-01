@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "33440750383",
+    "project_id": "dragonomics-budgeting-app",
+    "storage_bucket": "dragonomics-budgeting-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:33440750383:android:f6abb5a7757464a10f9fda",
+        "android_client_info": {
+          "package_name": "com.TheBudgeteers.dragonomics"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSB6SOechtoE4Xt9ssg1_oIhP6APLCkWU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -10,17 +10,11 @@ import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.TheBudgeteers.dragonomics.R
-import com.TheBudgeteers.dragonomics.data.AppDatabase
-import com.TheBudgeteers.dragonomics.data.Repository
 import com.TheBudgeteers.dragonomics.models.Nest
-import com.TheBudgeteers.dragonomics.models.NestType
 import com.TheBudgeteers.dragonomics.models.Transaction
-import com.TheBudgeteers.dragonomics.viewmodel.NestViewModelFactory
-import com.TheBudgeteers.dragonomics.viewmodel.TransactionViewModelFactory
 import com.TheBudgeteers.dragonomics.viewmodel.NestViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.TransactionViewModel
 import androidx.lifecycle.lifecycleScope
@@ -38,14 +32,16 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.core.os.bundleOf
+import com.TheBudgeteers.dragonomics.data.NestType
 import com.TheBudgeteers.dragonomics.data.SessionStore
+import com.TheBudgeteers.dragonomics.ui.adapters.NewTransactionNestAdapter
+import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import kotlinx.coroutines.flow.firstOrNull
 
-// DialogFragment for creating a new transaction.
-// Lets the user input transaction details such as title, amount, description, date, category, and optionally attach a photo.
-// Handles form validation, category selection, expense/income toggling, date picking, camera permission handling,
-// transaction creation, and notifies the parent fragment when the transaction is saved.
-
+/**
+ * DialogFragment for creating a new transaction.
+ * UPDATED FOR FIREBASE: Uses String userId instead of Long.
+ */
 class NewTransactionFragment : DialogFragment() {
 
     // UI elements
@@ -66,6 +62,7 @@ class NewTransactionFragment : DialogFragment() {
 
     // ViewModels and session data
     private lateinit var nestViewModel: NestViewModel
+    private lateinit var transactionViewModel: TransactionViewModel
     private lateinit var session: SessionStore
 
     // Selected category and transaction details
@@ -75,12 +72,11 @@ class NewTransactionFragment : DialogFragment() {
     private var selectedDate = Date()
     private var photoUri: Uri? = null
     private var currentPhotoPath: String? = null
-    private var currentUserId: Long? = null
+    private var currentUserId: String? = null // UPDATED: Now String
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this dialog
         val view = inflater.inflate(R.layout.dialog_new_transaction, container, false)
 
         // Initialise session store and UI components
@@ -100,20 +96,18 @@ class NewTransactionFragment : DialogFragment() {
         btnCreate = view.findViewById(R.id.btnCreateTransaction)
         recyclerFromCategories = view.findViewById(R.id.recyclerFromCategories)
 
-        // Setup buttons, category grids, and toggle functionality
         setupToggleButtons()
         setupCategoryGrid()
 
-        // Button click listeners
         btnCancel.setOnClickListener { dismiss() }
         btnCreate.setOnClickListener { createTransaction() }
         btnDate.setOnClickListener { showDatePicker() }
         btnPhoto.setOnClickListener { takePhotoWithPermissionCheck() }
 
-        // Initialise ViewModel for categories
-        val repository = Repository(AppDatabase.getDatabase(requireContext()))
-        nestViewModel = ViewModelProvider(this, NestViewModelFactory(repository))
-            .get(NestViewModel::class.java)
+        // Initialise ViewModels
+        val repository = RepositoryProvider.getRepository(requireContext())
+        nestViewModel = NestViewModel(repository)
+        transactionViewModel = TransactionViewModel(repository)
 
         return view
     }
@@ -121,7 +115,7 @@ class NewTransactionFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Load current logged-in user
+        // Load current logged-in user (now String)
         lifecycleScope.launch {
             currentUserId = session.userId.firstOrNull()
             if (currentUserId != null) {
@@ -135,17 +129,17 @@ class NewTransactionFragment : DialogFragment() {
 
     override fun onStart() {
         super.onStart()
-        // Ensure dialog takes full width of screen
         dialog?.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
-    // Sets up toggle buttons for Expense and Income
     private fun setupToggleButtons() {
         btnExpense.setOnClickListener { toggleType(true) }
         btnIncome.setOnClickListener { toggleType(false) }
     }
 
-    // Toggles between expense and income transaction mode
+    /**
+     * Toggles between expense and income transaction mode.
+     */
     private fun toggleType(expense: Boolean) {
         isExpense = expense
         btnExpense.isSelected = expense
@@ -155,7 +149,10 @@ class NewTransactionFragment : DialogFragment() {
         loadCategories(expense)
     }
 
-    // Loads available categories for the transaction type
+    /**
+     * Loads available categories for the transaction type.
+     * UPDATED: Now uses String userId.
+     */
     private fun loadCategories(expense: Boolean) {
         val userId = currentUserId ?: return
         val type = if (expense) NestType.EXPENSE else NestType.INCOME
@@ -171,7 +168,10 @@ class NewTransactionFragment : DialogFragment() {
         }
     }
 
-    // Loads available "From" categories when creating expense transactions
+    /**
+     * Loads available "From" categories when creating expense transactions.
+     * UPDATED: Now uses String userId.
+     */
     private fun loadFromCategories() {
         val userId = currentUserId ?: return
         recyclerFromCategories.layoutManager = GridLayoutManager(requireContext(), 6)
@@ -186,11 +186,6 @@ class NewTransactionFragment : DialogFragment() {
         }
     }
 
-    // begin code attribution
-    // DatePickerDialog usage adapted from:
-    // Android Developers guide to pickers
-
-    // Displays a date picker dialog for selecting the transaction date
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
         calendar.time = selectedDate
@@ -205,28 +200,14 @@ class NewTransactionFragment : DialogFragment() {
             calendar.get(Calendar.DAY_OF_MONTH)
         ).show()
     }
-    // end code attribution (Android Developers, 2020)
 
-
-    // begin code attribution
-    // Runtime permissions handling adapted from:
-    // Android Developers guide to permissions
-
-    // Requests camera permission and launches photo capture if granted
+    // Permission handling
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) takePhoto() else
                 Toast.makeText(requireContext(), "Camera permission required", Toast.LENGTH_SHORT).show()
         }
 
-    // end code attribution (Android Developers, 2020)
-
-
-    // begin code attribution
-    // Camera capture using TakePicture contract adapted from:
-    // Android Developers guide to camera intents
-
-    //Handles captured photo result
     private val takePictureLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
@@ -237,13 +218,6 @@ class NewTransactionFragment : DialogFragment() {
             }
         }
 
-    // end code attribution (Android Developers, 2020)
-
-    // begin code attribution
-    // Temporary image file creation adapted from:
-    // Android Developers guide to saving photos
-
-    // Creates a temporary file to store a photo taken
     @Throws(IOException::class)
     private fun createImageFile(): File? {
         return try {
@@ -259,18 +233,10 @@ class NewTransactionFragment : DialogFragment() {
         }
     }
 
-    // end code attribution (Android Developers, 2020)
-
-    // Checks camera permission before taking a photo
     private fun takePhotoWithPermissionCheck() {
         requestPermissionLauncher.launch(android.Manifest.permission.CAMERA)
     }
 
-    // begin code attribution
-    // Camera capture with FileProvider adapted from:
-    // Android Developers guide to sharing files
-
-    // Initiates photo capture
     private fun takePhoto() {
         val photoFile = createImageFile()
         photoFile?.let {
@@ -285,14 +251,14 @@ class NewTransactionFragment : DialogFragment() {
         }
     }
 
-    // end code attribution (Android Developers, 2020)
-
-    // Sets up the category selection grid
     private fun setupCategoryGrid() {
         recyclerCategories.layoutManager = GridLayoutManager(requireContext(), 6)
     }
 
-    // Validates inputs and creates a new transaction
+    /**
+     * Validates inputs and creates a new transaction.
+     * UPDATED: Now uses String userId.
+     */
     private fun createTransaction() {
         val title = edtTitle.text.toString().trim()
         val amount = edtAmount.text.toString().toDoubleOrNull() ?: 0.0
@@ -321,7 +287,7 @@ class NewTransactionFragment : DialogFragment() {
             return
         }
 
-        // Create transaction object
+        // Create transaction object (no ID needed - Firebase generates it)
         val transaction = Transaction(
             userId = userId,
             title = title,
@@ -334,10 +300,7 @@ class NewTransactionFragment : DialogFragment() {
         )
 
         // Save transaction using ViewModel
-        val repository = Repository(AppDatabase.getDatabase(requireContext()))
-        val vm = ViewModelProvider(this, TransactionViewModelFactory(repository))
-            .get(TransactionViewModel::class.java)
-        vm.addTransaction(transaction)
+        transactionViewModel.addTransaction(userId, transaction)
 
         // Notify parent fragment and close dialog
         val addedPhoto = currentPhotoPath != null
@@ -346,8 +309,3 @@ class NewTransactionFragment : DialogFragment() {
         dismiss()
     }
 }
-
-// Android Developers, 2020. DatePickerDialog guide. [online] Available at: <https://developer.android.com/guide/topics/ui/controls/pickers> [Accessed 1 October 2025]
-// Android Developers, 2020. Permissions guide. [online] Available at: <https://developer.android.com/guide/topics/permissions> [Accessed 1 October 2025]
-// Android Developers, 2020. Camera intents guide. [online] Available at: <https://developer.android.com/training/camera> [Accessed 1 October 2025]
-// Android Developers, 2020. Saving photos guide. [online] Available at: <https://developer.android.com/training/camera/photobasics> [Accessed 1 October 2025]

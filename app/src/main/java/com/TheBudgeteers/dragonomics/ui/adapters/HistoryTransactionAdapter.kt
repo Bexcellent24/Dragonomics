@@ -1,4 +1,4 @@
-package com.TheBudgeteers.dragonomics.ui
+package com.TheBudgeteers.dragonomics.ui.adapters
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.TheBudgeteers.dragonomics.R
 import com.TheBudgeteers.dragonomics.data.HistoryListItem
-import com.TheBudgeteers.dragonomics.models.NestType
+import com.TheBudgeteers.dragonomics.data.NestType
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

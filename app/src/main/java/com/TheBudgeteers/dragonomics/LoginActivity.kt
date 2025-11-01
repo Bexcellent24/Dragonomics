@@ -17,9 +17,10 @@ import kotlinx.coroutines.launch
 
 /*
 Purpose:
-  - Presents the login UI and coordinates authentication.
+  - Presents the login UI and coordinates authentication with Firebase.
   - Validates inputs locally and delegates to [AuthViewModel].
   - Observes [AuthState] to show loading, surface errors, and navigate.
+  - Updated to work with Firebase UID (String) instead of Room userId (Long)
  */
 
 class LoginActivity : AppCompatActivity() {
@@ -79,7 +80,6 @@ class LoginActivity : AppCompatActivity() {
         binding.btnLogin.setOnClickListener {
 
             // Perform validation, sets field errors if needed
-            // Similar logic to the SignUpActivity btnCreateAccount
             if (!validateHard()) return@setOnClickListener
             val u = binding.etUsername.text?.toString()?.trim().orEmpty()
             val p = binding.etPassword.text?.toString()?.trim().orEmpty()
@@ -96,8 +96,8 @@ class LoginActivity : AppCompatActivity() {
                     is AuthState.Success -> {
                         setLoading(false)
 
-                        //Persist session for user info
-                        val userId = s.userId
+                        //Persist Firebase UID for session management
+                        val userId = s.userId // Now a String (Firebase UID)
                         SessionStore(this@LoginActivity).setUser(userId)
 
                         // begin code attribution
@@ -131,6 +131,9 @@ class LoginActivity : AppCompatActivity() {
 
                             msg.contains("password", ignoreCase = true) ->
                                 binding.etPassword.error = msg.ifEmpty { "Invalid password" }
+
+                            msg.contains("email", ignoreCase = true) ->
+                                binding.tvError?.text = msg
 
                             else ->
                                 binding.tvError?.text = msg.ifEmpty { "Login failed. Please try again." }

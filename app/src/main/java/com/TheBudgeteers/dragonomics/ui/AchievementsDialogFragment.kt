@@ -8,9 +8,9 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.TheBudgeteers.dragonomics.AchievementsAdapter
 import com.TheBudgeteers.dragonomics.R
 import com.TheBudgeteers.dragonomics.databinding.DialogAchievementsBinding
+import com.TheBudgeteers.dragonomics.ui.adapters.AchievementsAdapter
 import com.TheBudgeteers.dragonomics.viewmodel.AchievementsViewModel
 import kotlinx.coroutines.launch
 

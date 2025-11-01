@@ -1,5 +1,6 @@
-package com.TheBudgeteers.dragonomics.ui
+package com.TheBudgeteers.dragonomics.ui.adapters
 
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.LayoutInflater
 import android.view.View
@@ -41,9 +42,9 @@ class ColourAdapter(
             shape = GradientDrawable.RECTANGLE
             cornerRadius = 8f
             try {
-                setColor(android.graphics.Color.parseColor(hex))
+                setColor(Color.parseColor(hex))
             } catch (e: Exception) {
-                setColor(android.graphics.Color.GRAY)
+                setColor(Color.GRAY)
             }
 
             setStroke(

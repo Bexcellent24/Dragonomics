@@ -11,20 +11,19 @@ import com.TheBudgeteers.dragonomics.R
 import androidx.lifecycle.lifecycleScope
 import androidx.fragment.app.Fragment
 import com.TheBudgeteers.dragonomics.data.MonthlyStats
-import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
+import com.TheBudgeteers.dragonomics.data.UserProfile
 import com.TheBudgeteers.dragonomics.utils.DateUtils
 import com.TheBudgeteers.dragonomics.viewmodel.StatsViewModel
-import com.TheBudgeteers.dragonomics.viewmodel.StatsViewModelFactory
+import com.TheBudgeteers.dragonomics.viewmodel.factories.StatsViewModelFactory
 import com.TheBudgeteers.dragonomics.data.SessionStore
-import com.TheBudgeteers.dragonomics.models.UserEntity
+import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-// Displays monthly financial statistics for the user.
-// Shows income, expenses, remaining balance, and progress toward savings goals.
-// Can expand/collapse to show/hide goal information.
-// Loads data for the current month from the database.
-
+/**
+ * Displays monthly financial statistics for the user.
+ * UPDATED FOR FIREBASE: Uses String userId and UserProfile instead of Long/UserEntity.
+ */
 class StatsFragment : Fragment(R.layout.fragment_stats) {
 
     private lateinit var viewModel: StatsViewModel
@@ -71,10 +70,10 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         viewModel = ViewModelProvider(this, factory)[StatsViewModel::class.java]
     }
 
-
-    // Data loading
+    // Data loading - UPDATED to use String userId
     private fun loadUserData() {
         lifecycleScope.launch {
+            // userId is now String (Firebase UID) instead of Long
             val userId = session.userId.firstOrNull() ?: return@launch
 
             // Get start and end timestamps for current month
@@ -83,9 +82,6 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
             viewModel.loadUser(userId)
         }
     }
-
-    // begin code attribution
-    // Data observing adapted from Android Developers guide to LifecycleScope
 
     // Data Observing
     private fun observeData() {
@@ -102,15 +98,14 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
     }
 
-    // Watch for changes in user's savings goals
+    // Watch for changes in user's savings goals - UPDATED to use UserProfile
     private fun observeUserGoals() {
         lifecycleScope.launch {
-            viewModel.userEntity.collect { user ->
+            viewModel.userProfile.collect { user ->
                 user?.let { updateGoalsDisplay(it) }
             }
         }
     }
-    // end code attribution (Android Developers, 2020)
 
     private fun updateStatsDisplay(stats: MonthlyStats) {
         incomeAmount.text = "R${stats.income.toInt()}"
@@ -126,7 +121,8 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         progressBar.progress = percent
     }
 
-    private fun updateGoalsDisplay(user: UserEntity) {
+    // UPDATED: Now accepts UserProfile instead of UserEntity
+    private fun updateGoalsDisplay(user: UserProfile) {
         minGoal.text = if (user.minGoal != null) {
             "Min Goal: R${user.minGoal.toInt()}"
         } else {
@@ -168,5 +164,3 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         }
     }
 }
-
-// Android Developers, 2020. LifecycleScope. [online] Available at: <https://developer.android.com/topic/libraries/architecture/coroutines> [Accessed 3 October 2025].
