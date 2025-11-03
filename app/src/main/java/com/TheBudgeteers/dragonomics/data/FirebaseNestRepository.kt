@@ -7,32 +7,21 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
-/**
- * Firebase Firestore repository for Nest operations.
- * Replaces NestDao with Firestore implementation.
- *
- * Firestore structure:
- * /users/{userId}/nests/{nestId}
- *   - name: String
- *   - budget: Double?
- *   - icon: String
- *   - colour: String
- *   - type: String ("INCOME" or "EXPENSE")
- */
+
+// Firebase Firestore repository for Nest operations.
+// Replaces NestDao with Firestore implementation.
+
 class FirebaseNestRepository {
 
     private val firestore = FirebaseFirestore.getInstance()
 
-    /**
-     * Get reference to user's nests collection
-     */
+
+    // Get reference to user's nests collection
     private fun nestsCollection(userId: String) =
         firestore.collection("users").document(userId).collection("nests")
 
-    /**
-     * Insert a new nest into Firestore.
-     * Returns the generated nest ID.
-     */
+
+    // Insert a new nest into Firestore.
     suspend fun insert(userId: String, nest: Nest): String {
         val nestData = hashMapOf(
             "name" to nest.name,
@@ -47,10 +36,8 @@ class FirebaseNestRepository {
         return docRef.id
     }
 
-    /**
-     * Get all nests for a user (non-reactive).
-     * Returns List<Nest> with Firestore document IDs.
-     */
+
+    // Get all nests for a user (non-reactive).
     suspend fun getAll(userId: String): List<Nest> {
         val snapshot = nestsCollection(userId).get().await()
         return snapshot.documents.mapNotNull { doc ->
@@ -58,9 +45,7 @@ class FirebaseNestRepository {
         }
     }
 
-    /**
-     * Get a single nest by ID.
-     */
+     // Get a single nest by ID.
     suspend fun getById(userId: String, nestId: String): Nest? {
         val doc = nestsCollection(userId).document(nestId).get().await()
         return if (doc.exists()) {
@@ -68,10 +53,9 @@ class FirebaseNestRepository {
         } else null
     }
 
-    /**
-     * Get all nests for a user as a reactive Flow.
-     * Updates automatically when Firestore data changes.
-     */
+
+    // Get all nests for a user as a reactive Flow.
+    // Updates automatically when Firestore data changes.
     fun getAllFlow(userId: String): Flow<List<Nest>> = callbackFlow {
         val listener = nestsCollection(userId)
             .addSnapshotListener { snapshot, error ->
@@ -90,9 +74,8 @@ class FirebaseNestRepository {
         awaitClose { listener.remove() }
     }
 
-    /**
-     * Get nests filtered by type (INCOME or EXPENSE) as a reactive Flow.
-     */
+
+    // Get nests filtered by type (INCOME or EXPENSE) as a reactive Flow.
     fun getAllFlowByType(userId: String, type: NestType): Flow<List<Nest>> = callbackFlow {
         val listener = nestsCollection(userId)
             .whereEqualTo("type", type.name)
@@ -112,9 +95,8 @@ class FirebaseNestRepository {
         awaitClose { listener.remove() }
     }
 
-    /**
-     * Update a nest's data.
-     */
+
+    // Update a nest's data.
     suspend fun update(userId: String, nestId: String, updates: Map<String, Any?>): Result<Unit> {
         return try {
             nestsCollection(userId)
@@ -127,9 +109,8 @@ class FirebaseNestRepository {
         }
     }
 
-    /**
-     * Delete a nest.
-     */
+
+    // Delete a nest.
     suspend fun delete(userId: String, nestId: String): Result<Unit> {
         return try {
             nestsCollection(userId)
@@ -142,10 +123,8 @@ class FirebaseNestRepository {
         }
     }
 
-    /**
-     * Convert Firestore document to Nest model.
-     * Handles the conversion from Map to typed Nest object.
-     */
+
+    // Convert Firestore document to Nest model.
     private fun documentToNest(userId: String, docId: String, data: Map<String, Any?>?): Nest? {
         if (data == null) return null
 
@@ -164,10 +143,9 @@ class FirebaseNestRepository {
         }
     }
 
-    /**
-     * Mark nests as reset for the new budget period.
-     * Adds a timestamp to track when the last reset occurred.
-     */
+
+    //  Mark nests as reset for the new budget period.
+    // Adds a timestamp to track when the last reset occurred.
     suspend fun markBudgetPeriodReset(userId: String): Result<Unit> {
         return try {
             val allNests = getAll(userId)
@@ -192,9 +170,8 @@ class FirebaseNestRepository {
         }
     }
 
-    /**
-     * Get current month period as a string (e.g., "2024-11")
-     */
+
+    // Get current month period as a string
     private fun getCurrentMonthPeriod(): String {
         val calendar = java.util.Calendar.getInstance()
         val year = calendar.get(java.util.Calendar.YEAR)

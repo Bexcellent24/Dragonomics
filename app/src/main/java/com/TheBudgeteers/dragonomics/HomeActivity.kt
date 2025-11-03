@@ -1,5 +1,6 @@
 package com.TheBudgeteers.dragonomics
 
+import android.content.Context
 import android.graphics.ColorFilter
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
@@ -20,6 +21,8 @@ import com.TheBudgeteers.dragonomics.data.Repository
 import com.bumptech.glide.Glide
 import com.TheBudgeteers.dragonomics.databinding.ActivityHomeBinding
 import com.TheBudgeteers.dragonomics.data.SessionStore
+import com.TheBudgeteers.dragonomics.gamify.AchievementNotifier
+import com.TheBudgeteers.dragonomics.gamify.AchievementTriggers
 import com.TheBudgeteers.dragonomics.gamify.DragonMoodManager
 import com.TheBudgeteers.dragonomics.ui.AchievementsDialogFragment
 import com.TheBudgeteers.dragonomics.ui.ShopDialogFragment
@@ -45,10 +48,10 @@ import com.TheBudgeteers.dragonomics.ui.dragon.DragonSockets
 import com.TheBudgeteers.dragonomics.utils.openIntent
 import kotlin.math.roundToInt
 
-/**
- * HomeActivity - Main screen showing the dragon and its progression.
- * UPDATED FOR FIREBASE: Now initializes ViewModels with userId from SessionStore.
- */
+
+// HomeActivity - Main screen showing the dragon and its progression.
+// UPDATED FOR FIREBASE: Now initializes ViewModels with userId from SessionStore.
+
 class HomeActivity : AppCompatActivity(),
     NavigationView.OnNavigationItemSelectedListener,
     AccessoryEquipListener {
@@ -61,6 +64,9 @@ class HomeActivity : AppCompatActivity(),
     private lateinit var sessionStore: SessionStore
     private lateinit var displayMetrics: DisplayMetrics
 
+    //Dedicated notifier for achievement toasts
+    private var achievementNotifier: AchievementNotifier? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -70,6 +76,8 @@ class HomeActivity : AppCompatActivity(),
 
         displayMetrics = resources.displayMetrics
         sessionStore = SessionStore(this)
+
+        initializeViewModels()
 
         // Initialize ViewModels and load user data
         lifecycleScope.launch {
@@ -81,11 +89,16 @@ class HomeActivity : AppCompatActivity(),
                 return@launch
             }
 
-            initializeViewModels()
+            // Initialize achievement notifier with userId
+            achievementNotifier = AchievementNotifier(this@HomeActivity, userId)
 
             // Initialize ViewModels with userId to load Firebase data
             dragonViewModel.initialize(userId)
             shopViewModel.initialize(userId)
+
+            //  Load achievements and start observing for notifications
+            achievementsViewModel.loadAchievements(userId)
+            achievementNotifier?.observeAndNotify(this@HomeActivity, achievementsViewModel)
 
             initializeDragonDisplay()
             setupButtons()
@@ -96,6 +109,19 @@ class HomeActivity : AppCompatActivity(),
 
             // Calculate mood on activity creation
             updateOverallMoodFromNests(userId)
+
+
+            // Track login on HomeActivity open
+            AchievementTriggers.trackLogin(userId)
+            android.util.Log.d("HomeActivity", " Login tracked for user: $userId")
+
+            // Initialize achievements once
+            val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+            if (!prefs.getBoolean("achievements_initialized", false)) {
+                achievementsViewModel.initializeAchievements()
+                prefs.edit().putBoolean("achievements_initialized", true).apply()
+                android.util.Log.d("HomeActivity", "Achievements initialized")
+            }
         }
     }
 
@@ -250,10 +276,7 @@ class HomeActivity : AppCompatActivity(),
         }
     }
 
-    private fun getAccessoryDrawables(
-        itemId: String,
-        level: Int
-    ): DragonSockets.AccessoryDrawables {
+    private fun getAccessoryDrawables(itemId: String, level: Int): DragonSockets.AccessoryDrawables {
         val prefix = when {
             level >= 10 -> "adult_"
             level >= 5 -> "teen_"
@@ -316,6 +339,9 @@ class HomeActivity : AppCompatActivity(),
         lifecycleScope.launch {
             val userId = sessionStore.userId.firstOrNull() ?: return@launch
             updateOverallMoodFromNests(userId)
+
+            // Reload achievements when returning to home screen
+            achievementsViewModel.loadAchievements(userId)
         }
     }
 
@@ -338,26 +364,6 @@ class HomeActivity : AppCompatActivity(),
             Mood.NEUTRAL -> DragonRules.Mood.NEUTRAL
             Mood.NEGATIVE -> DragonRules.Mood.ANGRY
         }
-    }
-
-    fun onUserLoggedExpense(addedPhoto: Boolean) {
-        dragonViewModel.onExpenseLogged(addedPhoto)
-    }
-
-    fun onBudgetRecalculated(
-        under80: Boolean,
-        between80And100: Boolean,
-        over: Boolean,
-        betweenMinAndMax: Boolean,
-        aboveMax: Boolean
-    ) {
-        dragonViewModel.onBudgetEvaluated(
-            under80Percent = under80,
-            between80And100 = between80And100,
-            overBudget = over,
-            betweenMinAndMaxGoal = betweenMinAndMax,
-            aboveMaxGoal = aboveMax
-        )
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {

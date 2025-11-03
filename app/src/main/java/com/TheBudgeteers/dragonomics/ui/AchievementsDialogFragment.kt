@@ -12,6 +12,7 @@ import com.TheBudgeteers.dragonomics.R
 import com.TheBudgeteers.dragonomics.databinding.DialogAchievementsBinding
 import com.TheBudgeteers.dragonomics.ui.adapters.AchievementsAdapter
 import com.TheBudgeteers.dragonomics.viewmodel.AchievementsViewModel
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 // Dialog fragment showing a list of achievements.
@@ -45,12 +46,13 @@ class AchievementsDialogFragment : DialogFragment() {
 
         setupAdapter()
         setupCloseButton()
+        loadAchievements()
         observeViewModel()
     }
 
     // Setup RecyclerView and adapter for achievements
     private fun setupAdapter() {
-        achievementsAdapter = AchievementsAdapter(emptyList())
+        achievementsAdapter = AchievementsAdapter()
         binding.achRecycler.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(requireContext())
@@ -65,11 +67,37 @@ class AchievementsDialogFragment : DialogFragment() {
         }
     }
 
+    private fun loadAchievements() {
+        val sessionStore = com.TheBudgeteers.dragonomics.data.SessionStore(requireContext())
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val userId = sessionStore.userId.firstOrNull()
+                if (userId != null) {
+                    android.util.Log.d("AchievementsDialog", "Loading achievements for user: $userId")
+                    achievementsViewModel.loadAchievements(userId)
+                } else {
+                    android.util.Log.e("AchievementsDialog", "No userId found!")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("AchievementsDialog", "Error loading achievements", e)
+            }
+        }
+    }
+
     // Observe achievements data and update adapter
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
-            achievementsViewModel.achievements.collect { achievements ->
-                achievementsAdapter.submit(achievements)
+            achievementsViewModel.completedAchievements.collect { completedAchievements  ->
+                android.util.Log.d("AchievementsDialog", "Received ${completedAchievements .size} achievements")
+
+                if (completedAchievements .isEmpty()) {
+                    // Show empty state or loading indicator
+                    binding.achRecycler.visibility = View.GONE
+                } else {
+                    binding.achRecycler.visibility = View.VISIBLE
+                    achievementsAdapter.submitList(completedAchievements )
+                }
             }
         }
     }

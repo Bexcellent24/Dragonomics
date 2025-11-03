@@ -28,11 +28,10 @@ import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-/**
- * ExpensesActivity is the main screen for managing income and expense categories (nests).
- * Shows monthly stats at the top, transaction list in middle, and nest cards at bottom.
- * UPDATED FOR FIREBASE: Uses String userId (Firebase UID) instead of Long.
- */
+
+// ExpensesActivity is the main screen for managing income and expense categories (nests).
+// Shows monthly stats at the top, transaction list in middle, and nest cards at bottom.
+
 class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var binding: ActivityExpensesBinding
@@ -77,9 +76,7 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         updateOverallMoodFromVm(NestType.EXPENSE)
     }
 
-    /**
-     * Setup bottom navigation bar with proper selection state.
-     */
+   // Setup bottom navigation bar with proper selection state.
     private fun setupBottomNavigation() {
         binding.bottomNavigationView.apply {
             itemIconTintList = null  // Use original icon colors
@@ -90,9 +87,7 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         }
     }
 
-    /**
-     * Setup nest toggle buttons and FAB for adding transactions.
-     */
+    // Setup nest toggle buttons and FAB for adding transactions.
     private fun setupNestButtons() {
         btnNestIn = binding.btnNestsIn
         btnNestOut = binding.btnNestsOut
@@ -125,9 +120,7 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         updateNestToggleSelection(R.id.btnNestsOut)
     }
 
-    /**
-     * Setup all fragments that make up this screen.
-     */
+    // Setup all fragments that make up this screen.
     private fun setupFragments(savedInstanceState: Bundle?) {
         // Setup month summary fragment at the top (shows income/expense/balance)
         supportFragmentManager.beginTransaction()
@@ -146,10 +139,8 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         }
     }
 
-    /**
-     * Listen for when user saves a new transaction.
-     * Award XP and update dragon mood.
-     */
+    // Listen for when user saves a new transaction.
+    // Award XP and update dragon mood.
     private fun setupTransactionListener() {
         supportFragmentManager.setFragmentResultListener("tx_saved", this) { _, bundle ->
             val addedPhoto = bundle.getBoolean("addedPhoto", false)
@@ -166,10 +157,8 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         }
     }
 
-    /**
-     * Load the nest fragment for a specific type (income or expense).
-     * Shows nest cards in grid layout.
-     */
+
+    // Load the nest fragment for a specific type (income or expense).
     private fun loadNestFragment(nestType: NestType) {
         val fragment = NestFragment.newInstance(nestType, NestLayoutType.GRID)
         supportFragmentManager.beginTransaction()
@@ -177,18 +166,14 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
             .commit()
     }
 
-    /**
-     * Update visual state of nest toggle buttons.
-     * Selected button gets highlighted styling.
-     */
+
+    // Update visual state of nest toggle buttons.
     private fun updateNestToggleSelection(selectedId: Int) {
         btnNestIn.isSelected = (selectedId == R.id.btnNestsIn)
         btnNestOut.isSelected = (selectedId == R.id.btnNestsOut)
     }
 
-    /**
-     * Handle bottom navigation item clicks.
-     */
+    // Handle bottom navigation item clicks.
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.nav_home -> openIntent(this, "", HomeActivity::class.java)
@@ -199,11 +184,7 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         return true
     }
 
-    /**
-     * Calculate overall budget health and update dragon's mood.
-     * This is called whenever spending changes or view is opened.
-     * UPDATED: Now uses String userId (Firebase UID).
-     */
+    // Calculate overall budget health and update dragon's mood.
     private fun updateOverallMoodFromVm(type: NestType) {
         lifecycleScope.launch {
             // Get current user ID from session (now String instead of Long)
@@ -230,9 +211,7 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         }
     }
 
-    /**
-     * Convert nest mood to dragon mood format.
-     */
+    // Convert nest mood to dragon mood format.
     private fun Mood.toDragonMood(): DragonRules.Mood =
         when (this) {
             Mood.POSITIVE -> DragonRules.Mood.HAPPY

@@ -11,66 +11,52 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
-/**
- * TransactionViewModel manages transaction data for the UI.
- * UPDATED FOR FIREBASE: Uses String userId instead of Long.
- */
+// TransactionViewModel manages transaction data for the UI.
+
 class TransactionViewModel(private val repository: Repository) : ViewModel() {
 
-    /**
-     * Current user ID for filtering transactions.
-     * When this changes, reactive flows automatically update.
-     * UPDATED: Now uses String (Firebase UID) instead of Long.
-     */
+
+    // Current user ID for filtering transactions.
+    // When this changes, reactive flows automatically update.
     private val _userId = MutableStateFlow<String?>(null)
 
-    /**
-     * Set the current user ID.
-     * UPDATED: Now accepts String (Firebase UID).
-     */
+    // Set the current user ID.
     fun setUserId(userId: String) {
         _userId.value = userId
     }
 
-    /**
-     * Add a new transaction to the database.
-     * Runs in background thread so UI doesn't freeze.
-     * UPDATED: Now accepts String userId.
-     */
-    fun addTransaction(userId: String, transaction: Transaction) {
+
+    // Add a new transaction to the database.
+    fun addTransaction(userId: String, transaction: Transaction, onSuccess: (() -> Unit)? = null) {
         viewModelScope.launch {
-            repository.addTransaction(userId, transaction)
+            try {
+                repository.addTransaction(userId, transaction)  // This now triggers achievement
+                onSuccess?.invoke()
+            } catch (e: Exception) {
+                android.util.Log.e("TransactionViewModel", "Error adding transaction", e)
+            }
         }
     }
 
-    /**
-     * Get all transactions for a user.
-     * Results returned via callback when ready.
-     * UPDATED: Now accepts String userId.
-     */
+    // Get all transactions for a user.
+    // Results returned via callback when ready.
     fun getTransactions(userId: String, callback: (List<Transaction>) -> Unit) {
         viewModelScope.launch {
             callback(repository.getTransactions(userId))
         }
     }
 
-    /**
-     * Get transactions with their nest (category) information.
-     * Results returned via callback when ready.
-     * UPDATED: Now accepts String userId.
-     */
+    // Get transactions with their nest (category) information.
     fun getTransactionsWithNests(userId: String, callback: (List<TransactionWithNest>) -> Unit) {
         viewModelScope.launch {
             callback(repository.getTransactionsWithNests(userId))
         }
     }
 
-    /**
-     * Flow that automatically updates when transactions change.
-     * Switches to correct user's data when userId is updated.
-     * Returns empty list if no user is set.
-     * UPDATED: Now uses String userId (Firebase UID).
-     */
+
+    // Flow that automatically updates when transactions change.
+     //Switches to correct user's data when userId is updated.
+     // Returns empty list if no user is set.
     val transactionsWithNestsFlow: Flow<List<TransactionWithNest>> =
         _userId.flatMapLatest { userId ->
             if (userId != null) {

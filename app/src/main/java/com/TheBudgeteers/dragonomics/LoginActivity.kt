@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.utils.Validators
 import com.TheBudgeteers.dragonomics.databinding.ActivityLoginBinding
+import com.TheBudgeteers.dragonomics.gamify.AchievementTriggers
 import com.TheBudgeteers.dragonomics.viewmodel.AuthState
 import com.TheBudgeteers.dragonomics.viewmodel.AuthViewModel
 import kotlinx.coroutines.launch
@@ -43,6 +44,7 @@ class LoginActivity : AppCompatActivity() {
             binding.tvError?.text = ""
             binding.btnLogin.isEnabled = looksValid()
         }
+
 
         // begin code attribution
         // Live field validation using AndroidX Core KTX text-change callbacks.
@@ -99,6 +101,9 @@ class LoginActivity : AppCompatActivity() {
                         //Persist Firebase UID for session management
                         val userId = s.userId // Now a String (Firebase UID)
                         SessionStore(this@LoginActivity).setUser(userId)
+
+                        AchievementTriggers.trackLogin(userId)
+                        android.util.Log.d("LoginActivity", "Login tracked for user: $userId")
 
                         // begin code attribution
                         // Navigate to Home and clear the back stack using Intent flags NEW_TASK, CLEAR_TASK, and CLEAR_TOP.

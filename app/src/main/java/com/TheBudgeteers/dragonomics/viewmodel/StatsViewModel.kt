@@ -10,10 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/**
- * StatsViewModel manages financial statistics and user data for the stats screen.
- * UPDATED FOR FIREBASE: Uses String userId and UserProfile instead of Long/UserEntity.
- */
+// StatsViewModel manages financial statistics and user data for the stats screen.
+
 class StatsViewModel(private val repository: Repository) : ViewModel() {
 
     // Monthly financial statistics (income, expenses, balance)
@@ -24,10 +22,7 @@ class StatsViewModel(private val repository: Repository) : ViewModel() {
     private val _userProfile = MutableStateFlow<UserProfile?>(null)
     val userProfile: StateFlow<UserProfile?> = _userProfile.asStateFlow()
 
-    /**
-     * Load monthly statistics for a specific time period.
-     * UPDATED: Now accepts String userId (Firebase UID).
-     */
+    // Load monthly statistics for a specific time period.
     fun loadMonthlyStats(userId: String, start: Long, end: Long) {
         viewModelScope.launch {
             repository.getMonthlyStatsFlow(userId, start, end).collect { stats ->
@@ -44,10 +39,7 @@ class StatsViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    /**
-     * Load user profile including savings goals.
-     * UPDATED: Now accepts String userId and returns UserProfile.
-     */
+    // Load user profile including savings goals.
     fun loadUser(userId: String) {
         viewModelScope.launch {
             repository.getUserFlow(userId).collect { user ->

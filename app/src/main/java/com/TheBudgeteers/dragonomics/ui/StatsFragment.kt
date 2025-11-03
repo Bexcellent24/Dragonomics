@@ -20,10 +20,8 @@ import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-/**
- * Displays monthly financial statistics for the user.
- * UPDATED FOR FIREBASE: Uses String userId and UserProfile instead of Long/UserEntity.
- */
+// Displays monthly financial statistics for the user.
+
 class StatsFragment : Fragment(R.layout.fragment_stats) {
 
     private lateinit var viewModel: StatsViewModel
@@ -70,7 +68,7 @@ class StatsFragment : Fragment(R.layout.fragment_stats) {
         viewModel = ViewModelProvider(this, factory)[StatsViewModel::class.java]
     }
 
-    // Data loading - UPDATED to use String userId
+    // Data loading
     private fun loadUserData() {
         lifecycleScope.launch {
             // userId is now String (Firebase UID) instead of Long

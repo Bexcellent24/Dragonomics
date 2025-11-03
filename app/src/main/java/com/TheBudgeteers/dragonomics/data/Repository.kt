@@ -1,6 +1,7 @@
 package com.TheBudgeteers.dragonomics.data
 
 import android.util.Log
+import com.TheBudgeteers.dragonomics.gamify.AchievementManager
 import com.TheBudgeteers.dragonomics.models.*
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
@@ -9,19 +10,22 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 
-/**
- * Central repository for app data using Firebase.
- * Handles Firebase Authentication, Firestore access, and business logic.
- * Replaces Room-based Repository with Firebase implementation.
- *
- * All data operations filtered by userId (Firebase UID).
- */
+
+// Central repository for app data using Firebase.
+ // Handles Firebase Authentication, Firestore access, and business logic.
+// Replaces Room-based Repository with Firebase implementation.
+// All data operations filtered by userId (Firebase UID).
+
 class Repository {
 
     private val authRepo = FirebaseAuthRepository()
     private val nestRepo = FirebaseNestRepository()
     private val transactionRepo = FirebaseTransactionRepository()
+    private val achievementRepo = FirebaseAchievementRepository()
     private val firestore = FirebaseFirestore.getInstance()
+
+    // Achievement manager for auto-tracking
+    private val achievementManager = AchievementManager(achievementRepo)
 
     // ---------- AUTHENTICATION ----------
 
@@ -40,10 +44,7 @@ class Repository {
 
     // ---------- USER PROFILE ----------
 
-    /**
-     * Get user profile as a reactive Flow.
-     * Returns UserProfile (Firebase model) instead of UserEntity (Room model).
-     */
+    // Get user profile as a reactive Flow.
     fun getUserFlow(userId: String): Flow<UserProfile?> = callbackFlow {
         val listener = firestore.collection("users")
             .document(userId)
@@ -71,9 +72,8 @@ class Repository {
         awaitClose { listener.remove() }
     }
 
-    /**
-     * Get user profile once (non-reactive).
-     */
+
+    // Get user profile once (non-reactive).
     suspend fun getUser(userId: String): UserProfile? {
         return try {
             val doc = firestore.collection("users")
@@ -95,10 +95,14 @@ class Repository {
         }
     }
 
+
     // ---------- NEST OPERATIONS ----------
 
-    suspend fun addNest(userId: String, nest: Nest): String =
-        nestRepo.insert(userId, nest)
+    suspend fun addNest(userId: String, nest: Nest): String {
+        val nestId = nestRepo.insert(userId, nest)
+        achievementManager.onNestCreated(userId)
+        return nestId
+    }
 
     suspend fun getNests(userId: String): List<Nest> =
         nestRepo.getAll(userId)
@@ -121,8 +125,18 @@ class Repository {
 
     // ---------- TRANSACTION OPERATIONS ----------
 
-    suspend fun addTransaction(userId: String, transaction: Transaction): String =
-        transactionRepo.insert(userId, transaction)
+    suspend fun addTransaction(userId: String, transaction: Transaction): String {
+        val transactionId = transactionRepo.insert(userId, transaction)
+
+        val nest = nestRepo.getById(userId, transaction.categoryId)
+        when (nest?.type) {
+            NestType.EXPENSE -> achievementManager.onExpenseLogged(userId)
+            NestType.INCOME -> achievementManager.onIncomeLogged(userId)
+            else -> {}
+        }
+
+        return transactionId
+    }
 
     suspend fun getTransactions(userId: String): List<Transaction> =
         transactionRepo.getAll(userId)
@@ -130,11 +144,7 @@ class Repository {
     suspend fun getTransactionsByNestId(userId: String, nestId: String): List<Transaction> =
         transactionRepo.getByCategoryId(userId, nestId)
 
-    fun getTransactionsBetweenFlow(
-        userId: String,
-        start: Long,
-        end: Long
-    ): Flow<List<Transaction>> =
+    fun getTransactionsBetweenFlow(userId: String, start: Long, end: Long): Flow<List<Transaction>> =
         transactionRepo.getByDateRangeFlow(userId, start, end)
 
     fun getSpentInCategoryFlow(userId: String, nestId: String): Flow<Double> =
@@ -148,23 +158,13 @@ class Repository {
             list.map { mapTransaction(userId, it) }
         }
 
-    fun getTransactionsWithNestBetweenFlow(
-        userId: String,
-        start: Long,
-        end: Long
-    ): Flow<List<TransactionWithNest>> =
+    fun getTransactionsWithNestBetweenFlow(userId: String, start: Long, end: Long): Flow<List<TransactionWithNest>> =
         transactionRepo.getByDateRangeFlow(userId, start, end).map { list ->
             list.map { mapTransaction(userId, it) }
         }
 
-    /**
-     * Helper to map Transaction to TransactionWithNest.
-     * Fetches the related nest documents from Firestore.
-     */
-    private suspend fun mapTransaction(
-        userId: String,
-        transaction: Transaction
-    ): TransactionWithNest {
+    // Helper to map Transaction to TransactionWithNest.
+    private suspend fun mapTransaction(userId: String, transaction: Transaction): TransactionWithNest {
         val categoryNest = nestRepo.getById(userId, transaction.categoryId)
             ?: Nest(
                 id = transaction.categoryId,
@@ -256,13 +256,8 @@ class Repository {
                 MonthlyStats(income = income, expenses = expenses, remaining = income - expenses)
             }
     }
-    /**
-     * Reset budgets for a new month period.
-     *
-     * This marks all current transactions with the current budget period,
-     * effectively "closing" them. New transactions won't have this field,
-     * so budget calculations will start fresh while history remains intact.
-     */
+
+    // Reset budgets for a new month period.
     suspend fun resetForNewMonth(userId: String): Result<Unit> {
         return try {
             // Close the current budget period for all transactions
@@ -280,4 +275,21 @@ class Repository {
     suspend fun getTransactionsByNestIdCurrentPeriod(userId: String, nestId: String): List<Transaction> =
         transactionRepo.getByCategoryIdCurrentPeriod(userId, nestId)
 
+
+
+    // ---------- ACHIEVEMENT OPERATIONS ----------
+
+    // Initialize default achievements
+    suspend fun initializeAchievements(): Result<Unit> =
+        achievementRepo.initializeDefaultAchievements()
+
+    // Get all achievements with user's progress.
+    suspend fun getAchievementsWithProgress(userId: String) =
+        achievementManager.getAchievementsWithProgress(userId)
+
+   // Get user's current gold balance.
+    suspend fun getUserGold(userId: String): Int {
+        val user = getUser(userId)
+        return user?.gold ?: 0
+    }
 }

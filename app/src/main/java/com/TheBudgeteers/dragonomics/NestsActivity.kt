@@ -93,9 +93,7 @@ class NestsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
         }
     }
 
-    /**
-     * Show confirmation dialog before resetting for new month
-     */
+    // Show confirmation dialog before resetting for new month
     private fun showResetConfirmationDialog() {
         MaterialAlertDialogBuilder(this)
             .setTitle("Start New Budget Period?")
@@ -114,9 +112,7 @@ class NestsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
             .show()
     }
 
-    /**
-     * Perform the actual month reset operation
-     */
+    // Perform the actual month reset operation
     private fun performMonthReset() {
         val userId = currentUserId
 

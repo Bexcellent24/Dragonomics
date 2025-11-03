@@ -7,24 +7,18 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
-/**
- * Handles Firebase Authentication and user profile management.
- * Replaces Room-based authentication with Firebase Auth.
- *
- * User profile data (username, goals) is stored in Firestore at:
- * /users/{uid}/profile
- */
+
+ // Handles Firebase Authentication and user profile management.
+ // Replaces Room-based authentication with Firebase Auth.
+
 class FirebaseAuthRepository {
 
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
 
-    /**
-     * Sign up a new user with Firebase Authentication.
-     * Also creates a user profile document in Firestore.
-     *
-     * @return Result containing Firebase UID on success
-     */
+
+    // Sign up a new user with Firebase Authentication.
+    // Also creates a user profile document in Firestore.
     suspend fun signUpUser(username: String, email: String, password: String): Result<String> {
         val u = username.trim()
         val e = email.trim()
@@ -55,6 +49,7 @@ class FirebaseAuthRepository {
                 "email" to e,
                 "minGoal" to null,
                 "maxGoal" to null,
+                "gold" to 500,
                 "createdAt" to System.currentTimeMillis()
             )
 
@@ -69,6 +64,9 @@ class FirebaseAuthRepository {
                 .set(hashMapOf("uid" to uid))
                 .await()
 
+            // Initialize default cosmetics for new user
+            initializeDefaultCosmetics(uid)
+
             Result.success(uid)
 
         } catch (e: FirebaseAuthUserCollisionException) {
@@ -78,13 +76,9 @@ class FirebaseAuthRepository {
         }
     }
 
-    /**
-     * Log in an existing user with Firebase Authentication.
-     * Note: Firebase Auth uses email for login, but we accept username
-     * and look up the associated email from Firestore.
-     *
-     * @return Result containing Firebase UID on success
-     */
+
+    // Log in an existing user with Firebase Authentication.
+    // Note: Firebase Auth uses email for login, but we accept username and look up the associated email from Firestore.
     suspend fun loginUser(username: String, password: String): Result<String> {
         val u = username.trim()
 
@@ -131,9 +125,8 @@ class FirebaseAuthRepository {
         }
     }
 
-    /**
-     * Update user's financial goals in Firestore
-     */
+
+    // Update user's financial goals in Firestore
     suspend fun updateUserGoals(userId: String, minGoal: Double?, maxGoal: Double?): Result<Unit> {
         return try {
             firestore.collection("users")
@@ -151,16 +144,39 @@ class FirebaseAuthRepository {
         }
     }
 
-    /**
-     * Get current Firebase user UID, or null if not logged in
-     */
+
+    // Initialize default cosmetics for new users.
+    // Gives them the starter items (chipped horns, ragged wings, ember palette).
+    private suspend fun initializeDefaultCosmetics(userId: String) {
+        try {
+            val defaultCosmetics = hashMapOf(
+                "ownedItems" to listOf("horns_chipped", "wings_ragged", "pal_ember"),
+                "equippedHorns" to "horns_chipped",
+                "equippedWings" to "wings_ragged",
+                "equippedPalette" to "pal_ember"
+            )
+
+            firestore.collection("users")
+                .document(userId)
+                .collection("cosmetics")
+                .document("data")
+                .set(defaultCosmetics)
+                .await()
+
+            android.util.Log.d("FirebaseAuthRepo", "Initialized default cosmetics for user $userId")
+        } catch (e: Exception) {
+            android.util.Log.e("FirebaseAuthRepo", "Failed to initialize cosmetics for user $userId", e)
+            // Don't fail the signup if cosmetics initialization fails
+        }
+    }
+
+
+    // Get current Firebase user UID, or null if not logged in
     fun getCurrentUserId(): String? {
         return auth.currentUser?.uid
     }
 
-    /**
-     * Sign out the current user
-     */
+    // Sign out the current user
     fun signOut() {
         auth.signOut()
     }

@@ -26,10 +26,8 @@ import com.google.android.material.tabs.TabLayout
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-/**
- * ShopDialogFragment - Full-screen shop dialog.
- * UPDATED FOR FIREBASE: Now initializes with userId from SessionStore.
- */
+//ShopDialogFragment - Full-screen shop dialog.
+
 class ShopDialogFragment : DialogFragment() {
 
     private var _binding: DialogShopBinding? = null

@@ -2,77 +2,101 @@ package com.TheBudgeteers.dragonomics.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.TheBudgeteers.dragonomics.data.Repository
 import com.TheBudgeteers.dragonomics.gamify.Achievement
-import com.TheBudgeteers.dragonomics.R
+import com.TheBudgeteers.dragonomics.gamify.AchievementWithProgress
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-//Placeholder class, all achievements are hard code, functionality won't be implemented until part 3
-class AchievementsViewModel : ViewModel() {
 
-    private val _achievements = MutableStateFlow<List<Achievement>>(emptyList())
-    val achievements: StateFlow<List<Achievement>> = _achievements.asStateFlow()
+// ViewModel for managing achievements display.
+// Now uses real Firebase data instead of hardcoded values.
 
-    init {
-        loadAchievements()
-    }
+class AchievementsViewModel(
+    private val repository: Repository = Repository()
+) : ViewModel() {
 
-    //Placeholder achievements to match the part 1 wireframes
-    private fun loadAchievements() {
+    private val _achievements = MutableStateFlow<List<AchievementDisplay>>(emptyList())
+    val achievements: StateFlow<List<AchievementDisplay>> = _achievements.asStateFlow()
+
+    private val _completedAchievements = MutableStateFlow<List<AchievementDisplay>>(emptyList())
+    val completedAchievements: StateFlow<List<AchievementDisplay>> = _completedAchievements.asStateFlow()
+
+    private val _userGold = MutableStateFlow(0)
+    val userGold: StateFlow<Int> = _userGold.asStateFlow()
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    // Load achievements for a user.
+    fun loadAchievements(userId: String) {
         viewModelScope.launch {
-            val list = listOf(
-                Achievement(
-                    id = "master",
-                    title = "Dragon Master",
-                    description = "Unlock all customizations for your dragon.",
-                    medalRes = R.drawable.gold_badge,
-                    achieved = false
-                ),
-                Achievement(
-                    id = "hoard",
-                    title = "Dragon's Hoard",
-                    description = "Have 30,000 or more in a savings nest.",
-                    medalRes = R.drawable.silver_badge,
-                    achieved = false
-                ),
-                Achievement(
-                    id = "streak",
-                    title = "Flames of authority",
-                    description = "Log for 30 days in a row.",
-                    medalRes = R.drawable.bronze_badge,
-                    achieved = true
-                )
-            )
-            _achievements.value = list
-        }
-    }
+            try {
+                _isLoading.value = true
 
-    fun checkAchievements(
-        totalSavings: Double = 0.0,
-        loginStreakDays: Int = 0,
-        allCustomizationsUnlocked: Boolean = false
-    ) {
-        viewModelScope.launch {
-            val updated = _achievements.value.map { achievement ->
-                when (achievement.id) {
-                    "hoard" -> achievement.copy(achieved = totalSavings >= 30000.0)
-                    "streak" -> achievement.copy(achieved = loginStreakDays >= 30)
-                    "master" -> achievement.copy(achieved = allCustomizationsUnlocked)
-                    else -> achievement
+                // Get achievements with user progress
+                val achievementsWithProgress = repository.getAchievementsWithProgress(userId)
+
+                // Convert to display format
+                val displayList = achievementsWithProgress.map { awp ->
+                    AchievementDisplay(
+                        id = awp.achievement.id,
+                        title = awp.achievement.title,
+                        description = awp.achievement.description,
+                        medalRes = awp.achievement.medalRes,
+                        goldReward = awp.achievement.goldReward,
+                        achieved = awp.achieved,
+                        progress = awp.progress,
+                        targetValue = awp.achievement.targetValue,
+                        progressText = getProgressText(awp)
+                    )
                 }
+
+                _achievements.value = displayList
+
+                _completedAchievements.value = displayList.filter { it.achieved }
+
+                // Load user's gold
+                _userGold.value = repository.getUserGold(userId)
+
+            } catch (e: Exception) {
+                // Handle error - could emit error state
+                _achievements.value = emptyList()
+                _completedAchievements.value = emptyList()
+            } finally {
+                _isLoading.value = false
             }
-            _achievements.value = updated
         }
     }
 
-    fun unlockAchievement(achievementId: String) {
+    // Initialize achievements in Firebase
+    fun initializeAchievements() {
         viewModelScope.launch {
-            val updated = _achievements.value.map {
-                if (it.id == achievementId) it.copy(achieved = true) else it
-            }
-            _achievements.value = updated
+            repository.initializeAchievements()
+        }
+    }
+
+    // Format progress text for display.
+    private fun getProgressText(awp: AchievementWithProgress): String {
+        return when {
+            awp.achieved -> "Completed!"
+            awp.achievement.targetValue > 1 -> "${awp.progress}/${awp.achievement.targetValue}"
+            else -> "Not yet completed"
         }
     }
 }
+
+// Display model for achievements in the UI.
+data class AchievementDisplay(
+    val id: String,
+    val title: String,
+    val description: String,
+    val medalRes: Int,
+    val goldReward: Int,
+    val achieved: Boolean,
+    val progress: Int,
+    val targetValue: Int,
+    val progressText: String
+)

@@ -11,10 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/**
- * ShopViewModel manages the in-app shop where users buy dragon accessories.
- * UPDATED FOR FIREBASE: Now persists purchases and equipped items to Firestore.
- */
+
+// ShopViewModel manages the in-app shop where users buy dragon accessories.
+// UPDATED FOR FIREBASE: Now persists purchases and equipped items to Firestore.
+
 
 //------------CODE ATTRIBUTION------------
 //Title: Interfaces
@@ -55,26 +55,19 @@ class ShopViewModel : ViewModel() {
     private val _state = MutableStateFlow(ShopState())
     val state: StateFlow<ShopState> = _state.asStateFlow()
 
-    /**
-     * Initialize shop data for a specific user.
-     * Call this from your Activity/Fragment when you have the userId.
-     */
+    // Initialize shop data for a specific user.
     fun initialize(userId: String) {
         android.util.Log.d("ShopViewModel", "🔵 initialize() called with userId: $userId")
         currentUserId = userId
         loadShopData(userId)
     }
 
-    /**
-     * Set the listener for notifying equipped items
-     */
+    // Set the listener for notifying equipped items
     fun setEquipListener(listener: AccessoryEquipListener) {
         this.equipListener = listener
     }
 
-    /**
-     * Load shop data from Firebase and merge with owned/equipped items
-     */
+    // Load shop data from Firebase and merge with owned/equipped items
     private fun loadShopData(userId: String) {
 
         viewModelScope.launch {
@@ -144,16 +137,12 @@ class ShopViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Switch between shop categories
-     */
+    // Switch between shop categories
     fun setCurrentTab(tab: ShopTab) {
         _state.value = _state.value.copy(currentTab = tab)
     }
 
-    /**
-     * Get items for the currently active tab
-     */
+    // Get items for the currently active tab
     fun getCurrentItems(): List<ShopItem> {
         return when (_state.value.currentTab) {
             ShopTab.PALETTE -> _state.value.paletteItems
@@ -162,9 +151,7 @@ class ShopViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Handle user clicking on a shop item
-     */
+    // Handle user clicking on a shop item
     fun handleItemAction(item: ShopItem) {
         val userId = currentUserId ?: return
 
@@ -175,9 +162,7 @@ class ShopViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Equip an item (user already owns it)
-     */
+    // Equip an item (user already owns it)
     private fun equipItem(userId: String, item: ShopItem) {
         viewModelScope.launch {
             val itemType = when (_state.value.currentTab) {
@@ -195,9 +180,7 @@ class ShopViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Attempt to purchase an item
-     */
+    // Attempt to purchase an item
     private fun purchaseItem(userId: String, item: ShopItem) {
         viewModelScope.launch {
             val result = cosmeticsRepo.purchaseItem(userId, item.id, item.price)
@@ -212,20 +195,8 @@ class ShopViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Clear purchase result (after showing message)
-     */
+   // Clear purchase result (after showing message)
     fun clearPurchaseResult() {
         _state.value = _state.value.copy(purchaseResult = null)
-    }
-
-    /**
-     * Add currency (for rewards/testing)
-     */
-    fun addCurrency(amount: Int) {
-        val userId = currentUserId ?: return
-        viewModelScope.launch {
-            cosmeticsRepo.addCurrency(userId, amount)
-        }
     }
 }

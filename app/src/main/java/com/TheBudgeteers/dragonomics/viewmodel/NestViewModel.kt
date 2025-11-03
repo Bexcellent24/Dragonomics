@@ -11,9 +11,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-/**
- * UI state for a single nest with all computed values
- */
+// UI state for a single nest with all computed values
+
 data class NestUiState(
     val nest: Nest,
     val spent: Double,
@@ -23,17 +22,13 @@ data class NestUiState(
     val mood: Mood
 )
 
-/**
- * ViewModel for the Nest entity.
- * UPDATED FOR FIREBASE: Uses String IDs instead of Long.
- */
+// ViewModel for the Nest entity.
+
 class NestViewModel(private val repository: Repository) : ViewModel() {
 
-    /**
-     * Returns a Flow emitting UI state for a single nest.
-     * Automatically updates when spent amounts change.
-     * UPDATED: Now accepts String userId and nestId (Firebase).
-     */
+
+    // Returns a Flow emitting UI state for a single nest.
+    // Automatically updates when spent amounts change.
     fun getNestUiStateFlow(userId: String, nestId: String): Flow<NestUiState> = flow {
         val nest = repository.getNestById(userId, nestId)
             ?: return@flow // Exit if nest doesn't exist
@@ -81,11 +76,11 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    /**
-     * Returns UI state for a nest as a single snapshot.
-     * UPDATED: Now accepts String userId and nestId.
-     * UPDATED: Now uses current period filtering for income nests.
-     */
+
+     // Returns UI state for a nest as a single snapshot.
+    // UPDATED: Now accepts String userId and nestId.
+    // UPDATED: Now uses current period filtering for income nests.
+
     suspend fun getNestUiState(userId: String, nestId: String): NestUiState {
         val nest = repository.getNestById(userId, nestId)
             ?: return NestUiState(
@@ -133,9 +128,7 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         )
     }
 
-    /**
-     * Calculate progress (0.0 to 1.0) for a nest
-     */
+    // Calculate progress (0.0 to 1.0) for a nest
     fun calculateNestProgress(nest: Nest, totalSpent: Double): Double {
         return if (nest.type == NestType.EXPENSE) {
             val b = nest.budget
@@ -150,58 +143,43 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    /**
-     * Converts progress to a mood state.
-     */
+    // Converts progress to a mood state.
     fun calculateMood(progress: Double): Mood = when {
         progress >= 0.75 -> Mood.POSITIVE
         progress >= 0.4  -> Mood.NEUTRAL
         else             -> Mood.NEGATIVE
     }
 
-    /**
-     * Get a single nest by ID.
-     * UPDATED: Now accepts String userId and nestId.
-     */
+    // Get a single nest by ID.
     suspend fun getNestById(userId: String, nestId: String): Nest? =
         repository.getNestById(userId, nestId)
 
-    /**
-     * Add a new nest.
-     * UPDATED: Now accepts String userId.
-     */
+    // Add a new nest.
     fun addNest(userId: String, nest: Nest, onDone: (() -> Unit)? = null) {
         viewModelScope.launch {
-            repository.addNest(userId, nest)
-            onDone?.invoke()
+            try {
+                repository.addNest(userId, nest)  // This now triggers achievement
+                onDone?.invoke()
+            } catch (e: Exception) {
+                // Handle error
+                android.util.Log.e("NestViewModel", "Error adding nest", e)
+            }
         }
     }
 
-    /**
-     * Get nests filtered by type.
-     * UPDATED: Now accepts String userId.
-     */
+    // Get nests filtered by type.
     suspend fun getNestsByType(userId: String, type: NestType): List<Nest> =
         repository.getNests(userId).filter { it.type == type }
 
-    /**
-     * Get spent amount flow for a nest.
-     * UPDATED: Now accepts String userId and nestId.
-     */
+    // Get spent amount flow for a nest.
     fun getSpentAmountFlow(userId: String, nestId: String): Flow<Double> =
         repository.getSpentAmountFromNestFlow(userId, nestId)
 
-    /**
-     * Get nests by type as reactive Flow.
-     * UPDATED: Now accepts String userId.
-     */
+    // Get nests by type as reactive Flow.
     fun getNestsByTypeLive(userId: String, type: NestType): Flow<List<Nest>> =
         repository.getNestsFlowByType(userId, type)
 
-    /**
-     * Get spent amounts grouped by nest within date range.
-     * UPDATED: Now accepts String userId and returns Map<String, Double>.
-     */
+    // Get spent amounts grouped by nest within date range.
     fun getSpentAmountsInRange(userId: String, start: Long, end: Long): Flow<Map<String, Double>> {
         return repository.getSpentAmountsInRange(userId, start, end)
             .map { list -> list.associate { it.nestId to it.spent } }
@@ -227,15 +205,8 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
 
     enum class Weighting { EQUAL, BUDGET, SPENT }
 
-    /**
-     * Computes weighted average progress across all nests of a type.
-     * UPDATED: Now accepts String userId.
-     */
-    suspend fun computeOverallProgress(
-        userId: String,
-        type: NestType = NestType.EXPENSE,
-        weighting: Weighting = Weighting.BUDGET
-    ): Double {
+    // Computes weighted average progress across all nests of a type.
+    suspend fun computeOverallProgress(userId: String, type: NestType = NestType.EXPENSE, weighting: Weighting = Weighting.BUDGET): Double {
         val nests = repository.getNests(userId).filter { it.type == type }
         if (nests.isEmpty()) return 0.5
 
@@ -262,15 +233,8 @@ class NestViewModel(private val repository: Repository) : ViewModel() {
         }
     }
 
-    /**
-     * Returns overall mood and average progress for a type of nest.
-     * UPDATED: Now accepts String userId.
-     */
-    suspend fun getOverallMood(
-        userId: String,
-        type: NestType = NestType.EXPENSE,
-        weighting: Weighting = Weighting.BUDGET
-    ): Pair<Mood, Double> {
+    // Returns overall mood and average progress for a type of nest.
+    suspend fun getOverallMood(userId: String, type: NestType = NestType.EXPENSE, weighting: Weighting = Weighting.BUDGET): Pair<Mood, Double> {
         val avg = computeOverallProgress(userId, type, weighting)
         return calculateMood(avg) to avg
     }

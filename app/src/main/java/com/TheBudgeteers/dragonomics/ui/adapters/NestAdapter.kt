@@ -21,10 +21,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
-/**
- * NestAdapter is a RecyclerView adapter for displaying Nests in different layouts.
- * UPDATED FOR FIREBASE: Uses String userId and nestId instead of Long.
- */
+
+// NestAdapter is a RecyclerView adapter for displaying Nests in different layouts.
+// UPDATED FOR FIREBASE: Uses String userId and nestId instead of Long.
+
 class NestAdapter(
     private val nestViewModel: NestViewModel,
     private val userId: String, // UPDATED: Now String (Firebase UID)
@@ -55,19 +55,15 @@ class NestAdapter(
         }
     }
 
-    /**
-     * Updates the nest list displayed in the adapter.
-     */
+    // Updates the nest list displayed in the adapter.
     fun setNests(newNests: List<Nest>) {
         nests.clear()
         nests.addAll(newNests)
         notifyDataSetChanged()
     }
 
-    /**
-     * ViewHolder for nest items.
-     * Contains references to UI elements and tracks coroutine jobs for reactive updates.
-     */
+    // ViewHolder for nest items.
+    // Contains references to UI elements and tracks coroutine jobs for reactive updates.
     inner class NestViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val txtNestName: TextView = view.findViewById(R.id.txtNestName)
         val imgMood: ImageView? = view.findViewById(R.id.imgMood)
@@ -82,9 +78,7 @@ class NestAdapter(
         var bindJob: Job? = null // Track coroutine job to cancel on rebind
     }
 
-    /**
-     * Choose layout based on selected layout type.
-     */
+    // Choose layout based on selected layout type.
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NestViewHolder {
         val layoutRes = when (layoutType) {
             NestLayoutType.GRID -> R.layout.item_nest
@@ -111,9 +105,7 @@ class NestAdapter(
         holder.itemView.setOnClickListener { onClick(nest) }
     }
 
-    /**
-     * Bind data for GRID layout with reactive UI updates.
-     */
+    // Bind data for GRID layout with reactive UI updates.
     private fun bindGrid(holder: NestViewHolder, nest: Nest) {
         // Set icon
         val iconRes = NestUiMapper.getIconResource(holder.itemView.context, nest.icon)
@@ -130,9 +122,7 @@ class NestAdapter(
         }
     }
 
-    /**
-     * Update UI for GRID layout based on nest UI state.
-     */
+    // Update UI for GRID layout based on nest UI state.
     private fun updateGridViews(holder: NestViewHolder, state: NestUiState) {
         // Progress bar shows remaining/budget percentage
         holder.progressBar?.progress = if (state.budget > 0) {
@@ -147,9 +137,7 @@ class NestAdapter(
         holder.imgMood?.setImageResource(NestUiMapper.getMoodDrawable(state.mood))
     }
 
-    /**
-     * Bind data for LIST layout.
-     */
+    // Bind data for LIST layout.
     private fun bindList(holder: NestViewHolder, nest: Nest) {
         // Set icon
         val iconRes = NestUiMapper.getIconResource(holder.itemView.context, nest.icon)
@@ -173,9 +161,7 @@ class NestAdapter(
         }
     }
 
-    /**
-     * Bind data for HISTORY layout.
-     */
+    // Bind data for HISTORY layout.
     private fun bindHistory(holder: NestViewHolder, nest: Nest) {
         // Set icon
         val iconRes = NestUiMapper.getIconResource(holder.itemView.context, nest.icon)

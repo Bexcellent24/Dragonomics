@@ -23,10 +23,7 @@ import com.TheBudgeteers.dragonomics.viewmodel.NestViewModel
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-/**
- * Fragment for displaying nests in different layouts (Grid, List, or History).
- * UPDATED FOR FIREBASE: Uses String userId instead of Long.
- */
+// Fragment for displaying nests in different layouts (Grid, List, or History).
 class NestFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
@@ -41,9 +38,7 @@ class NestFragment : Fragment() {
         private const val ARG_NEST_TYPE = "nest_type"
         private const val ARG_LAYOUT_TYPE = "layout_type"
 
-        /**
-         * Create a new instance of NestFragment with the specified nest type and layout type.
-         */
+        // Create a new instance of NestFragment with the specified nest type and layout type.
         fun newInstance(nestType: NestType, layoutType: NestLayoutType): NestFragment {
             val fragment = NestFragment()
             val args = Bundle()
@@ -64,11 +59,8 @@ class NestFragment : Fragment() {
             ?: NestLayoutType.GRID
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+
         val view = inflater.inflate(R.layout.fragment_nest_list, container, false)
 
         recyclerView = view.findViewById(R.id.recyclerViewNests)
@@ -112,14 +104,10 @@ class NestFragment : Fragment() {
 
         // Listen for new nest creation events
         parentFragmentManager.setFragmentResultListener("new_nest_created", viewLifecycleOwner) { _, _ ->
-            // No manual refresh needed as Flow emits changes automatically
         }
     }
 
-    /**
-     * Create the NestAdapter for the given user and layout type.
-     * UPDATED: Now accepts String userId.
-     */
+    // Create the NestAdapter for the given user and layout type.
     private fun createAdapter(userId: String): NestAdapter {
         return if (layoutType == NestLayoutType.HISTORY) {
             val repository = RepositoryProvider.getRepository(requireContext())

@@ -10,39 +10,25 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.Date
 
-/**
- * Firebase Firestore repository for Transaction operations.
- * Replaces TransactionDao with Firestore implementation.
- *
- * Firestore structure:
- * /users/{userId}/transactions/{transactionId}
- *   - title: String
- *   - amount: Double
- *   - date: Long (timestamp)
- *   - photoPath: String?
- *   - description: String?
- *   - categoryId: String (Firestore nest ID)
- *   - fromCategoryId: String? (Firestore nest ID)
- */
+
+// Firebase Firestore repository for Transaction operations.
+// Replaces TransactionDao with Firestore implementation.
+
 class FirebaseTransactionRepository {
 
     private val firestore = FirebaseFirestore.getInstance()
 
-    /**
-     * Get reference to user's transactions collection
-     */
+
+    // Get reference to user's transactions collection
     private fun transactionsCollection(userId: String) =
         firestore.collection("users").document(userId).collection("transactions")
 
-    /**
-     * Insert a new transaction into Firestore.
-     * Returns the generated transaction ID.
-     */
+    // Insert a new transaction into Firestore.
     suspend fun insert(userId: String, transaction: Transaction): String {
         val transactionData = hashMapOf(
             "title" to transaction.title,
             "amount" to transaction.amount,
-            "date" to transaction.date.time, // Store as timestamp (Long)
+            "date" to transaction.date.time,
             "photoPath" to transaction.photoPath,
             "description" to transaction.description,
             "categoryId" to transaction.categoryId,
@@ -54,9 +40,8 @@ class FirebaseTransactionRepository {
         return docRef.id
     }
 
-    /**
-     * Get all transactions for a user, ordered by date descending.
-     */
+
+    // Get all transactions for a user, ordered by date descending.
     suspend fun getAll(userId: String): List<Transaction> {
         val snapshot = transactionsCollection(userId)
             .orderBy("date", Query.Direction.DESCENDING)
@@ -68,9 +53,8 @@ class FirebaseTransactionRepository {
         }
     }
 
-    /**
-     * Get transactions within a date range.
-     */
+
+    // Get transactions within a date range.
     suspend fun getByDateRange(userId: String, start: Long, end: Long): List<Transaction> {
         val snapshot = transactionsCollection(userId)
             .whereGreaterThanOrEqualTo("date", start)
@@ -84,9 +68,7 @@ class FirebaseTransactionRepository {
         }
     }
 
-    /**
-     * Get transactions for a specific nest/category.
-     */
+    // Get transactions for a specific nest.
     suspend fun getByCategoryId(userId: String, nestId: String): List<Transaction> {
         val snapshot = transactionsCollection(userId)
             .whereEqualTo("categoryId", nestId)
@@ -98,9 +80,7 @@ class FirebaseTransactionRepository {
         }
     }
 
-    /**
-     * Get all transactions as a reactive Flow, ordered by date.
-     */
+    // Get all transactions as a reactive Flow, ordered by date.
     fun getAllFlow(userId: String): Flow<List<Transaction>> = callbackFlow {
         val listener = transactionsCollection(userId)
             .orderBy("date", Query.Direction.DESCENDING)
@@ -120,9 +100,7 @@ class FirebaseTransactionRepository {
         awaitClose { listener.remove() }
     }
 
-    /**
-     * Get transactions within date range as reactive Flow.
-     */
+    // Get transactions within date range as reactive Flow.
     fun getByDateRangeFlow(userId: String, start: Long, end: Long): Flow<List<Transaction>> = callbackFlow {
         val listener = transactionsCollection(userId)
             .whereGreaterThanOrEqualTo("date", start)
@@ -144,11 +122,7 @@ class FirebaseTransactionRepository {
         awaitClose { listener.remove() }
     }
 
-    /**
-     * Get total amount spent from a specific nest (sum of fromCategoryId).
-     * Note: Firestore doesn't support aggregation queries natively,
-     * so we calculate client-side.
-     */
+    // Get total amount spent from a specific nest (sum of fromCategoryId).
     fun getSpentAmountFromNestFlow(userId: String, nestId: String): Flow<Double> = callbackFlow {
         val listener = transactionsCollection(userId)
             .whereEqualTo("fromCategoryId", nestId)
@@ -171,9 +145,7 @@ class FirebaseTransactionRepository {
         awaitClose { listener.remove() }
     }
 
-    /**
-     * Get total spent in a category within date range.
-     */
+    // Get total spent in a category within date range.
     fun getSpentForNestInRange(userId: String, nestId: String, start: Long, end: Long): Flow<Double> = callbackFlow {
         val listener = transactionsCollection(userId)
             .whereEqualTo("categoryId", nestId)
@@ -195,12 +167,8 @@ class FirebaseTransactionRepository {
         awaitClose { listener.remove() }
     }
 
-    /**
-     * Get spent amounts grouped by nest within date range.
-     * Returns Flow<List<NestSpent>>.
-     *
-     * Note: Firestore doesn't support GROUP BY, so we group client-side.
-     */
+    // Get spent amounts grouped by nest within date range.
+    // Note: Firestore doesn't support GROUP BY, so we group client-side.
     fun getSpentAmountsInRangeFlow(userId: String, start: Long, end: Long): Flow<List<NestSpent>> = callbackFlow {
         val listener = transactionsCollection(userId)
             .whereGreaterThanOrEqualTo("date", start)
@@ -231,9 +199,7 @@ class FirebaseTransactionRepository {
         awaitClose { listener.remove() }
     }
 
-    /**
-     * Get total spent in a category (all time).
-     */
+    // Get total spent in a category (all time).
     fun getSpentInCategoryFlow(userId: String, nestId: String): Flow<Double> = callbackFlow {
         val listener = transactionsCollection(userId)
             .whereEqualTo("categoryId", nestId)
@@ -256,9 +222,7 @@ class FirebaseTransactionRepository {
         awaitClose { listener.remove() }
     }
 
-    /**
-     * Get total income for a specific nest (all time).
-     */
+   // Get total income for a specific nest (all time).
     suspend fun getTotalIncomeForNest(userId: String, nestId: String): Double {
         val snapshot = transactionsCollection(userId)
             .whereEqualTo("categoryId", nestId)
@@ -273,9 +237,7 @@ class FirebaseTransactionRepository {
         }
     }
 
-    /**
-     * Update a transaction.
-     */
+    // Update a transaction.
     suspend fun update(userId: String, transactionId: String, updates: Map<String, Any?>): Result<Unit> {
         return try {
             transactionsCollection(userId)
@@ -288,9 +250,7 @@ class FirebaseTransactionRepository {
         }
     }
 
-    /**
-     * Delete a transaction.
-     */
+    // Delete a transaction.
     suspend fun delete(userId: String, transactionId: String): Result<Unit> {
         return try {
             transactionsCollection(userId)
@@ -303,9 +263,7 @@ class FirebaseTransactionRepository {
         }
     }
 
-    /**
-     * Convert Firestore document to Transaction model.
-     */
+    // Convert Firestore document to Transaction model.
     private fun documentToTransaction(userId: String, docId: String, data: Map<String, Any?>?): Transaction? {
         if (data == null) return null
 
@@ -330,7 +288,7 @@ class FirebaseTransactionRepository {
         return try {
             val currentPeriod = getCurrentMonthPeriod()
 
-            // Get all transactions - we'll filter client-side
+            // Get all transactions
             val snapshot = transactionsCollection(userId)
                 .get()
                 .await()
@@ -348,9 +306,7 @@ class FirebaseTransactionRepository {
         }
     }
 
-    /**
-     * Get current month period as a string (e.g., "2024-11")
-     */
+     // Get current month period as a string
     private fun getCurrentMonthPeriod(): String {
         val calendar = java.util.Calendar.getInstance()
         val year = calendar.get(java.util.Calendar.YEAR)

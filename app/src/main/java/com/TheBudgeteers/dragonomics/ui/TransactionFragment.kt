@@ -19,10 +19,8 @@ import com.TheBudgeteers.dragonomics.viewmodel.factories.RepositoryViewModelFact
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-/**
- * Fragment that shows a scrollable list of all user's transactions.
- * UPDATED FOR FIREBASE: Uses String userId instead of Long.
- */
+// Fragment that shows a scrollable list of all user's transactions.
+
 class TransactionFragment : Fragment() {
 
     private lateinit var viewModel: TransactionViewModel
@@ -62,10 +60,7 @@ class TransactionFragment : Fragment() {
         viewModel = ViewModelProvider(this, factory)[TransactionViewModel::class.java]
     }
 
-    /**
-     * Load transactions for the current user.
-     * UPDATED: Now uses String userId (Firebase UID).
-     */
+    // Load transactions for the current user.
     private fun loadTransactions() {
         viewLifecycleOwner.lifecycleScope.launch {
             // Get current user ID from session as String

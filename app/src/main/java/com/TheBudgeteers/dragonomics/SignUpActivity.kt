@@ -125,9 +125,7 @@ class SignUpActivity : AppCompatActivity() {
         // end code attribution (Android Developers, 2020)
     }
 
-    /**
-     * Enable/disable form inputs during loading
-     */
+    // Enable/disable form inputs during loading
     private fun setFormEnabled(enabled: Boolean) {
         binding.etUsername.isEnabled = enabled
         binding.etEmail.isEnabled = enabled

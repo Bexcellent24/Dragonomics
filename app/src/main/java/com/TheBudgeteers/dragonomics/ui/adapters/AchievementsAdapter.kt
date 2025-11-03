@@ -5,14 +5,25 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.TheBudgeteers.dragonomics.R
-import com.TheBudgeteers.dragonomics.gamify.Achievement
+import com.TheBudgeteers.dragonomics.viewmodel.AchievementDisplay
 
-class AchievementsAdapter(
-    private var items: List<Achievement>
-) : RecyclerView.Adapter<AchievementsAdapter.VH>() {
 
+// Adapter for displaying achievements with progress tracking.
+// Shows medal, title, description, progress, gold reward, and completion status.
+
+class AchievementsAdapter : ListAdapter<AchievementDisplay, AchievementsAdapter.VH>(Diff) {
+
+    object Diff : DiffUtil.ItemCallback<AchievementDisplay>() {
+        override fun areItemsTheSame(old: AchievementDisplay, new: AchievementDisplay) =
+            old.id == new.id
+
+        override fun areContentsTheSame(old: AchievementDisplay, new: AchievementDisplay) =
+            old == new
+    }
 
     class VH(v: View) : RecyclerView.ViewHolder(v) {
         val imgMedal: ImageView = v.findViewById(R.id.imgMedal)
@@ -28,20 +39,15 @@ class AchievementsAdapter(
     }
 
     override fun onBindViewHolder(h: VH, position: Int) {
-        val it = items[position]
-        h.imgMedal.setImageResource(it.medalRes)
-        h.txtTitle.text = it.title
-        h.txtDesc.text  = it.description
-        h.imgTick.setImageResource(
-            if (it.achieved) R.drawable.tick else R.drawable.tick_dim
-        )
-        h.imgTick.alpha = if (it.achieved) 1f else 0.5f
-    }
+        val item = getItem(position)
 
-    override fun getItemCount() = items.size
+        h.imgMedal.setImageResource(item.medalRes)
+        h.txtTitle.text = item.title
+        h.txtDesc.text = item.description
 
-    fun submit(newItems: List<Achievement>) {
-        items = newItems
-        notifyDataSetChanged()
+        h.imgTick.setImageResource(R.drawable.tick)
+        h.imgTick.alpha = 1f
+
+        h.itemView.alpha = 1f
     }
 }

@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Quest Item - Shows in profile with progress tracking -->
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="64dp"
-    android:layout_margin="10dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp"
     app:cardCornerRadius="16dp"
     app:cardElevation="0dp"
     app:cardUseCompatPadding="false"
@@ -12,55 +13,111 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="14dp"
-        android:paddingEnd="14dp">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp">
 
-        <!-- left icon -->
-        <ImageView
-            android:id="@+id/icon"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:contentDescription="@null" />
-
-        <!-- title -->
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="0dp"
+        <!-- Top row: icon, title, reward/tick -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:paddingStart="12dp"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:textColor="@color/GoldenEmber"
-            android:textSize="16sp"
-            android:fontFamily="@font/aref_ruqaa"/>
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-        <!-- reward chip (shown when NOT completed) -->
-        <TextView
-            android:id="@+id/reward"
-            android:layout_width="wrap_content"
-            android:layout_height="28dp"
-            android:minWidth="56dp"
-            android:gravity="center"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:textColor="@color/GoldenEmber"
-            android:textSize="14sp"
-            android:fontFamily="@font/aref_ruqaa"
-            android:background="@drawable/bg_reward_chip"
-            android:visibility="gone"/>
+            <!-- left icon -->
+            <ImageView
+                android:id="@+id/icon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:contentDescription="@null" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+            <!-- title -->
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="@color/FireBurst"
+                android:textSize="20sp"
+                android:fontFamily="@font/aref_ruqaa"/>
 
-        <!-- golden tick (shown when completed) -->
-        <ImageView
-            android:id="@+id/tick"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/ic_tick_filled"
-            app:tint="@color/GoldenEmber"
-            android:contentDescription="@null"
-            android:visibility="gone"/>
+                <TextView
+                    android:id="@+id/description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="@color/GoldenEmber"
+                    android:textSize="16sp"
+                    android:fontFamily="@font/aref_ruqaa"/>
+            </LinearLayout>
+            <!-- reward chip (shown when NOT completed) -->
+            <TextView
+                android:id="@+id/reward"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:minWidth="56dp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="14sp"
+                android:fontFamily="@font/aref_ruqaa"
+                android:background="@drawable/bg_reward_chip"
+                android:visibility="gone"/>
+
+            <!-- golden tick (shown when completed) -->
+            <ImageView
+                android:id="@+id/tick"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_tick_filled"
+                app:tint="@color/GoldenEmber"
+                android:contentDescription="@null"
+                android:visibility="gone"/>
+        </LinearLayout>
+
+        <!-- Progress bar (shown when NOT completed and target > 1) -->
+        <LinearLayout
+            android:id="@+id/layoutProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp"
+            android:visibility="gone">
+
+            <!-- Progress text (e.g., "3 of 5 expenses logged") -->
+            <TextView
+                android:id="@+id/txtProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/aref_ruqaa"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="12sp"
+                android:alpha="0.7"
+                android:text="3 of 5 completed" />
+
+            <!-- Progress bar -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:layout_marginTop="4dp"
+                android:max="100"
+                android:progress="60"
+                android:progressTint="@color/GoldenEmber"
+                android:progressBackgroundTint="#263346" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

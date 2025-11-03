@@ -14,10 +14,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/**
- * DragonViewModel - Holds UI-facing dragon state for Home/Shop screens.
- * UPDATED FOR FIREBASE: Now loads equipped cosmetics from Firestore.
- */
+
+// DragonViewModel - Holds UI-facing dragon state for Home/Shop screens.
+// UPDATED FOR FIREBASE: Now loads equipped cosmetics from Firestore.
+
 
 // Core progression
 data class DragonUiState(
@@ -64,18 +64,13 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
         updateUiState()
     }
 
-    /**
-     * Initialize with user ID to load their equipped cosmetics.
-     * Call this from HomeActivity after getting userId from SessionStore.
-     */
+    // Initialize with user ID to load their equipped cosmetics.
     fun initialize(userId: String) {
         currentUserId = userId
         loadEquippedCosmetics(userId)
     }
 
-    /**
-     * Load equipped cosmetics from Firebase
-     */
+    // Load equipped cosmetics from Firebase
     private fun loadEquippedCosmetics(userId: String) {
         viewModelScope.launch {
             cosmeticsRepo.getCosmeticsDataFlow(userId).collect { data ->
@@ -92,9 +87,7 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
         }
     }
 
-    /**
-     * Pull the latest domain state and map it into bindable UI values
-     */
+   // Pull the latest domain state and map it into bindable UI values
     private fun updateUiState() {
         val state = dragonGame.state
         val xpPercent = (state.xpIntoLevel * 100) / DragonRules.XP_PER_LEVEL
@@ -111,17 +104,10 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
         }
     }
 
-    /**
-     * Toggle expansion (called by HomeActivity)
-     */
-    fun toggleExpansion() {
-        _uiState.update { it.copy(isExpanded = !it.isExpanded) }
-    }
 
-    /**
-     * Update equipped accessory (called when user equips something from shop)
-     * This updates the UI state immediately without waiting for Firestore
-     */
+
+    // Update equipped accessory
+    // This updates the UI state immediately without waiting for Firestore
     fun setEquippedAccessory(accessoryType: String, itemId: String) {
         _uiState.update { state ->
             when (accessoryType) {

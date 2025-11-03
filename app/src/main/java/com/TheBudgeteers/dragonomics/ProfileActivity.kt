@@ -15,13 +15,14 @@ import androidx.core.content.edit
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.TheBudgeteers.dragonomics.data.Repository
 import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.databinding.ActivityProfileBinding
-import com.TheBudgeteers.dragonomics.models.Quest
 import com.TheBudgeteers.dragonomics.ui.adapters.QuestsAdapter
 import com.TheBudgeteers.dragonomics.ui.profile.AvatarManager
 import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import com.TheBudgeteers.dragonomics.utils.openIntent
+import com.TheBudgeteers.dragonomics.viewmodel.AchievementsViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.ProfileViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.factories.ProfileViewModelFactory
 import com.google.android.material.navigation.NavigationView
@@ -41,6 +42,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
     // ViewBinding & adapters
     private lateinit var binding: ActivityProfileBinding
+    private lateinit var achievementsViewModel: AchievementsViewModel
     private lateinit var questsAdapter: QuestsAdapter
 
     // Session + ViewModel
@@ -87,12 +89,13 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         setContentView(binding.root)
 
         session = SessionStore(this)
+        achievementsViewModel = ViewModelProvider(this)[AchievementsViewModel::class.java]
 
         setupBottomNav()
-        setupQuestsList()
+        setupQuestsList()  // This can stay here now that we initialize adapter first
         setupHeaderActions()
 
-        // Session check + bootstrap: ensure we have a userId before wiring user-specific UI
+        // Session check + bootstrap
         lifecycleScope.launch {
             val userId = session.userId.firstOrNull()
             if (userId == null) {
@@ -100,14 +103,12 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
                 return@launch
             }
 
-            // Set user ID FIRST before any UI operations
             currentUserId = userId
-
-            // Initialise ViewModel
             initViewModel(userId)
-
-            // Then setup UI components
             initPerUserUi()
+
+            // Load quests AFTER we have userId
+            loadQuests(userId)
         }
     }
 
@@ -154,46 +155,33 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
     // Available at: <https://developer.android.com/develop/ui/views/layout/recyclerview#kotlin> [Accessed 6 October 2025].
     // RecyclerView + adapter: demo quests
     private fun setupQuestsList() {
+        questsAdapter = QuestsAdapter { quest -> }
+
         binding.rvQuests.apply {
-            if (layoutManager == null) layoutManager = LinearLayoutManager(this@ProfileActivity)
-            setHasFixedSize(true)
+            adapter = questsAdapter
+            layoutManager = LinearLayoutManager(context)
         }
-
-        questsAdapter = QuestsAdapter {
-            binding.profileEditOverlay.visibility = View.VISIBLE
-        }
-        binding.rvQuests.adapter = questsAdapter
-
-        // Load demo quests
-        questsAdapter.submitList(getDemoQuests())
     }
     // end code attribution (Android Developers, 2020)
 
-    // Demo Quests
-    private fun getDemoQuests(): List<Quest> {
-        return listOf(
-            Quest(
-                id = "q1",
-                title = "1 day streak",
-                iconRes = R.drawable.streak,
-                rewardText = "+10 XP",
-                completed = false
-            ),
-            Quest(
-                id = "q2",
-                title = "Log 3 expenses",
-                iconRes = R.drawable.nest,
-                rewardText = "+15 XP",
-                completed = false
-            ),
-            Quest(
-                id = "q3",
-                title = "Hit your min goal this week",
-                iconRes = R.drawable.incoming_nest,
-                rewardText = null,
-                completed = true
-            )
-        )
+    // Add this new method to load quests when userId is available:
+    private fun loadQuests(userId: String) {
+        lifecycleScope.launch {
+            try {
+                achievementsViewModel.loadAchievements(userId)
+
+                achievementsViewModel.achievements.collect { achievements ->
+                    if (achievements.isEmpty()) {
+                        binding.rvQuests.visibility = View.GONE
+                    } else {
+                        binding.rvQuests.visibility = View.VISIBLE
+                        questsAdapter.submitList(achievements)
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("ProfileActivity", "Error loading quests", e)
+            }
+        }
     }
 
     // Sign out: clear UI prefs for this profile + SessionStore

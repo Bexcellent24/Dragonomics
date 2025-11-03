@@ -38,10 +38,8 @@ import com.TheBudgeteers.dragonomics.ui.adapters.NewTransactionNestAdapter
 import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import kotlinx.coroutines.flow.firstOrNull
 
-/**
- * DialogFragment for creating a new transaction.
- * UPDATED FOR FIREBASE: Uses String userId instead of Long.
- */
+// DialogFragment for creating a new transaction.
+
 class NewTransactionFragment : DialogFragment() {
 
     // UI elements
@@ -137,9 +135,7 @@ class NewTransactionFragment : DialogFragment() {
         btnIncome.setOnClickListener { toggleType(false) }
     }
 
-    /**
-     * Toggles between expense and income transaction mode.
-     */
+    // Toggles between expense and income transaction mode.
     private fun toggleType(expense: Boolean) {
         isExpense = expense
         btnExpense.isSelected = expense
@@ -149,10 +145,7 @@ class NewTransactionFragment : DialogFragment() {
         loadCategories(expense)
     }
 
-    /**
-     * Loads available categories for the transaction type.
-     * UPDATED: Now uses String userId.
-     */
+   // Loads available categories for the transaction type.
     private fun loadCategories(expense: Boolean) {
         val userId = currentUserId ?: return
         val type = if (expense) NestType.EXPENSE else NestType.INCOME
@@ -168,10 +161,7 @@ class NewTransactionFragment : DialogFragment() {
         }
     }
 
-    /**
-     * Loads available "From" categories when creating expense transactions.
-     * UPDATED: Now uses String userId.
-     */
+    // Loads available "From" categories when creating expense transactions.
     private fun loadFromCategories() {
         val userId = currentUserId ?: return
         recyclerFromCategories.layoutManager = GridLayoutManager(requireContext(), 6)
@@ -255,10 +245,7 @@ class NewTransactionFragment : DialogFragment() {
         recyclerCategories.layoutManager = GridLayoutManager(requireContext(), 6)
     }
 
-    /**
-     * Validates inputs and creates a new transaction.
-     * UPDATED: Now uses String userId.
-     */
+    // Validates inputs and creates a new transaction.
     private fun createTransaction() {
         val title = edtTitle.text.toString().trim()
         val amount = edtAmount.text.toString().toDoubleOrNull() ?: 0.0

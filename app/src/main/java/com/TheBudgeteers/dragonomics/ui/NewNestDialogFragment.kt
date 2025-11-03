@@ -22,10 +22,8 @@ import com.TheBudgeteers.dragonomics.viewmodel.NestViewModel
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
-/**
- * DialogFragment for creating a new nest.
- * UPDATED FOR FIREBASE: Uses String userId instead of Long.
- */
+// DialogFragment for creating a new nest.
+
 class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
 
     private lateinit var edtName: EditText
