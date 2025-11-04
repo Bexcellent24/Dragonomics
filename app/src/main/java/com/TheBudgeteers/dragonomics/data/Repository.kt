@@ -122,6 +122,65 @@ class Repository {
     fun getSpentAmountsInRange(userId: String, start: Long, end: Long): Flow<List<NestSpent>> =
         transactionRepo.getSpentAmountsInRangeFlow(userId, start, end)
 
+    // Update a nest
+    suspend fun updateNest(userId: String, nestId: String, updates: Map<String, Any?>): Result<Unit> =
+        nestRepo.update(userId, nestId, updates)
+
+    // Delete a nest and reassign its transactions
+    suspend fun deleteNest(userId: String, nestId: String): Result<Unit> {
+        return try {
+            // get or create an "Uncategorized" nest
+            val uncategorizedNest = getOrCreateUncategorizedNest(userId)
+
+            // Reassign all transactions from this nest to uncategorized
+            reassignTransactionsToUncategorized(userId, nestId, uncategorizedNest.id)
+
+            // Now delete the nest
+            nestRepo.delete(userId, nestId).getOrThrow()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Get or create an "Uncategorized" nest for orphaned transactions
+    private suspend fun getOrCreateUncategorizedNest(userId: String): Nest {
+        // Check if uncategorized nest already exists
+        val existingNests = nestRepo.getAll(userId)
+        val uncategorized = existingNests.find { it.name == "Uncategorized" }
+
+        if (uncategorized != null) {
+            return uncategorized
+        }
+
+        // Create new uncategorized nest
+        val newNest = Nest(
+            userId = userId,
+            name = "Uncategorized",
+            budget = null,
+            icon = "ci_setting",
+            colour = "#666666",
+            type = NestType.EXPENSE
+        )
+
+        val nestId = nestRepo.insert(userId, newNest)
+        return newNest.copy(id = nestId)
+    }
+
+    // Reassign all transactions from deleted nest to uncategorized
+    private suspend fun reassignTransactionsToUncategorized(userId: String, deletedNestId: String, uncategorizedNestId: String) {
+        val transactions = transactionRepo.getByCategoryId(userId, deletedNestId)
+
+        transactions.forEach { transaction ->
+            transactionRepo.update(
+                userId,
+                transaction.id,
+                mapOf("categoryId" to uncategorizedNestId)
+            ).getOrThrow()
+        }
+    }
+
 
     // ---------- TRANSACTION OPERATIONS ----------
 

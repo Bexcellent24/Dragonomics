@@ -73,6 +73,20 @@ class ColourAdapter(
         }
     }
 
+    fun setSelectedColour(colourHex: String) {
+        val newPosition = colours.indexOf(colourHex)
+        if (newPosition != -1 && newPosition != selectedPos) {
+            val previousPos = selectedPos
+            selectedPos = newPosition
+
+            // Refresh both items
+            if (previousPos != RecyclerView.NO_POSITION) {
+                notifyItemChanged(previousPos)
+            }
+            notifyItemChanged(selectedPos)
+        }
+    }
+
     override fun getItemCount() = colours.size
 }
 

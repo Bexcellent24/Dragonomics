@@ -17,6 +17,10 @@ class FirebaseAuthRepository {
     private val firestore = FirebaseFirestore.getInstance()
 
 
+    // begin code attribution
+    // Usage of createUserWithEmailAndPassword then await() in Kotlin coroutines adapted from:
+    // “Using Firebase on Android with Kotlin Coroutines” — Joe Birch (2020)
+
     // Sign up a new user with Firebase Authentication.
     // Also creates a user profile document in Firestore.
     suspend fun signUpUser(username: String, email: String, password: String): Result<String> {
@@ -76,7 +80,11 @@ class FirebaseAuthRepository {
         }
     }
 
+    // end code attribution (Birch, 2020)
 
+    // begin code attribution
+    // Pattern of signInWithEmailAndPassword with Kotlin coroutine await() adapted from:
+    // StackOverflow answer “How to use Coroutines while using signInWithEmailAndPassword in Firebase Auth”
     // Log in an existing user with Firebase Authentication.
     // Note: Firebase Auth uses email for login, but we accept username and look up the associated email from Firestore.
     suspend fun loginUser(username: String, password: String): Result<String> {
@@ -124,6 +132,7 @@ class FirebaseAuthRepository {
             Result.failure(Exception("Invalid credentials"))
         }
     }
+    // end code attribution (StackOverflow, 2023)
 
 
     // Update user's financial goals in Firestore
@@ -181,3 +190,6 @@ class FirebaseAuthRepository {
         auth.signOut()
     }
 }
+
+// Birch, J. 2020. Using Firebase on Android with Kotlin Coroutines. [online] Available at: https://joebirch.co/android/using-firebase-on-android-with-kotlin-coroutines/ [Accessed 4 November 2025]
+// Puffelen, F., 2023. How to use Coroutines while using signInWithEmailAndPassword in Firebase Auth. [online] Available at: https://stackoverflow.com/questions/74271981/how-to-use-coroutines-while-using-signinwithemailandpassword-in-firebase-authent [Accessed 4 November 2025]

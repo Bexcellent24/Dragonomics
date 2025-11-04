@@ -32,11 +32,16 @@ class AchievementsAdapter : ListAdapter<AchievementDisplay, AchievementsAdapter.
         val imgTick: ImageView = v.findViewById(R.id.imgTick)
     }
 
+    // begin code attribution
+    // Use of ListAdapter and DiffUtil.ItemCallback to optimise RecyclerView updates adapted from:
+    // “Adapting to ListAdapter”
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
         val v = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_achievement, parent, false)
         return VH(v)
     }
+
+    // end code attribution (Android Developers, 2020)
 
     override fun onBindViewHolder(h: VH, position: Int) {
         val item = getItem(position)
@@ -51,3 +56,5 @@ class AchievementsAdapter : ListAdapter<AchievementDisplay, AchievementsAdapter.
         h.itemView.alpha = 1f
     }
 }
+
+// Android Developers, 2020. Adapting to ListAdapter. [online] Available at: <https://medium.com/androiddevelopers/adapting-to-listadapter-341da4218f5b> [Accessed 4 November 2025]

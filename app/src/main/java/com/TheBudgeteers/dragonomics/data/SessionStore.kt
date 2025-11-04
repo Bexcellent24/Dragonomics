@@ -18,10 +18,16 @@ class SessionStore(private val context: Context) {
     // Changed from longPreferencesKey to stringPreferencesKey for Firebase UID
     private val KEY_USER_ID = stringPreferencesKey("user_id")
 
+    // begin code attribution
+    // Reading values from Preferences DataStore via Flow adapted from:
+    // “Working with Preferences DataStore”
+
     // Flow for observing the stored Firebase user UID
     val userId: Flow<String?> = context.dataStore.data.map { prefs ->
         prefs[KEY_USER_ID]
     }
+
+    // end code attribution (Android Developers, 2022)
 
     // Saves or removes the Firebase user UID in DataStore
     suspend fun setUser(id: String?) {
@@ -40,3 +46,6 @@ class SessionStore(private val context: Context) {
         return userId
     }
 }
+
+// Android Developers. 2022. Working with Preferences DataStore. [online] Available at: <https://developer.android.com/codelabs/android-preferences-datastore> [Accessed 4 November 2025]
+

@@ -23,6 +23,11 @@ class FirebaseTransactionRepository {
     private fun transactionsCollection(userId: String) =
         firestore.collection("users").document(userId).collection("transactions")
 
+
+    // begin code attribution
+    // Pattern of using Firestore .add() then await() in a Kotlin suspend function adapted from:
+    // “Firebase-ing with Kotlin Coroutines + Flow”
+
     // Insert a new transaction into Firestore.
     suspend fun insert(userId: String, transaction: Transaction): String {
         val transactionData = hashMapOf(
@@ -39,6 +44,8 @@ class FirebaseTransactionRepository {
         val docRef = transactionsCollection(userId).add(transactionData).await()
         return docRef.id
     }
+
+    // end code attribution (Patil, 2020)
 
 
     // Get all transactions for a user, ordered by date descending.
@@ -353,3 +360,5 @@ class FirebaseTransactionRepository {
     }
 
 }
+
+// Patil, S. 2020. Firebase-ing with Kotlin Coroutines + Flow. [online] Available at: <https://medium.com/firebase-developers/firebase-ing-with-kotlin-coroutines-flow-dab1bc364816> [Accessed 4 November 2025]

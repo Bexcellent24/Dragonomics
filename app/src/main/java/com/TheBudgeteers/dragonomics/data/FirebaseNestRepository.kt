@@ -20,6 +20,9 @@ class FirebaseNestRepository {
     private fun nestsCollection(userId: String) =
         firestore.collection("users").document(userId).collection("nests")
 
+    // begin code attribution
+    // Use of Task.await() from kotlinx-coroutines-play-services to convert Firestore add() Task into coroutine suspendable call adapted from:
+    // “Using Firebase on Android with Kotlin Coroutines” — Joe Birch (2020)
 
     // Insert a new nest into Firestore.
     suspend fun insert(userId: String, nest: Nest): String {
@@ -36,6 +39,7 @@ class FirebaseNestRepository {
         return docRef.id
     }
 
+    // end code attribution (Birch, 2020)
 
     // Get all nests for a user (non-reactive).
     suspend fun getAll(userId: String): List<Nest> {
@@ -96,6 +100,7 @@ class FirebaseNestRepository {
     }
 
 
+    // Update a nest's data.
     // Update a nest's data.
     suspend fun update(userId: String, nestId: String, updates: Map<String, Any?>): Result<Unit> {
         return try {
@@ -178,4 +183,8 @@ class FirebaseNestRepository {
         val month = calendar.get(java.util.Calendar.MONTH) + 1
         return "$year-${month.toString().padStart(2, '0')}"
     }
+
+
 }
+
+// Birch, J. 2020. Using Firebase on Android with Kotlin Coroutines. [online] Available at: <https://joebirch.co/android/using-firebase-on-android-with-kotlin-coroutines/> [Accessed 4 November 2025]

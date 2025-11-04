@@ -95,7 +95,7 @@ class NestsActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelect
 
     // Show confirmation dialog before resetting for new month
     private fun showResetConfirmationDialog() {
-        MaterialAlertDialogBuilder(this)
+        MaterialAlertDialogBuilder(this, R.style.CustomAlertDialog)
             .setTitle("Start New Budget Period?")
             .setMessage(
                 "This will start a fresh budget period:\n\n" +

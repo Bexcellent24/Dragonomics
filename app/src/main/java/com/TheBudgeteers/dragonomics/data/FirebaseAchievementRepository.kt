@@ -18,6 +18,10 @@ class FirebaseAchievementRepository {
 
     // ---------- GLOBAL ACHIEVEMENTS ----------
 
+    // begin code attribution
+    // Firestore write operations with coroutines adapted from:
+    // “Use Kotlin coroutines with Firebase” — Firebase Documentation
+
     // Initialize default achievements in Firestore.
     suspend fun initializeDefaultAchievements(): Result<Unit> {
         return try {
@@ -35,6 +39,7 @@ class FirebaseAchievementRepository {
             Result.failure(e)
         }
     }
+    // end code attribution (Firebase, 2024)
 
     // Get all available achievements.
     suspend fun getAllAchievements(): List<Achievement> {
@@ -68,6 +73,10 @@ class FirebaseAchievementRepository {
 
     // ---------- USER ACHIEVEMENTS ----------
 
+    // begin code attribution
+    // Snapshot listener to Flow conversion pattern adapted from:
+    // “Kotlin Flows on Android” — Android Developers guide
+
     // Get user's progress on all achievements as a Flow.
     fun getUserAchievementsFlow(userId: String): Flow<List<UserAchievement>> = callbackFlow {
         val listener = firestore.collection("users")
@@ -88,6 +97,8 @@ class FirebaseAchievementRepository {
 
         awaitClose { listener.remove() }
     }
+
+    // end code attribution (Android Developers, 2024)
 
 
     // Get user's progress on a specific achievement.
@@ -210,6 +221,10 @@ class FirebaseAchievementRepository {
         }
     }
 
+    // begin code attribution
+    // Firestore transaction pattern adapted from:
+    // “Perform simple and complex transactions” — Firebase Documentation
+
     // Award gold to user.
     private suspend fun awardGold(userId: String, amount: Int): Result<Unit> {
         return try {
@@ -226,6 +241,8 @@ class FirebaseAchievementRepository {
             Result.failure(e)
         }
     }
+    // end code attribution (Firebase, 2024)
+
 
 
     // ---------- HELPER METHODS ----------
@@ -368,3 +385,7 @@ class FirebaseAchievementRepository {
         )
     )
 }
+
+// Firebase, 2024. Use Kotlin coroutines with Firebase. [online] Available at: <https://firebase.google.com/docs/firestore/extend-with-functions> [Accessed 4 November 2025]
+// Android Developers, 2024. Kotlin Flows on Android. [online] Available at: <https://developer.android.com/kotlin/flow> [Accessed 4 November 2025]
+// Firebase, 2024. Perform simple and complex transactions. [online] Available at: <https://firebase.google.com/docs/firestore/manage-data/transactions> [Accessed 4 November 2025]

@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 class NestAdapter(
     private val nestViewModel: NestViewModel,
-    private val userId: String, // UPDATED: Now String (Firebase UID)
+    private val userId: String,
     private val layoutType: NestLayoutType,
     private val lifecycleScope: LifecycleCoroutineScope,
     private val startDateFlow: Flow<Long>? = null,
@@ -36,7 +36,7 @@ class NestAdapter(
 ) : RecyclerView.Adapter<NestAdapter.NestViewHolder>() {
 
     private val nests = mutableListOf<Nest>()
-    private val nestSpentMap = mutableMapOf<String, Double>() // UPDATED: Key is now String
+    private val nestSpentMap = mutableMapOf<String, Double>()
 
     init {
         // For HISTORY layout: collect spent amounts in date range
@@ -78,6 +78,10 @@ class NestAdapter(
         var bindJob: Job? = null // Track coroutine job to cancel on rebind
     }
 
+    // begin code attribution
+    // Standard RecyclerView.Adapter pattern (onCreateViewHolder, onBindViewHolder, getItemCount) adapted from:
+    // “Create dynamic lists with RecyclerView” — Android Developers guide
+
     // Choose layout based on selected layout type.
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NestViewHolder {
         val layoutRes = when (layoutType) {
@@ -88,6 +92,8 @@ class NestAdapter(
         val view = LayoutInflater.from(parent.context).inflate(layoutRes, parent, false)
         return NestViewHolder(view)
     }
+
+    // end code attribution (Android Developers, 2025)
 
     override fun onBindViewHolder(holder: NestViewHolder, position: Int) {
         // Cancel previous bind job to prevent multiple collectors for recycled views
@@ -105,6 +111,10 @@ class NestAdapter(
         holder.itemView.setOnClickListener { onClick(nest) }
     }
 
+    // begin code attribution
+    // Using Kotlin coroutines + Flow to collect UI state for each ViewHolder adapted from:
+    // StackOverflow discussion “Combine Flow<List> and string in Kotlin” — demonstrates combining flows and reacting to updates
+
     // Bind data for GRID layout with reactive UI updates.
     private fun bindGrid(holder: NestViewHolder, nest: Nest) {
         // Set icon
@@ -121,6 +131,8 @@ class NestAdapter(
             }
         }
     }
+
+    // end code attribution (user18958467, 2022)
 
     // Update UI for GRID layout based on nest UI state.
     private fun updateGridViews(holder: NestViewHolder, state: NestUiState) {
@@ -188,3 +200,6 @@ class NestAdapter(
 
     override fun getItemCount() = nests.size
 }
+
+// Android Developers. 2025. Create dynamic lists with RecyclerView. [online] Available at: <https://developer.android.com/guide/topics/ui/layout/recyclerview> [Accessed 4 November 2025]
+// user18958467. 2022. Combine Flow<List> and string in Kotlin. [online] Available at: <https://stackoverflow.com/questions/72601167/combine-flowlist-and-string-in-kotlin> [Accessed 4 November 2025]

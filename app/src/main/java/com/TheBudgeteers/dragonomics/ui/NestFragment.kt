@@ -104,6 +104,17 @@ class NestFragment : Fragment() {
 
         // Listen for new nest creation events
         parentFragmentManager.setFragmentResultListener("new_nest_created", viewLifecycleOwner) { _, _ ->
+            // Data will refresh automatically via the flow
+        }
+
+        //Listen for nest update events
+        parentFragmentManager.setFragmentResultListener("nest_updated", viewLifecycleOwner) { _, _ ->
+            // Data will refresh automatically via the flow
+        }
+
+        // Listen for nest delete events
+        parentFragmentManager.setFragmentResultListener("nest_deleted", viewLifecycleOwner) { _, _ ->
+            // Data will refresh automatically via the flow
         }
     }
 
@@ -124,8 +135,7 @@ class NestFragment : Fragment() {
                 historyViewModel.startDate,
                 historyViewModel.endDate
             ) { clickedNest ->
-                Toast.makeText(requireContext(), "Clicked ${clickedNest.name}", Toast.LENGTH_SHORT)
-                    .show()
+                openEditDialog(userId, clickedNest.id)
             }
         } else {
             NestAdapter(
@@ -136,9 +146,13 @@ class NestFragment : Fragment() {
                 null,
                 null
             ) { clickedNest ->
-                Toast.makeText(requireContext(), "Clicked ${clickedNest.name}", Toast.LENGTH_SHORT)
-                    .show()
+                openEditDialog(userId, clickedNest.id)
             }
         }
+    }
+
+    private fun openEditDialog(userId: String, nestId: String) {
+        val dialog = EditNestDialogFragment.newInstance(userId, nestId)
+        dialog.show(parentFragmentManager, "edit_nest")
     }
 }

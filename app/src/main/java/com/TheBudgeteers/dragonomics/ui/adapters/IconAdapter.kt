@@ -69,6 +69,20 @@ class IconAdapter(
         }
     }
 
+    fun setSelectedIcon(iconName: String) {
+        val newPosition = icons.indexOf(iconName)
+        if (newPosition != -1 && newPosition != selectedPos) {
+            val previousPos = selectedPos
+            selectedPos = newPosition
+
+            // Refresh both items
+            if (previousPos != RecyclerView.NO_POSITION) {
+                notifyItemChanged(previousPos)
+            }
+            notifyItemChanged(selectedPos)
+        }
+    }
+
     override fun getItemCount(): Int = icons.size
 }
 
