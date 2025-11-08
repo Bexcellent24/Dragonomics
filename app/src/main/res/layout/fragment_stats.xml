@@ -1,185 +1,154 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-    <!-- stats fragment -->
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/stats_container"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/DeepAbyss">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/titleThisMonth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:fontFamily="@font/breathe_fire_iii"
+        android:paddingBottom="8dp"
+        android:text="THIS MONTH"
+        android:textAllCaps="true"
+        android:textColor="@color/GoldenEmber"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <!-- Three stats row -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:paddingTop="16dp"
-        android:background="@color/DeepAbyss">
+        android:orientation="horizontal"
+        android:weightSum="3"
+        android:paddingBottom="8dp">
 
-        <!-- Title -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/labelIncome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/aref_ruqaa"
+                android:text="Income"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/valueIncome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/aref_ruqaa"
+                android:text="R0"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/labelExpenses"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/aref_ruqaa"
+                android:text="Expenses"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/valueExpenses"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/aref_ruqaa"
+                android:text="R0"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/labelRemaining"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/aref_ruqaa"
+                android:text="Remaining"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/valueRemaining"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/aref_ruqaa"
+                android:text="R0"
+                android:textColor="@color/GoldenEmber"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Goal bar -->
+    <com.TheBudgeteers.dragonomics.ui.widgets.GoalBarView
+        android:id="@+id/goalBar"
+        android:layout_width="match_parent"
+        android:layout_height="68dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="2dp" />
+
+    <!-- Min / Max labels under the bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="4dp"
+        android:paddingBottom="6dp">
+
         <TextView
-            android:id="@+id/monthTitle"
+            android:id="@+id/minGoalText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/aref_ruqaa"
+            android:text="Min Goal: R0"
+            android:textColor="@color/GoldenEmber"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/maxGoalText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="THIS MONTH"
-            android:textSize="20sp"
-            android:layout_marginTop="40dp"
-            android:textStyle="bold"
-            android:fontFamily="@font/breathe_fire_iii"
+            android:fontFamily="@font/aref_ruqaa"
+            android:text="Max Goal: R0"
             android:textColor="@color/GoldenEmber"
-            android:layout_marginBottom="10dp"
-            android:layout_gravity="center_horizontal"/>
-
-        <!-- Income / Expenses / Remaining -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:weightSum="3">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/breathe_fire_iii"
-                    android:textColor="@color/GoldenEmber"
-                    android:textSize="20sp"
-                    android:gravity="center"
-                    android:text="Income" />
-
-                <TextView
-                    android:id="@+id/incomeAmount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/aref_ruqaa"
-                    android:textColor="@color/GoldenEmber"
-                    android:textSize="18sp"
-                    android:gravity="center"
-                    android:text="R0" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:fontFamily="@font/breathe_fire_iii"
-                    android:textColor="@color/GoldenEmber"
-                    android:textSize="20sp"
-                    android:text="Expenses" />
-
-                <TextView
-                    android:id="@+id/expensesAmount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:fontFamily="@font/aref_ruqaa"
-                    android:textColor="@color/GoldenEmber"
-                    android:textSize="18sp"
-                    android:text="R0" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:fontFamily="@font/breathe_fire_iii"
-                    android:textColor="@color/GoldenEmber"
-                    android:textSize="20sp"
-                    android:text="Remaining" />
-
-                <TextView
-                    android:id="@+id/remainingAmount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:fontFamily="@font/aref_ruqaa"
-                    android:textColor="@color/GoldenEmber"
-                    android:textSize="18sp"
-                    android:text="R0" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/goalsAndProgressLayout"
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp">
-
-            <!-- Goals row -->
-            <LinearLayout
-                android:id="@+id/goalsRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center">
-
-                <TextView
-                    android:id="@+id/minGoal"
-                    android:text="Min Goal: R0"
-                    android:layout_weight="1"
-                    android:layout_width="0dp"
-                    android:fontFamily="@font/aref_ruqaa"
-                    android:textColor="@color/GoldenEmber"
-                    android:textSize="12sp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"/>
-
-                <TextView
-                    android:id="@+id/maxGoal"
-                    android:text="Max Goal: R0"
-                    android:layout_weight="1"
-                    android:layout_width="0dp"
-                    android:fontFamily="@font/aref_ruqaa"
-                    android:textColor="@color/GoldenEmber"
-                    android:textSize="12sp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"/>
-            </LinearLayout>
-
-            <!-- Progress bar -->
-            <ProgressBar
-                android:id="@+id/progressBar"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="35dp"
-                android:layout_marginTop="8dp"
-                android:progressDrawable="@drawable/stats_prgress_bar"
-                android:progress="50"/>
-
-        </LinearLayout>
-
-        <!-- Toggle arrow -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:elevation="8dp"
-        android:layout_marginBottom="0dp">
-
-        <ImageView
-            android:id="@+id/toggleArrow"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_gravity="center_horizontal|bottom"
-            android:scaleType="centerInside"
-            android:src="@drawable/collapse_arrow" />
-    </FrameLayout>
+            android:textSize="16sp"
+            android:textStyle="bold" />
     </LinearLayout>
+</LinearLayout>

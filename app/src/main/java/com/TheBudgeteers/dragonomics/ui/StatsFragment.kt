@@ -1,164 +1,161 @@
 package com.TheBudgeteers.dragonomics.ui
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.ProgressBar
-import android.widget.TextView
-import androidx.lifecycle.ViewModelProvider
-import com.TheBudgeteers.dragonomics.R
-import androidx.lifecycle.lifecycleScope
+import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.TheBudgeteers.dragonomics.data.MonthlyStats
-import com.TheBudgeteers.dragonomics.data.UserProfile
-import com.TheBudgeteers.dragonomics.utils.DateUtils
-import com.TheBudgeteers.dragonomics.viewmodel.StatsViewModel
-import com.TheBudgeteers.dragonomics.viewmodel.factories.StatsViewModelFactory
+import androidx.lifecycle.lifecycleScope
+import com.TheBudgeteers.dragonomics.R
+import com.TheBudgeteers.dragonomics.data.NestType
 import com.TheBudgeteers.dragonomics.data.SessionStore
+import com.TheBudgeteers.dragonomics.ui.NestUiMapper
+import com.TheBudgeteers.dragonomics.ui.widgets.GoalBarView
 import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.*
+import android.graphics.Typeface
+import android.util.TypedValue
+import androidx.core.content.res.ResourcesCompat
 
-// Displays monthly financial statistics for the user.
+class StatsFragment : Fragment() {
 
-class StatsFragment : Fragment(R.layout.fragment_stats) {
+    companion object {
+        private const val ARG_TOGGLE = "toggleEnabled"
+        fun newInstance(toggleEnabled: Boolean = false): StatsFragment =
+            StatsFragment().apply {
+                arguments = Bundle().apply { putBoolean(ARG_TOGGLE, toggleEnabled) }
+            }
+    }
 
-    private lateinit var viewModel: StatsViewModel
-    private lateinit var session: SessionStore
-    private var toggleEnabled = true
-    private var expanded = true
+    private var toggleEnabled: Boolean = false
+    private lateinit var goalBar: GoalBarView
+    private lateinit var sessionStore: SessionStore
 
-    // UI element references
-    private lateinit var incomeAmount: TextView
-    private lateinit var expensesAmount: TextView
-    private lateinit var remainingAmount: TextView
-    private lateinit var minGoal: TextView
-    private lateinit var maxGoal: TextView
-    private lateinit var progressBar: ProgressBar
-    private lateinit var toggleArrow: ImageView
-    private lateinit var goalsLayout: LinearLayout
+    private lateinit var valueIncome: android.widget.TextView
+    private lateinit var valueExpenses: android.widget.TextView
+    private lateinit var valueRemaining: android.widget.TextView
+    private lateinit var minGoalText: android.widget.TextView
+    private lateinit var maxGoalText: android.widget.TextView
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        toggleEnabled = arguments?.getBoolean(ARG_TOGGLE) ?: false
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+
+    ): View {
+        val root = inflater.inflate(R.layout.fragment_stats, container, false)
+        goalBar = root.findViewById(R.id.goalBar)
+        valueIncome = root.findViewById(R.id.valueIncome)
+        valueExpenses = root.findViewById(R.id.valueExpenses)
+        valueRemaining = root.findViewById(R.id.valueRemaining)
+        minGoalText = root.findViewById(R.id.minGoalText)
+        maxGoalText = root.findViewById(R.id.maxGoalText)
+        sessionStore = SessionStore(requireContext())
+
+        val aref = ResourcesCompat.getFont(requireContext(), R.font.aref_ruqaa)
+        minGoalText.typeface = Typeface.create(aref, Typeface.BOLD)
+        maxGoalText.typeface = Typeface.create(aref, Typeface.BOLD)
+        minGoalText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+        maxGoalText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+
+        val title = root.findViewById<android.widget.TextView>(R.id.titleThisMonth)
+        val monthName = java.time.format.DateTimeFormatter
+            .ofPattern("MMMM", Locale("en", "ZA"))
+            .format(LocalDate.now())
+        title.text = monthName.uppercase(Locale("en", "ZA"))
+
+
+        // Theme the bar (gold border, light track, gold labels/end cap)
+        val gold = ContextCompat.getColor(requireContext(), R.color.GoldenEmber)
+        val track = 0xFFE0E0E0.toInt()
+        goalBar.setThemeColors(
+            trackColor = track,
+            borderColor = gold,
+            labelColor = gold,
+            endCapColor = gold
+        )
+        goalBar.setTrackMatchesParentBackground(true)
+
+        return root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val repo = RepositoryProvider.getRepository(requireContext())
 
-        initializeViews(view)
-        setupViewModel()
-        loadUserData()
-        observeData()
-        setupToggle()
-    }
+        viewLifecycleOwner.lifecycleScope.launch {
+            val userId = sessionStore.userId.firstOrNull() ?: return@launch
 
-    // Initialisation
-    private fun initializeViews(view: View) {
-        incomeAmount = view.findViewById(R.id.incomeAmount)
-        expensesAmount = view.findViewById(R.id.expensesAmount)
-        remainingAmount = view.findViewById(R.id.remainingAmount)
-        minGoal = view.findViewById(R.id.minGoal)
-        maxGoal = view.findViewById(R.id.maxGoal)
-        progressBar = view.findViewById(R.id.progressBar)
-        toggleArrow = view.findViewById(R.id.toggleArrow)
-        goalsLayout = view.findViewById(R.id.goalsAndProgressLayout)
-    }
+            // Goals
+            val minGoal = repo.getUserMinGoal(userId) ?: 0.0
+            val maxGoal = repo.getUserMaxGoal(userId) ?: 0.0
 
-    private fun setupViewModel() {
-        session = SessionStore(requireContext())
-        val repository = RepositoryProvider.getRepository(requireContext())
-        val factory = StatsViewModelFactory(repository)
-        viewModel = ViewModelProvider(this, factory)[StatsViewModel::class.java]
-    }
+            // Current month range
+            val today = LocalDate.now()
+            val startOfMonth = today.withDayOfMonth(1)
+            val startMs = startOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            val endMs = today.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
-    // Data loading
-    private fun loadUserData() {
-        lifecycleScope.launch {
-            // userId is now String (Firebase UID) instead of Long
-            val userId = session.userId.firstOrNull() ?: return@launch
-
-            // Get start and end timestamps for current month
-            val (start, end) = DateUtils.getMonthRange()
-            viewModel.loadCurrentPeriodStats(userId)
-            viewModel.loadUser(userId)
-        }
-    }
-
-    // Data Observing
-    private fun observeData() {
-        observeMonthlyStats()
-        observeUserGoals()
-    }
-
-    // Watch for changes in monthly statistics
-    private fun observeMonthlyStats() {
-        lifecycleScope.launch {
-            viewModel.monthlyStats.collect { stats ->
-                stats?.let { updateStatsDisplay(it) }
+            // Totals (income/expenses/remaining)
+            val tx = repo.getTransactionsBetweenFlow(userId, startMs, endMs).firstOrNull().orEmpty()
+            val nestsById = repo.getNests(userId).associateBy { it.id }
+            var incomeTotal = 0.0
+            var expensesTotal = 0.0
+            tx.forEach { t ->
+                when (nestsById[t.categoryId]?.type) {
+                    NestType.INCOME  -> incomeTotal += t.amount
+                    NestType.EXPENSE -> expensesTotal += t.amount
+                    else -> {}
+                }
             }
-        }
-    }
+            val remainingTotal = incomeTotal - expensesTotal
 
-    // Watch for changes in user's savings goals - UPDATED to use UserProfile
-    private fun observeUserGoals() {
-        lifecycleScope.launch {
-            viewModel.userProfile.collect { user ->
-                user?.let { updateGoalsDisplay(it) }
+            // Expense nests (for stacked colors)
+            val expenseNests = nestsById.values.filter { it.type == NestType.EXPENSE }
+
+            // Amount per nest in range
+            val amountsByNestId: Map<String, Double> =
+                repo.getSpentAmountsInRangeOnce(userId, startMs, endMs)
+
+            // Segments (oldest→newest) then reverse so NEWEST appears further LEFT in the bar
+            val segments: List<GoalBarView.Segment> =
+                expenseNests.map { nest ->
+                    val amt = amountsByNestId[nest.id] ?: 0.0
+                    val color = NestUiMapper.parseColorSafe(nest.colour)
+                    GoalBarView.Segment(amt, color)
+                }.filter { seg -> seg.amount > 0.0 }
+
+            val segmentsNewestLeft = segments.asReversed()
+
+            // Display numbers
+            val nf = NumberFormat.getCurrencyInstance(Locale("en", "ZA")).apply {
+                maximumFractionDigits = 0
             }
-        }
-    }
+            valueIncome.text = nf.format(incomeTotal)
+            valueExpenses.text = nf.format(expensesTotal)
+            valueRemaining.text = nf.format(remainingTotal)
 
-    private fun updateStatsDisplay(stats: MonthlyStats) {
-        incomeAmount.text = "R${stats.income.toInt()}"
-        expensesAmount.text = "R${stats.expenses.toInt()}"
-        remainingAmount.text = "R${stats.remaining.toInt()}"
+            minGoalText.text = "Min Goal: " + nf.format(minGoal)
+            maxGoalText.text = "Max Goal: " + nf.format(maxGoal)
 
-        // Calculate and show percentage of income spent
-        val percent = if (stats.income > 0) {
-            (stats.expenses / stats.income * 100).toInt()
-        } else {
-            0
-        }
-        progressBar.progress = percent
-    }
-
-    // UPDATED: Now accepts UserProfile instead of UserEntity
-    private fun updateGoalsDisplay(user: UserProfile) {
-        minGoal.text = if (user.minGoal != null) {
-            "Min Goal: R${user.minGoal.toInt()}"
-        } else {
-            "Min Goal: Not Set"
-        }
-
-        maxGoal.text = if (user.maxGoal != null) {
-            "Max Goal: R${user.maxGoal.toInt()}"
-        } else {
-            "Max Goal: Not Set"
-        }
-    }
-
-    // Toggle functionality
-    private fun setupToggle() {
-        if (toggleEnabled) {
-            toggleArrow.setOnClickListener {
-                expanded = !expanded
-                updateToggleState()
-            }
-        } else {
-            toggleArrow.visibility = View.GONE
-        }
-    }
-
-    private fun updateToggleState() {
-        goalsLayout.visibility = if (expanded) View.VISIBLE else View.GONE
-        toggleArrow.setImageResource(
-            if (expanded) R.drawable.collapse_arrow_up else R.drawable.collapse_arrow_down
-        )
-    }
-
-    // Factory
-    companion object {
-        fun newInstance(toggleEnabled: Boolean): StatsFragment {
-            val f = StatsFragment()
-            f.toggleEnabled = toggleEnabled
-            return f
+            // Draw bar (expenses start from LEFT, newest further LEFT)
+            goalBar.setData(
+                maxGoal = maxGoal,
+                minGoal = minGoal,
+                expenseSegments = segmentsNewestLeft,
+                totalIncome = incomeTotal
+            )
         }
     }
 }

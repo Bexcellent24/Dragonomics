@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
-
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 // Central repository for app data using Firebase.
  // Handles Firebase Authentication, Firestore access, and business logic.
@@ -244,6 +245,41 @@ class Repository {
 
 
     // ---------- STATS ----------
+// --- Goal helpers (one-shot) ---
+
+    suspend fun getUserMinGoal(userId: String): Double? =
+        getUser(userId)?.minGoal
+
+    suspend fun getUserMaxGoal(userId: String): Double? =
+        getUser(userId)?.maxGoal
+
+    /** Map of nestId -> spent amount within [start,end] (one-shot). */
+    suspend fun getSpentAmountsInRangeOnce(
+        userId: String,
+        start: Long,
+        end: Long
+    ): Map<String, Double> {
+        // you already have a Flow<List<NestSpent>>
+        return getSpentAmountsInRange(userId, start, end)
+            .first()                             // take a single snapshot
+            .associate { it.nestId to it.spent } // -> Map<nestId, spent>
+    }
+
+    /** Sum of all INCOME transactions in range (one-shot). */
+    suspend fun getIncomeTotalInRangeOnce(
+        userId: String,
+        start: Long,
+        end: Long
+    ): Double {
+        // snapshot all tx in range
+        val tx = transactionRepo.getByDateRangeFlow(userId, start, end).first()
+        // need types to know which are INCOME
+        val nestsById = nestRepo.getAll(userId).associateBy { it.id }
+
+        return tx.filter { t ->
+            nestsById[t.categoryId]?.type == NestType.INCOME
+        }.sumOf { it.amount }
+    }
 
     fun getMonthlyStatsFlow(userId: String, start: Long, end: Long): Flow<MonthlyStats> =
         transactionRepo.getByDateRangeFlow(userId, start, end).map { transactions ->

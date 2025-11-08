@@ -122,10 +122,7 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
 
     // Setup all fragments that make up this screen.
     private fun setupFragments(savedInstanceState: Bundle?) {
-        // Setup month summary fragment at the top (shows income/expense/balance)
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.month_summary, StatsFragment.newInstance(toggleEnabled = false))
-            .commit()
+
 
         // Setup initial fragments only on first launch (not on rotation)
         if (savedInstanceState == null) {
