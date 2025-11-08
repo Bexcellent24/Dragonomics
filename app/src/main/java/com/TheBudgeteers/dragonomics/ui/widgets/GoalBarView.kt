@@ -20,7 +20,7 @@ class GoalBarView @JvmOverloads constructor(
 
     private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
-        color = Color.parseColor("#DDDDDD") // will be replaced when matching parent bg
+        color = Color.parseColor("#DDDDDD") // replaced at runtime to match parent bg
     }
     private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -40,15 +40,18 @@ class GoalBarView @JvmOverloads constructor(
 
     private var maxGoal = 0.0
     private var minGoal = 0.0
+
+    // Data
     private var totalExpenses = 0.0
     private var totalIncome = 0.0
     private var segments: List<Segment> = emptyList()
 
-    private var savingsColor: Int = Color.parseColor("#2ECC71")
+    // Colors
+    private var savingsColor: Int = Color.parseColor("#2ECC71") // base "current/income" segment
     private var endCapColor: Int = Color.parseColor("#FFF5A5")
     private var markerColor: Int = endCapColor
 
-    // NEW: make the track blend with the parent background
+    // Track matches parent background by default
     private var trackMatchesParentBg: Boolean = true
 
     init {
@@ -79,6 +82,14 @@ class GoalBarView @JvmOverloads constructor(
         if (trackMatchesParentBg) updateTrackColorFromParent()
     }
 
+    /**
+     * @param maxGoal        Max goal value (right end of bar)
+     * @param minGoal        Min goal marker value
+     * @param expenseSegments List of expense segments (amount + color)
+     * @param totalIncome    "Current" value that defines the green width.
+     *
+     * The red expense overlay is drawn as (expenses / totalIncome) * greenWidth.
+     */
     fun setData(
         maxGoal: Double,
         minGoal: Double,
@@ -123,67 +134,102 @@ class GoalBarView @JvmOverloads constructor(
             return
         }
 
-        // Inner clip rect to prevent segment bleed beyond rounded corners
+        // Inner clip rect to prevent bleed beyond rounded corners
         val bw = borderPaint.strokeWidth
         val inner = RectF(outer).apply { inset(bw, bw) }
         val innerCorner = (corner - bw).coerceAtLeast(0f)
 
-        val usableW = inner.width()
-        fun xFor(value: Double): Float {
+        // ---- ABSOLUTE mapping (0 .. maxGoal) for markers and widths ----
+        fun xAbs(value: Double): Float {
             val clamped = value.coerceIn(0.0, maxGoal)
             val ratio = (clamped / maxGoal).toFloat()
-            return inner.left + ratio * usableW
+            return inner.left + ratio * inner.width()
         }
 
-        val remaining = max(0.0, totalIncome - totalExpenses)
-        val remainRight = xFor(remaining)
-        val remainRect = RectF(inner.left, inner.top, remainRight, inner.bottom)
+        // --- 1) Current/Income width (green base) relative to 0..maxGoal ---
+        val current01 = (totalIncome / maxGoal).coerceIn(0.0, 1.0)
+        val currentW = (current01 * inner.width()).toFloat()
+        val currentRect = RectF(inner.left, inner.top, inner.left + currentW, inner.bottom)
 
+        // Draw base "current" segment in green
         canvas.save()
-        val clipPath = Path().apply { addRoundRect(inner, innerCorner, innerCorner, Path.Direction.CW) }
-        canvas.clipPath(clipPath)
+        Path().apply { addRoundRect(inner, innerCorner, innerCorner, Path.Direction.CW) }
+            .also { canvas.clipPath(it) }
 
-        if (remaining > 0.0 && remainRect.width() > 0f) {
-            var cursor = remainRect.left
-            val remainingWidth = remainRect.width()
-            val safeRemaining = max(remaining, 1e-6)
+        if (currentRect.width() > 0f) {
+            segmentPaint.color = savingsColor
+            canvas.drawRect(currentRect, segmentPaint)
+        }
 
-            segments.forEach { seg ->
-                if (seg.amount <= 0.0) return@forEach
-                val segW = (seg.amount / safeRemaining).toFloat().coerceAtMost(1f) * remainingWidth
-                val next = min(cursor + segW, remainRect.right)
+        // --- 2) Expense overlay relative to current ---
+        val expFracOfCurrent =
+            if (totalIncome > 0.0) (totalExpenses / totalIncome).coerceIn(0.0, 1.0) else 0.0
+        val expenseTotalW = (currentRect.width() * expFracOfCurrent).toFloat()
+
+        if (expenseTotalW > 0f && currentRect.width() > 0f) {
+            // Clip to the current green so red cannot exceed it
+            canvas.save()
+            canvas.clipRect(currentRect)
+
+            val items = segments.filter { it.amount > 0.0 }
+            val minSegPx = dp(2f)
+            val totalForSplit = items.sumOf { it.amount }.coerceAtLeast(1e-6)
+
+            var cursor = currentRect.left
+
+            for (seg in items) {
+                val rawW = (expenseTotalW * (seg.amount / totalForSplit)).toFloat()
+                val segW = max(minSegPx, rawW) // keep tiny segments visible
+                val next = min(cursor + segW, currentRect.right)
+
                 if (next > cursor) {
                     segmentPaint.color = seg.color
-                    canvas.drawRect(cursor, remainRect.top, next, remainRect.bottom, segmentPaint)
+                    canvas.drawRect(cursor, currentRect.top, next, currentRect.bottom, segmentPaint)
                     cursor = next
-                    if (cursor >= remainRect.right) return@forEach
+                    if (cursor >= currentRect.right) break
                 }
             }
-
-            if (cursor < remainRect.right) {
-                segmentPaint.color = savingsColor
-                canvas.drawRect(cursor, remainRect.top, remainRect.right, remainRect.bottom, segmentPaint)
-            }
+            canvas.restore()
         }
+
         canvas.restore()
 
-        // Min / Max markers (inside inner rect)
-        val minX = xFor(minGoal)
-        val maxX = inner.right
+        // ---------- markers & labels ----------
         val minMarkerW = dp(8f)
         val maxCapW = dp(8f)
+        val gutter = dp(24f)
 
+        // Raw marker positions
+        val minRaw = xAbs(minGoal)
+        val maxRaw = inner.right // END of bar
+
+        // Clamp the MIN marker only if it would be offscreen; MAX marker stays at the end.
+        val minMarkerX = if (minRaw < inner.left + gutter) inner.left + gutter else minRaw
+        val maxMarkerX = maxRaw
+
+        // Draw min strip (possibly clamped if too close to edge)
         markerPaint.color = markerColor
-        canvas.drawRect(minX - minMarkerW / 2f, inner.top, minX + minMarkerW / 2f, inner.bottom, markerPaint)
+        canvas.drawRect(
+            minMarkerX - minMarkerW / 2f, inner.top,
+            minMarkerX + minMarkerW / 2f, inner.bottom,
+            markerPaint
+        )
 
+        // Draw max end-cap EXACTLY at the end of the bar
         markerPaint.color = endCapColor
-        canvas.drawRect(maxX - maxCapW, inner.top, maxX, inner.bottom, markerPaint)
+        canvas.drawRect(
+            inner.right - maxCapW, inner.top,
+            inner.right, inner.bottom,
+            markerPaint
+        )
 
         // Border on top
         canvas.drawRoundRect(outer, corner, corner, borderPaint)
 
-        // Labels (use OUTER for positioning above)
-        drawLabels(canvas, outer, minX, maxX, maxGoal)
+        // Labels use clamped positions so text doesn't clip
+        val minLabelX = max(minRaw, inner.left + gutter)
+        val maxLabelX = min(maxRaw, inner.right - gutter)
+        drawLabels(canvas, outer, minLabelX, maxLabelX, maxGoal)
     }
 
     private fun drawLabels(
@@ -199,20 +245,43 @@ class GoalBarView @JvmOverloads constructor(
         val oldTf = textPaint.typeface
         val boldTf = Typeface.create(oldTf, Typeface.BOLD)
 
-        textPaint.textAlign = Paint.Align.CENTER
         textPaint.textSize = sp(14f)
         textPaint.typeface = boldTf
 
         if (maxGoalVal > 0) {
-            canvas.drawText("Min Goal", minX, yAbove - dp(10f), textPaint)
-            canvas.drawText("${minGoal.roundToInt()}", minX, yAbove + dp(6f), textPaint)
+            // Keep labels away from the very edges so they don’t clip offscreen.
+            val gutter = dp(24f)
+            val safeLeft  = bar.left + gutter
+            val safeRight = bar.right - gutter
 
-            textPaint.textAlign = Paint.Align.RIGHT
-            canvas.drawText("Max Goal", maxX - dp(6f), yAbove - dp(10f), textPaint)
-            canvas.drawText("${maxGoal.roundToInt()}", maxX - dp(6f), yAbove + dp(6f), textPaint)
+            // ----- Min Goal -----
+            run {
+                val title = "Min Goal"
+                val value = "${minGoal.roundToInt()}"
+
+                val useLeftAlign = minX < safeLeft + dp(8f)
+                val x = if (useLeftAlign) safeLeft else minX
+
+                textPaint.textAlign = if (useLeftAlign) Paint.Align.LEFT else Paint.Align.CENTER
+                canvas.drawText(title, x, yAbove - dp(10f), textPaint)
+                canvas.drawText(value, x, yAbove + dp(6f), textPaint)
+            }
+
+            // ----- Max Goal -----
+            run {
+                val title = "Max Goal"
+                val value = "${maxGoal.roundToInt()}"
+
+                val useRightAlign = maxX > safeRight - dp(8f)
+                val x = if (useRightAlign) safeRight else maxX - dp(6f)
+
+                textPaint.textAlign = Paint.Align.RIGHT
+                canvas.drawText(title, x, yAbove - dp(10f), textPaint)
+                canvas.drawText(value, x, yAbove + dp(6f), textPaint)
+            }
         } else {
             textPaint.textAlign = Paint.Align.RIGHT
-            canvas.drawText("Set goals in Profile", maxX, yAbove, textPaint)
+            canvas.drawText("Set goals in Profile", bar.right - dp(6f), yAbove, textPaint)
         }
 
         textPaint.textSize = oldSize
