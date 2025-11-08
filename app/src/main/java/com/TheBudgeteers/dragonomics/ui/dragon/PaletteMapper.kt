@@ -4,25 +4,25 @@ import android.content.Context
 import androidx.annotation.ColorRes
 import androidx.annotation.Nullable
 
-
-/*Purpose:
-This util object works by extracting the base of the palettes name from the Id and then based on the id, it will try and find both colors associated
-with that id for example Pal_Forest, it will find any color xml values that has forest + body and accessory and will return it. If there isnt anything,
-it will return null. Its a clean way of taking one Id and having a "color Scheme" instead of our dragon just being a flat straight color. This is used
-in the home activity when assigning the color palettes to the dragon.
-*/
+/**
+ * LA PURPOSE:
+ * Data class holding gradient colors for both body and accessories.
+ * Each part has a top and bottom color for  gradients.
+ */
 data class PaletteColors(
-    @ColorRes val bodyColorRes: Int,
-    @ColorRes val accessoryColorRes: Int
+    @ColorRes val bodyTopColorRes: Int,
+    @ColorRes val bodyBottomColorRes: Int,
+    @ColorRes val accessoryTopColorRes: Int,
+    @ColorRes val accessoryBottomColorRes: Int
 )
-
 
 object PaletteMapper {
 
     private const val PALETTE_PREFIX = "pal_"
-    private const val BODY_SUFFIX = "_body"
-    private const val ACCESSORY_SUFFIX = "_accessory"
-
+    private const val BODY_TOP_SUFFIX = "_body_top"
+    private const val BODY_BOTTOM_SUFFIX = "_body_bottom"
+    private const val ACCESSORY_TOP_SUFFIX = "_accessory_top"
+    private const val ACCESSORY_BOTTOM_SUFFIX = "_accessory_bottom"
 
     @Nullable
     fun mapPaletteIdToColors(context: Context, paletteId: String?): PaletteColors? {
@@ -30,34 +30,36 @@ object PaletteMapper {
             return null
         }
 
-        //  gets the base palette name (e.g., "pal_forest" -> "forest")
+        // Extract base palette name (e.g., "pal_forest" -> "forest")
         val colorBaseName = paletteId.removePrefix(PALETTE_PREFIX)
 
-        // resolves the two required resource IDs
-        val bodyName = colorBaseName + BODY_SUFFIX // e.g., "forest_body"
-        val accessoryName = colorBaseName + ACCESSORY_SUFFIX // e.g., "forest_accessory"
+        // Build resource names
+        val bodyTopName = colorBaseName + BODY_TOP_SUFFIX
+        val bodyBottomName = colorBaseName + BODY_BOTTOM_SUFFIX
+        val accessoryTopName = colorBaseName + ACCESSORY_TOP_SUFFIX
+        val accessoryBottomName = colorBaseName + ACCESSORY_BOTTOM_SUFFIX
 
-        @ColorRes
-        val bodyResId = context.resources.getIdentifier(bodyName, "color", context.packageName)
-        @ColorRes
-        val accessoryResId = context.resources.getIdentifier(accessoryName, "color", context.packageName)
+        // Resolve resource IDs
+        @ColorRes val bodyTopResId = context.resources.getIdentifier(bodyTopName, "color", context.packageName)
+        @ColorRes val bodyBottomResId = context.resources.getIdentifier(bodyBottomName, "color", context.packageName)
+        @ColorRes val accessoryTopResId = context.resources.getIdentifier(accessoryTopName, "color", context.packageName)
+        @ColorRes val accessoryBottomResId = context.resources.getIdentifier(accessoryBottomName, "color", context.packageName)
 
-        //  makes sure both resources exist (getIdentifier returns 0 if not found)
-        return if (bodyResId != 0 && accessoryResId != 0) {
+        // Ensure all four resources exist
+        return if (bodyTopResId != 0 && bodyBottomResId != 0 &&
+            accessoryTopResId != 0 && accessoryBottomResId != 0) {
             PaletteColors(
-                bodyColorRes = bodyResId,
-                accessoryColorRes = accessoryResId
+                bodyTopColorRes = bodyTopResId,
+                bodyBottomColorRes = bodyBottomResId,
+                accessoryTopColorRes = accessoryTopResId,
+                accessoryBottomColorRes = accessoryBottomResId
             )
         } else {
-
             null
         }
     }
 }
-// Reference List
-//Android Developers, 2025. Data layer. [online] Available at: <https://developer.android.com/topic/architecture/data-layer> [Accessed 3 October 2025].
-//Ankiersztajn, M, 2024. Data Mapping In Kotlin Explained. [online] Medium. Available at: <https://proandroiddev.com/data-mapping-in-kotlin-explained-94238b914dac> [Accessed 5 Oct. 2025].
-// Lorenzo, M.S. de, 2019. Clean Architecture Guide (with tested examples): Data Flow != Dependency Rule. [online] Medium. Available at: <https://proandroiddev.com/clean-architecture-data-flow-dependency-rule-615ffdd79e29>[Accessed 3 October 2025].
 
-
-
+// References:
+// Android Developers, 2025. Data layer. [online] Available at: <https://developer.android.com/topic/architecture/data-layer> [Accessed 3 October 2025].
+// Ankiersztajn, M, 2024. Data Mapping In Kotlin Explained. [online] Medium. Available at: <https://proandroiddev.com/data-mapping-in-kotlin-explained-94238b914dac> [Accessed 5 Oct. 2025].

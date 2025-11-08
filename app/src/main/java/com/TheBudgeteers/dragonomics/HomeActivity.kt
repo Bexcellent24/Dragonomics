@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import com.TheBudgeteers.dragonomics.gamify.DragonRules
 import com.TheBudgeteers.dragonomics.ui.dragon.DragonSockets
+import com.TheBudgeteers.dragonomics.utilities.GradientTintDrawable
 import com.TheBudgeteers.dragonomics.utils.openIntent
 import kotlin.math.roundToInt
 
@@ -168,6 +169,7 @@ class HomeActivity : AppCompatActivity(),
         }
     }
 
+
     private fun updateDragonCustomization(state: DragonUiState) {
         binding.dragon.post {
             val currentSocketSet = when {
@@ -176,23 +178,38 @@ class HomeActivity : AppCompatActivity(),
                 else -> BABY_DRAGON_SOCKETS
             }
 
-            // Get the dual color IDs from the mapper
+            // Get the gradient color palette
             val paletteColors: PaletteColors? =
                 PaletteMapper.mapPaletteIdToColors(this, state.equippedPaletteId)
 
-            // Color Filter creation logic
-            val bodyColorFilter: ColorFilter? = paletteColors?.bodyColorRes?.let { resId ->
-                val colorInt = ContextCompat.getColor(this, resId)
-                PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY)
-            }
-            val accessoryColorFilter: ColorFilter? =
-                paletteColors?.accessoryColorRes?.let { resId ->
-                    val colorInt = ContextCompat.getColor(this, resId)
-                    PorterDuffColorFilter(colorInt, PorterDuff.Mode.MULTIPLY)
-                }
-            binding.dragon.colorFilter = bodyColorFilter
+            // Apply gradient to dragon body using Glide with custom transformation
+            if (paletteColors != null) {
+                val bodyTopColor = ContextCompat.getColor(this, paletteColors.bodyTopColorRes)
+                val bodyBottomColor = ContextCompat.getColor(this, paletteColors.bodyBottomColorRes)
 
-            // Scaling calculation to ensure it's the same across the board
+                // Create unique signature to bust Glide's cache
+                val colorSignature = "${bodyTopColor}_${bodyBottomColor}"
+
+                Glide.with(this@HomeActivity)
+                    .load(state.dragonImageRes)
+                    .skipMemoryCache(true) // Skips, we dont want it cached
+                    .signature(com.bumptech.glide.signature.ObjectKey(colorSignature))
+                    .into(object : com.bumptech.glide.request.target.ImageViewTarget<android.graphics.drawable.Drawable>(binding.dragon) {
+                        override fun setResource(resource: android.graphics.drawable.Drawable?) {
+                            if (resource != null) {
+                                val gradientDrawable = GradientTintDrawable(resource, bodyTopColor, bodyBottomColor)
+                                binding.dragon.setImageDrawable(gradientDrawable)
+                            }
+                        }
+                    })
+            } else {
+                // Fallback if no palette
+                Glide.with(this@HomeActivity)
+                    .load(state.dragonImageRes)
+                    .into(binding.dragon)
+            }
+
+            // Scaling calculation
             val dragonPxWidth = binding.dragon.width.toFloat()
             val finalScaleRatio = dragonPxWidth / DRAGON_REFERENCE_WIDTH_DP.toFloat()
 
@@ -208,7 +225,7 @@ class HomeActivity : AppCompatActivity(),
                 socket: DragonSockets.AttachmentPoint,
                 itemId: String?,
                 currentLevel: Int,
-                colorFilter: ColorFilter?
+                paletteColors: PaletteColors?
             ) {
                 val safeItemId = itemId ?: ""
                 val drawables = getAccessoryDrawables(safeItemId, currentLevel)
@@ -235,8 +252,30 @@ class HomeActivity : AppCompatActivity(),
                             bottomMargin = 0
                         }
 
-                    Glide.with(this@HomeActivity).load(accessoryRes).into(imageView)
-                    imageView.colorFilter = colorFilter
+                    // Apply gradient to accessories
+                    if (paletteColors != null) {
+                        val accessoryTopColor = ContextCompat.getColor(this, paletteColors.accessoryTopColorRes)
+                        val accessoryBottomColor = ContextCompat.getColor(this, paletteColors.accessoryBottomColorRes)
+
+                        // Create unique signature to bust Glide's cache
+                        val colorSignature = "${accessoryTopColor}_${accessoryBottomColor}"
+
+                        Glide.with(this@HomeActivity)
+                            .load(accessoryRes)
+                            .skipMemoryCache(true) // Skips, we dont want it cached
+                            .signature(com.bumptech.glide.signature.ObjectKey(colorSignature))
+                            .into(object : com.bumptech.glide.request.target.ImageViewTarget<android.graphics.drawable.Drawable>(imageView) {
+                                override fun setResource(resource: android.graphics.drawable.Drawable?) {
+                                    if (resource != null) {
+                                        val gradientDrawable = GradientTintDrawable(resource, accessoryTopColor, accessoryBottomColor)
+                                        imageView.setImageDrawable(gradientDrawable)
+                                    }
+                                }
+                            })
+                    } else {
+                        Glide.with(this@HomeActivity).load(accessoryRes).into(imageView)
+                    }
+
                     imageView.visibility = ImageView.VISIBLE
                 } else {
                     imageView.setImageDrawable(null)
@@ -244,38 +283,37 @@ class HomeActivity : AppCompatActivity(),
                 }
             }
 
-            // Apply equipped accessories
+            // Apply equipped accessories with gradients
             updateAccessoryView(
                 binding.hornLeft,
                 currentSocketSet.hornLeft,
                 state.equippedHornsId,
                 state.level,
-                accessoryColorFilter
+                paletteColors
             )
             updateAccessoryView(
                 binding.hornRight,
                 currentSocketSet.hornRight,
                 state.equippedHornsId,
                 state.level,
-                accessoryColorFilter
+                paletteColors
             )
             updateAccessoryView(
                 binding.wingLeft,
                 currentSocketSet.wingLeft,
                 state.equippedWingsId,
                 state.level,
-                accessoryColorFilter
+                paletteColors
             )
             updateAccessoryView(
                 binding.wingRight,
                 currentSocketSet.wingRight,
                 state.equippedWingsId,
                 state.level,
-                accessoryColorFilter
+                paletteColors
             )
         }
     }
-
     private fun getAccessoryDrawables(itemId: String, level: Int): DragonSockets.AccessoryDrawables {
         val prefix = when {
             level >= 10 -> "adult_"
@@ -376,3 +414,5 @@ class HomeActivity : AppCompatActivity(),
         return true
     }
 }
+// reference list
+//The Independent Institute of Education. 2025. Open Source Coding Module Manuel  [OPSC 7311]. nt. [online via internal VLE] The Independent Institute of Education. Available at: <https://advtechonline.sharepoint.com/:w:/r/sites/TertiaryStudents/_layouts/15/Doc.aspx?sourcedoc=%7BD5C243B5-895D-4B63-B083-140930EF9734%7D&file=OPSC7311MM.docx&action=default&mobileredirect=true> [Accessed Date 03 October 2025]
