@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:bind="http://schemas.android.com/tools"
     android:id="@+id/dashboard"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -18,7 +17,6 @@
         android:padding="8dp"
         android:layout_marginTop="28dp">
 
-        <!-- Left arrow -->
         <ImageView
             android:id="@+id/prevMonthButton"
             android:layout_width="32dp"
@@ -27,7 +25,6 @@
             android:src="@drawable/ic_arrow_left"
             android:contentDescription="Previous Month" />
 
-        <!-- Month text - fixed width -->
         <TextView
             android:id="@+id/currentMonthText"
             android:layout_width="60dp"
@@ -40,7 +37,6 @@
             android:gravity="center"
             android:singleLine="true" />
 
-        <!-- Right arrow -->
         <ImageView
             android:id="@+id/nextMonthButton"
             android:layout_width="32dp"
@@ -50,7 +46,6 @@
             android:src="@drawable/ic_arrow_right"
             android:contentDescription="Next Month" />
 
-        <!-- Start date button - flexible -->
         <include
             android:id="@+id/startDateButton"
             layout="@layout/start_date_button"
@@ -59,7 +54,6 @@
             android:layout_weight="1"
             android:layout_marginEnd="4dp" />
 
-        <!-- End date button - flexible -->
         <include
             android:id="@+id/endDateButton"
             layout="@layout/end_date_button"
@@ -68,28 +62,38 @@
             android:layout_weight="1" />
     </LinearLayout>
 
-
     <FrameLayout
         android:id="@+id/pieChartContainer"
         android:layout_width="match_parent"
         android:layout_height="220dp"
         android:layout_margin="16dp">
 
+        <!-- Pie behind everything -->
+        <com.TheBudgeteers.dragonomics.ui.widgets.PieChartView
+            android:id="@+id/pieChart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center" />
+
+        <!-- Flame/donut PNG centered; let it size itself proportionally -->
         <ImageView
             android:id="@+id/pieChartPlaceholder"
             android:layout_width="match_parent"
-            android:layout_height="220dp"
-            android:cropToPadding="false"
-            android:scaleType="centerInside"
-            android:layout_marginRight="10dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
             android:src="@drawable/chart" />
 
+        <!-- Center labels – truly centered in the container -->
         <LinearLayout
             android:id="@+id/incomeExpensesContainer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_gravity="center"
             android:orientation="vertical"
-            android:gravity="center">
+            android:gravity="center"
+            android:translationX="7dp">
 
             <TextView
                 android:id="@+id/incomeLabel"
@@ -132,8 +136,8 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
         </LinearLayout>
-
     </FrameLayout>
+
 
     <FrameLayout
         android:id="@+id/history_fragment_container"
@@ -141,7 +145,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:paddingTop="8dp"
-        android:paddingBottom="8dp"/>
+        android:paddingBottom="8dp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/transactionsRecyclerView"
@@ -150,8 +154,7 @@
         android:layout_weight="3"
         android:clipToPadding="false"
         android:padding="8dp"
-        android:background="@color/MidnightViolet"/>
-
+        android:background="@color/MidnightViolet" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"

@@ -2,6 +2,7 @@ package com.TheBudgeteers.dragonomics
 
 import android.app.DatePickerDialog
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
@@ -15,11 +16,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.TheBudgeteers.dragonomics.data.NestLayoutType
 import com.TheBudgeteers.dragonomics.data.NestType
 import com.TheBudgeteers.dragonomics.data.SessionStore
-import java.text.SimpleDateFormat
-import java.util.Locale
 import com.TheBudgeteers.dragonomics.databinding.ActivityHistoryBinding
-import com.TheBudgeteers.dragonomics.ui.adapters.HistoryTransactionsAdapter
 import com.TheBudgeteers.dragonomics.ui.NestFragment
+import com.TheBudgeteers.dragonomics.ui.adapters.HistoryTransactionsAdapter
+import com.TheBudgeteers.dragonomics.ui.widgets.PieChartView
 import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import com.TheBudgeteers.dragonomics.utils.openIntent
 import com.TheBudgeteers.dragonomics.viewmodel.HistoryViewModel
@@ -28,21 +28,19 @@ import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 
-// HistoryActivity displays transaction history with filtering options
-// Shows transactions grouped by date with monthly income/expense summary
-// Users can navigate between months or set custom date ranges
-// Displays attached receipt photos and allows viewing them in full screen
-// Part of the bottom navigation flow
+// If you have the Nest model in com.TheBudgeteers.dragonomics.models:
+import com.TheBudgeteers.dragonomics.models.Nest
+import com.TheBudgeteers.dragonomics.data.HistoryListItem
 
 class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
-
     private lateinit var binding: ActivityHistoryBinding
     private lateinit var viewModel: HistoryViewModel
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,28 +49,22 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         binding = ActivityHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Setup bottom navigation
         binding.bottomNavigationView.itemIconTintList = null
         binding.bottomNavigationView.selectedItemId = R.id.nav_history
-
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
             onNavigationItemSelected(item)
         }
 
-        // Initialize repository and session
         val repository = RepositoryProvider.getRepository(this)
         val session = SessionStore(this)
 
-        // Get user ID and setup ViewModel
         lifecycleScope.launch {
             val userId = session.userId.firstOrNull()
             if (userId == null) {
-                // No user logged in - redirect to login
                 navigateToLogin()
                 return@launch
             }
 
-            // Create ViewModel with user-specific factory
             viewModel = ViewModelProvider(
                 this@HistoryActivity,
                 HistoryViewModelFactory(repository, userId)
@@ -82,12 +74,6 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
-
-    // begin code attribution
-    // Flow collection in lifecycle scope adapted from:
-    // Android Developers: Collect flows safely
-
-    // Setup all UI components and their data bindings
     private fun setupUI() {
         val prevMonthButton = binding.prevMonthButton
         val nextMonthButton = binding.nextMonthButton
@@ -99,39 +85,29 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         val incomeText = binding.incomeText
         val expensesText = binding.expensesText
 
+        val pieChart: PieChartView = binding.pieChart
+        pieChart.holeRadiusPercent = 0f
+
         val dateFormat = SimpleDateFormat("d MMM yy", Locale.ENGLISH)
 
-        // Month navigation buttons
-        prevMonthButton.setOnClickListener {
-            viewModel.prevMonth()
-        }
+        prevMonthButton.setOnClickListener { viewModel.prevMonth() }
+        nextMonthButton.setOnClickListener { viewModel.nextMonth() }
 
-        nextMonthButton.setOnClickListener {
-            viewModel.nextMonth()
-        }
-
-        // Display start date (updates automatically when date range changes)
         lifecycleScope.launchWhenStarted {
             viewModel.startDate.collect { start ->
                 startDateText.text = if (start != 0L) dateFormat.format(Date(start)) else "Start"
             }
         }
-
-        // Display end date (updates automatically when date range changes)
         lifecycleScope.launchWhenStarted {
             viewModel.endDate.collect { end ->
                 endDateText.text = if (end != 0L) dateFormat.format(Date(end)) else "End"
             }
         }
-
-        // Display current month name
         lifecycleScope.launchWhenStarted {
             viewModel.startDate.collect {
                 currentMonthText.text = viewModel.getMonthDisplayName()
             }
         }
-
-        // Display monthly income and expense totals
         lifecycleScope.launchWhenStarted {
             viewModel.monthlyStats.collect { stats ->
                 incomeText.text = "R${stats.income.toInt()}"
@@ -139,22 +115,13 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             }
         }
 
-        // end code attribution (Android Developers, 2021)
-
-        // Custom date range pickers
         binding.startDateButton.root.setOnClickListener {
-            showDatePicker { date ->
-                viewModel.setCustomRange(date, viewModel.endDate.value)
-            }
+            showDatePicker { date -> viewModel.setCustomRange(date, viewModel.endDate.value) }
         }
-
         binding.endDateButton.root.setOnClickListener {
-            showDatePicker { date ->
-                viewModel.setCustomRange(viewModel.startDate.value, date)
-            }
+            showDatePicker { date -> viewModel.setCustomRange(viewModel.startDate.value, date) }
         }
 
-        // Setup nest spending summary fragment
         supportFragmentManager.beginTransaction()
             .replace(
                 R.id.history_fragment_container,
@@ -162,27 +129,57 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             )
             .commit()
 
-        // Setup transaction list with photo viewing capability
         val adapter = HistoryTransactionsAdapter(emptyList()) { photoPath ->
             openPhotoViewer(photoPath)
         }
         binding.transactionsRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.transactionsRecyclerView.adapter = adapter
 
-        // Collect grouped transactions (automatically updates when date range changes)
+        // === Transactions & Pie ===
         lifecycleScope.launchWhenStarted {
             viewModel.groupedTransactions.collect { grouped ->
                 adapter.updateData(grouped)
+
+                // Pull out only TransactionItem rows
+                val items = grouped.filterIsInstance<HistoryListItem.TransactionItem>()
+
+                // ----> CHANGE HERE if your TransactionWithNest uses a different field name than ".nest"
+                // Replace "it.transactionWithNest.nest" with your field, e.g. ".nestDetails" or ".category"
+                val expenseItems = items.filter {
+                    getNestFrom(it)?.type == NestType.EXPENSE   // <---- adjust if needed
+                }
+
+                // Group by the Nest itself (so we can get name & colour)
+                val byNest: Map<Nest, List<HistoryListItem.TransactionItem>> =
+                    expenseItems.groupBy { getNestFrom(it)!! }   // <---- adjust if needed
+
+                val slices = byNest.map { (category, list) ->
+                    val total = list.sumOf { row -> row.transactionWithNest.transaction.amount.toDouble() }
+                    val color = parseColorOrFallback(category.colour)
+                    PieChartView.Slice(category.name, total.toFloat(), color) // <- toFloat()
+                }.sortedByDescending { it.value }
+
+
+                pieChart.setData(slices)
             }
         }
     }
 
+    private fun getNestFrom(item: HistoryListItem.TransactionItem): Nest? {
+        return item.transactionWithNest.categoryNest
+    }
 
-    // begin code attribution
-    // DatePickerDialog usage adapted from:
-    // Android Developers: Pickers guide
 
-    // Show date picker dialog and return selected timestamp
+
+    private fun parseColorOrFallback(hex: String?): Int {
+        return try {
+            if (hex.isNullOrBlank()) Color.parseColor("#F2994A")
+            else Color.parseColor(hex)
+        } catch (_: Throwable) {
+            Color.parseColor("#F2994A")
+        }
+    }
+
     private fun showDatePicker(onDateSelected: (Long) -> Unit) {
         val calendar = Calendar.getInstance()
         val datePicker = DatePickerDialog(
@@ -198,31 +195,19 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         datePicker.show()
     }
 
-    // end code attribution (Android Developers, 2020)
-
-
-    // begin code attribution
-    // FileProvider usage for viewing images adapted from:
-    // Android Developers: Sharing files with FileProvider
-
-    // Open receipt photo in external image viewer
     private fun openPhotoViewer(photoPath: String) {
         try {
             val photoFile = File(photoPath)
             if (photoFile.exists()) {
-                // Use FileProvider to securely share the file
                 val photoUri: Uri = FileProvider.getUriForFile(
                     this,
                     "${applicationContext.packageName}.fileprovider",
                     photoFile
                 )
-
-                // Create intent to view image
                 val intent = Intent(Intent.ACTION_VIEW).apply {
                     setDataAndType(photoUri, "image/*")
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
-
                 startActivity(Intent.createChooser(intent, "View Photo"))
             } else {
                 Toast.makeText(this, "Photo not found", Toast.LENGTH_SHORT).show()
@@ -233,10 +218,6 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
-    // end code attribution (Android Developers, 2020)
-
-
-    // Redirect to login screen if no user is logged in
     private fun navigateToLogin() {
         val intent = Intent(this, LoginActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -245,7 +226,6 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         finish()
     }
 
-    // Handle bottom navigation item clicks
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.nav_home -> openIntent(this, "", HomeActivity::class.java)
@@ -256,8 +236,3 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         return true
     }
 }
-
-// reference list
-// Android Developers, 2021. Collect Flows Safely. [online] Available at: <https://developer.android.com/kotlin/flow/collect> [Accessed 5 October 2025].
-// Android Developers, 2020. Pickers. [online] Available at: <https://developer.android.com/develop/ui/views/components/pickers> [Accessed 5 October 2025].
-// Android Developers, 2020. Sharing Files with FileProvider. [online] Available at: <https://developer.android.com/training/secure-file-sharing/setup-sharing> [Accessed 5 October 2025].
