@@ -20,7 +20,7 @@ class GoalBarView @JvmOverloads constructor(
 
     private val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
-        color = Color.parseColor("#DDDDDD") // replaced at runtime to match parent bg
+        color = Color.parseColor("#DDDDDD")
     }
     private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -41,19 +41,20 @@ class GoalBarView @JvmOverloads constructor(
     private var maxGoal = 0.0
     private var minGoal = 0.0
 
-    // Data
     private var totalExpenses = 0.0
     private var totalIncome = 0.0
     private var segments: List<Segment> = emptyList()
 
-    // Colors
     private var savingsColor: Int = Color.parseColor("#2ECC71") // base "current/income" segment
     private var endCapColor: Int = Color.parseColor("#FFF5A5")
     private var markerColor: Int = endCapColor
 
-    // Track matches parent background by default
     private var trackMatchesParentBg: Boolean = true
 
+    // begin code attribution
+    // Loading a custom Typeface via ResourcesCompat.getFont adapted from:
+    // Android Developers, 2023. Fonts in XML / programmatic access. [online]
+    // Available at: <https://developer.android.com/guide/topics/ui/look-and-feel/fonts-in-xml> [Accessed 6 October 2025].
     init {
         ResourcesCompat.getFont(context, R.font.aref_ruqaa)?.let { tf ->
             textPaint.typeface = tf
@@ -62,15 +63,14 @@ class GoalBarView @JvmOverloads constructor(
         endCapColor = gold
         markerColor = gold
     }
+    // end code attribution (Android Developers, 2023)
 
-    /** Try to copy the parent view's background color for the track. */
     private fun updateTrackColorFromParent() {
         val parentView = parent as? View
         val bgColor = (parentView?.background as? ColorDrawable)?.color
         trackPaint.color = bgColor ?: Color.TRANSPARENT
     }
 
-    /** Public toggle if you ever want to revert to a solid track. */
     fun setTrackMatchesParentBackground(enabled: Boolean) {
         trackMatchesParentBg = enabled
         if (enabled) updateTrackColorFromParent()
@@ -82,14 +82,6 @@ class GoalBarView @JvmOverloads constructor(
         if (trackMatchesParentBg) updateTrackColorFromParent()
     }
 
-    /**
-     * @param maxGoal        Max goal value (right end of bar)
-     * @param minGoal        Min goal marker value
-     * @param expenseSegments List of expense segments (amount + color)
-     * @param totalIncome    "Current" value that defines the green width.
-     *
-     * The red expense overlay is drawn as (expenses / totalIncome) * greenWidth.
-     */
     fun setData(
         maxGoal: Double,
         minGoal: Double,
@@ -104,12 +96,17 @@ class GoalBarView @JvmOverloads constructor(
         invalidate()
     }
 
+    // begin code attribution
+    // Measuring a custom view with onMeasure/resolveSize pattern adapted from:
+    // Android Developers, 2024. Custom view components: onMeasure. [online]
+    // Available at: <https://developer.android.com/training/custom-views/custom-drawing> [Accessed 6 October 2025].
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val minH = (dp(56f)).roundToInt()
         val desiredH = resolveSize(minH, heightMeasureSpec)
         val desiredW = resolveSize(suggestedMinimumWidth, widthMeasureSpec)
         setMeasuredDimension(desiredW, desiredH)
     }
+    // end code attribution (Android Developers, 2024)
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
@@ -125,7 +122,6 @@ class GoalBarView @JvmOverloads constructor(
         val bottom = h - contentPad
         val outer = RectF(left, top, right, bottom)
 
-        // Track background (under everything)
         canvas.drawRoundRect(outer, corner, corner, trackPaint)
 
         if (maxGoal <= 0.0) {
@@ -134,24 +130,20 @@ class GoalBarView @JvmOverloads constructor(
             return
         }
 
-        // Inner clip rect to prevent bleed beyond rounded corners
         val bw = borderPaint.strokeWidth
         val inner = RectF(outer).apply { inset(bw, bw) }
         val innerCorner = (corner - bw).coerceAtLeast(0f)
 
-        // ---- ABSOLUTE mapping (0 .. maxGoal) for markers and widths ----
         fun xAbs(value: Double): Float {
             val clamped = value.coerceIn(0.0, maxGoal)
             val ratio = (clamped / maxGoal).toFloat()
             return inner.left + ratio * inner.width()
         }
 
-        // --- 1) Current/Income width (green base) relative to 0..maxGoal ---
         val current01 = (totalIncome / maxGoal).coerceIn(0.0, 1.0)
         val currentW = (current01 * inner.width()).toFloat()
         val currentRect = RectF(inner.left, inner.top, inner.left + currentW, inner.bottom)
 
-        // Draw base "current" segment in green
         canvas.save()
         Path().apply { addRoundRect(inner, innerCorner, innerCorner, Path.Direction.CW) }
             .also { canvas.clipPath(it) }
@@ -161,13 +153,11 @@ class GoalBarView @JvmOverloads constructor(
             canvas.drawRect(currentRect, segmentPaint)
         }
 
-        // --- 2) Expense overlay relative to current ---
         val expFracOfCurrent =
             if (totalIncome > 0.0) (totalExpenses / totalIncome).coerceIn(0.0, 1.0) else 0.0
         val expenseTotalW = (currentRect.width() * expFracOfCurrent).toFloat()
 
         if (expenseTotalW > 0f && currentRect.width() > 0f) {
-            // Clip to the current green so red cannot exceed it
             canvas.save()
             canvas.clipRect(currentRect)
 
@@ -194,20 +184,16 @@ class GoalBarView @JvmOverloads constructor(
 
         canvas.restore()
 
-        // ---------- markers & labels ----------
         val minMarkerW = dp(8f)
         val maxCapW = dp(8f)
         val gutter = dp(24f)
 
-        // Raw marker positions
         val minRaw = xAbs(minGoal)
         val maxRaw = inner.right // END of bar
 
-        // Clamp the MIN marker only if it would be offscreen; MAX marker stays at the end.
         val minMarkerX = if (minRaw < inner.left + gutter) inner.left + gutter else minRaw
         val maxMarkerX = maxRaw
 
-        // Draw min strip (possibly clamped if too close to edge)
         markerPaint.color = markerColor
         canvas.drawRect(
             minMarkerX - minMarkerW / 2f, inner.top,
@@ -215,7 +201,6 @@ class GoalBarView @JvmOverloads constructor(
             markerPaint
         )
 
-        // Draw max end-cap EXACTLY at the end of the bar
         markerPaint.color = endCapColor
         canvas.drawRect(
             inner.right - maxCapW, inner.top,
@@ -223,10 +208,8 @@ class GoalBarView @JvmOverloads constructor(
             markerPaint
         )
 
-        // Border on top
         canvas.drawRoundRect(outer, corner, corner, borderPaint)
 
-        // Labels use clamped positions so text doesn't clip
         val minLabelX = max(minRaw, inner.left + gutter)
         val maxLabelX = min(maxRaw, inner.right - gutter)
         drawLabels(canvas, outer, minLabelX, maxLabelX, maxGoal)
@@ -249,7 +232,6 @@ class GoalBarView @JvmOverloads constructor(
         textPaint.typeface = boldTf
 
         if (maxGoalVal > 0) {
-            // Keep labels away from the very edges so they don’t clip offscreen.
             val gutter = dp(24f)
             val safeLeft  = bar.left + gutter
             val safeRight = bar.right - gutter
@@ -296,7 +278,24 @@ class GoalBarView @JvmOverloads constructor(
         this.markerColor  = endCapColor
         invalidate()
     }
-
+    // begin code attribution
+    // Density/scaled-density helpers (dp/sp) based on DisplayMetrics guidance adapted from:
+    // Android Developers, 2024. Support different pixel densities. [online]
+    // Available at: <https://developer.android.com/training/multiscreen/screendensities> [Accessed 6 October 2025].
     private fun dp(v: Float) = v * resources.displayMetrics.density
     private fun sp(v: Float) = v * resources.displayMetrics.scaledDensity
+    // end code attribution (Android Developers, 2024)
+
+// reference list
+// Android Developers, 2023. Draw with Canvas. [online]
+// Available at: <https://developer.android.com/develop/ui/views/graphics/draw> [Accessed 6 October 2025].
+// Android Developers, 2020. Canvas clip operations. [online]
+// Available at: <https://developer.android.com/reference/android/graphics/Canvas#clipPath(android.graphics.Path)> [Accessed 6 October 2025].
+// Android Developers, 2023. Fonts in XML / programmatic access. [online]
+// Available at: <https://developer.android.com/guide/topics/ui/look-and-feel/fonts-in-xml> [Accessed 6 October 2025].
+// Android Developers, 2024. Custom view components: onMeasure. [online]
+// Available at: <https://developer.android.com/training/custom-views/custom-drawing> [Accessed 6 October 2025].
+// Android Developers, 2024. Support different pixel densities. [online]
+// Available at: <https://developer.android.com/training/multiscreen/screendensities> [Accessed 6 October 2025].
+
 }

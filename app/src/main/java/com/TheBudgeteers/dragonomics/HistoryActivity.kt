@@ -33,7 +33,6 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-// If you have the Nest model in com.TheBudgeteers.dragonomics.models:
 import com.TheBudgeteers.dragonomics.models.Nest
 import com.TheBudgeteers.dragonomics.data.HistoryListItem
 
@@ -122,12 +121,17 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             showDatePicker { date -> viewModel.setCustomRange(viewModel.startDate.value, date) }
         }
 
+        // begin code attribution
+        // Fragment transaction pattern adapted from:
+        // Android Developers, 2023. Fragments: create and add. [online]
+        // Available at: <https://developer.android.com/guide/fragments> [Accessed 6 October 2025].
         supportFragmentManager.beginTransaction()
             .replace(
                 R.id.history_fragment_container,
                 NestFragment.newInstance(NestType.EXPENSE, NestLayoutType.HISTORY)
             )
             .commit()
+        // end code attribution (Android Developers, 2023)
 
         val adapter = HistoryTransactionsAdapter(emptyList()) { photoPath ->
             openPhotoViewer(photoPath)
@@ -135,28 +139,26 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         binding.transactionsRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.transactionsRecyclerView.adapter = adapter
 
-        // === Transactions & Pie ===
+
         lifecycleScope.launchWhenStarted {
             viewModel.groupedTransactions.collect { grouped ->
                 adapter.updateData(grouped)
 
-                // Pull out only TransactionItem rows
+
                 val items = grouped.filterIsInstance<HistoryListItem.TransactionItem>()
 
-                // ----> CHANGE HERE if your TransactionWithNest uses a different field name than ".nest"
-                // Replace "it.transactionWithNest.nest" with your field, e.g. ".nestDetails" or ".category"
+
                 val expenseItems = items.filter {
-                    getNestFrom(it)?.type == NestType.EXPENSE   // <---- adjust if needed
+                    getNestFrom(it)?.type == NestType.EXPENSE
                 }
 
-                // Group by the Nest itself (so we can get name & colour)
                 val byNest: Map<Nest, List<HistoryListItem.TransactionItem>> =
-                    expenseItems.groupBy { getNestFrom(it)!! }   // <---- adjust if needed
+                    expenseItems.groupBy { getNestFrom(it)!! }
 
                 val slices = byNest.map { (category, list) ->
                     val total = list.sumOf { row -> row.transactionWithNest.transaction.amount.toDouble() }
                     val color = parseColorOrFallback(category.colour)
-                    PieChartView.Slice(category.name, total.toFloat(), color) // <- toFloat()
+                    PieChartView.Slice(category.name, total.toFloat(), color)
                 }.sortedByDescending { it.value }
 
 
@@ -180,6 +182,10 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
+    // begin code attribution
+    // DatePickerDialog creation and callback usage adapted from:
+    // Android Developers, 2023. Pickers. [online]
+    // Available at: <https://developer.android.com/develop/ui/views/components/pickers> [Accessed 6 October 2025].
     private fun showDatePicker(onDateSelected: (Long) -> Unit) {
         val calendar = Calendar.getInstance()
         val datePicker = DatePickerDialog(
@@ -194,6 +200,7 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         )
         datePicker.show()
     }
+    // end code attribution (Android Developers, 2023)
 
     private fun openPhotoViewer(photoPath: String) {
         try {
@@ -236,3 +243,18 @@ class HistoryActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         return true
     }
 }
+// reference list
+// Android Developers, 2023. Fragments: create and add. [online]
+// Available at: <https://developer.android.com/guide/fragments> [Accessed 6 October 2025].
+// Android Developers, 2020. Create a list with RecyclerView. [online]
+// Available at: <https://developer.android.com/develop/ui/views/layout/recyclerview#kotlin> [Accessed 6 October 2025].
+// Android Developers, 2022. Kotlin coroutines on Android (lifecycle-aware collection). [online]
+// Available at: <https://developer.android.com/kotlin/coroutines> [Accessed 6 October 2025].
+// Oracle, 2024. SimpleDateFormat (Java SE). [online]
+// Available at: <https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html> [Accessed 6 October 2025].
+// Android Developers, 2023. Pickers (DatePickerDialog). [online]
+// Available at: <https://developer.android.com/develop/ui/views/components/pickers> [Accessed 6 October 2025].
+// Android Developers, 2023. Share files securely with FileProvider. [online]
+// Available at: <https://developer.android.com/reference/androidx/core/content/FileProvider> [Accessed 6 October 2025].
+// Android Developers, 2023. Common intents (ACTION_VIEW). [online]
+// Available at: <https://developer.android.com/guide/components/intents-common> [Accessed 6 October 2025].

@@ -68,14 +68,12 @@
         android:layout_height="220dp"
         android:layout_margin="16dp">
 
-        <!-- Pie behind everything -->
         <com.TheBudgeteers.dragonomics.ui.widgets.PieChartView
             android:id="@+id/pieChart"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center" />
 
-        <!-- Flame/donut PNG centered; let it size itself proportionally -->
         <ImageView
             android:id="@+id/pieChartPlaceholder"
             android:layout_width="match_parent"
@@ -85,7 +83,6 @@
             android:scaleType="fitCenter"
             android:src="@drawable/chart" />
 
-        <!-- Center labels – truly centered in the container -->
         <LinearLayout
             android:id="@+id/incomeExpensesContainer"
             android:layout_width="match_parent"
