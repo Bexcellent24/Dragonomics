@@ -1,9 +1,6 @@
 package com.TheBudgeteers.dragonomics
 
 import android.content.Context
-import android.graphics.ColorFilter
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.view.MenuItem
@@ -77,38 +74,47 @@ class HomeActivity : AppCompatActivity(),
         displayMetrics = resources.displayMetrics
         sessionStore = SessionStore(this)
 
-        initializeViewModels()
-
+        // Get userId first, THEN initialize everything
         lifecycleScope.launch {
             val userId = sessionStore.userId.firstOrNull()
             android.util.Log.d("HomeActivity", "Got userId: $userId")
 
             if (userId == null) {
                 android.util.Log.e("HomeActivity", "No userId found!")
+                // TODO: Redirect to login screen
                 return@launch
             }
 
+            // Initialize ViewModels with userId
+            initializeViewModels(userId)
+
+            // Initialize achievement notifier
             achievementNotifier = AchievementNotifier(this@HomeActivity, userId)
 
-            dragonViewModel.initialize(userId)
+            // Initialize shop with userId
             shopViewModel.initialize(userId)
 
+            // Load achievements
             achievementsViewModel.loadAchievements(userId)
             achievementNotifier?.observeAndNotify(this@HomeActivity, achievementsViewModel)
 
+            // Setup UI
             initializeDragonDisplay()
             setupButtons()
             setupBottomNavigation()
             setupBackButton()
 
+            // Set equipment listener
             shopViewModel.setEquipListener(this@HomeActivity)
 
+            // Update dragon mood
             updateOverallMoodFromNests(userId)
 
-
+            // Track login achievement
             AchievementTriggers.trackLogin(userId)
-            android.util.Log.d("HomeActivity", " Login tracked for user: $userId")
+            android.util.Log.d("HomeActivity", "Login tracked for user: $userId")
 
+            // Initialize achievements if needed
             val prefs = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
             if (!prefs.getBoolean("achievements_initialized", false)) {
                 achievementsViewModel.initializeAchievements()
@@ -118,8 +124,9 @@ class HomeActivity : AppCompatActivity(),
         }
     }
 
-    private fun initializeViewModels() {
-        val dragonFactory = DragonViewModel.Factory(this)
+    private fun initializeViewModels(userId: String) {
+        // DragonViewModel now requires userId in its Factory
+        val dragonFactory = DragonViewModel.Factory(this, userId)
         dragonViewModel = ViewModelProvider(this, dragonFactory)[DragonViewModel::class.java]
 
         shopViewModel = ViewModelProvider(this)[ShopViewModel::class.java]
@@ -128,6 +135,7 @@ class HomeActivity : AppCompatActivity(),
         val repository = Repository()
         nestViewModel = ViewModelProvider(this, NestViewModelFactory(repository))[NestViewModel::class.java]
     }
+
 
     private fun initializeDragonDisplay() {
         lifecycleScope.launch {

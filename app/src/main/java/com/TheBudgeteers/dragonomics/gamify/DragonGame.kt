@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.DrawableRes
 import com.TheBudgeteers.dragonomics.R
+import com.TheBudgeteers.dragonomics.data.FirebaseDragonRepository
+import kotlinx.coroutines.runBlocking
 import java.util.Calendar
 
 /*
@@ -85,41 +87,6 @@ object DragonRules {
         Mood.HAPPY   -> R.drawable.happy_mood
         Mood.NEUTRAL -> R.drawable.neutral_mood
         Mood.ANGRY   -> R.drawable.angry_mood
-    }
-}
-
-//Dragon's current game state
-data class DragonState(
-    val totalXp: Int = 0,
-    val level: Int = 0,
-    val xpIntoLevel: Int = 0,
-    val moodScore: Int = 0,
-    val mood: DragonRules.Mood = DragonRules.Mood.NEUTRAL,
-    val lastLoginYmd: Int = 0
-)
-
-
-class DragonStore(context: Context) {
-    private val prefs: SharedPreferences =
-        context.getSharedPreferences("dragon_store", Context.MODE_PRIVATE)
-
-    //Load persisted values and rebuild a consistent DragonState.
-    fun load(): DragonState {
-        val xp = prefs.getInt("xp", 0)
-        val moodScore = prefs.getInt("moodScore", 0)
-        val mood = DragonRules.moodFromScore(moodScore)
-        val level = DragonRules.levelFromXp(xp)
-        val into = DragonRules.xpIntoLevel(xp)
-        val last = prefs.getInt("lastLoginYmd", 0)
-        return DragonState(xp, level, into, moodScore, mood, last)
-    }
-    //Persist only the authoritative fields
-    fun save(state: DragonState) {
-        prefs.edit()
-            .putInt("xp", state.totalXp)
-            .putInt("moodScore", state.moodScore)
-            .putInt("lastLoginYmd", state.lastLoginYmd)
-            .apply()
     }
 }
 

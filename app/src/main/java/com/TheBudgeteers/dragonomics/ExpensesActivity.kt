@@ -47,6 +47,7 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
     }
 
     private lateinit var sessionStore: SessionStore
+    private var currentUserId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,14 +59,21 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         // Initialize dependencies
         sessionStore = SessionStore(this)
 
-        // Setup UI components
-        setupBottomNavigation()
-        setupNestButtons()
-        setupFragments(savedInstanceState)
-        setupTransactionListener()
-
-        // Calculate and display initial dragon mood based on expenses
         lifecycleScope.launch {
+            currentUserId = sessionStore.userId.firstOrNull()
+
+            if (currentUserId == null) {
+                android.util.Log.e("ExpensesActivity", "No userId found!")
+                return@launch
+            }
+
+            // Setup UI components
+            setupBottomNavigation()
+            setupNestButtons()
+            setupFragments(savedInstanceState)
+            setupTransactionListener()
+
+            // Calculate and display initial dragon mood based on expenses
             updateOverallMoodFromVm(NestType.EXPENSE)
         }
     }
@@ -142,8 +150,14 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         supportFragmentManager.setFragmentResultListener("tx_saved", this) { _, bundle ->
             val addedPhoto = bundle.getBoolean("addedPhoto", false)
 
+            val userId = currentUserId
+            if (userId == null) {
+                android.util.Log.e("ExpensesActivity", "No userId in transaction listener")
+                return@setFragmentResultListener
+            }
+
             // Award XP for logging an expense
-            val game = DragonGameProvider.get(this)
+            val game = DragonGameProvider.get(this, userId)
             game.onExpenseLogged(addedPhoto)
 
             // Notify any listeners that game state changed
@@ -186,9 +200,8 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
         lifecycleScope.launch {
             // Get current user ID from session (now String instead of Long)
             val userId = sessionStore.userId.firstOrNull()
-
             if (userId == null) {
-                // No user logged in - skip mood update
+                android.util.Log.e("ExpensesActivity", "No userId for mood update")
                 return@launch
             }
 
@@ -203,7 +216,7 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
             // Update both mood managers so dragon appears correct everywhere
             DragonMoodManager.setOverallMood(this@ExpensesActivity, mood)
 
-            val game = DragonGameProvider.get(this@ExpensesActivity)
+            val game = DragonGameProvider.get(this@ExpensesActivity, userId)
             game.setOverallMood(mood.toDragonMood())
         }
     }

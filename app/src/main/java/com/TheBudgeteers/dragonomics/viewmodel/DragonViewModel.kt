@@ -16,8 +16,7 @@ import kotlinx.coroutines.launch
 
 
 // DragonViewModel - Holds UI-facing dragon state for Home/Shop screens.
-// UPDATED FOR FIREBASE: Now loads equipped cosmetics from Firestore.
-
+// UPDATED FOR FIREBASE: Now user-aware and loads dragon state per user.
 
 // Core progression
 data class DragonUiState(
@@ -38,10 +37,12 @@ data class DragonUiState(
 )
 
 // ViewModel that observes the domain game
-class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
+class DragonViewModel(
+    private val dragonGame: DragonGame,
+    private val userId: String
+) : ViewModel() {
 
     private val cosmeticsRepo = FirebaseCosmeticsRepository()
-    private var currentUserId: String? = null
 
     // Mutable inside ViewModel, exposed as read-only to the UI.
     private val _uiState = MutableStateFlow(DragonUiState())
@@ -60,14 +61,11 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
             }
         }
 
+        // Load equipped cosmetics for this user
+        loadEquippedCosmetics(userId)
+
         // Initial UI update
         updateUiState()
-    }
-
-    // Initialize with user ID to load their equipped cosmetics.
-    fun initialize(userId: String) {
-        currentUserId = userId
-        loadEquippedCosmetics(userId)
     }
 
     // Load equipped cosmetics from Firebase
@@ -87,7 +85,7 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
         }
     }
 
-   // Pull the latest domain state and map it into bindable UI values
+    // Pull the latest domain state and map it into bindable UI values
     private fun updateUiState() {
         val state = dragonGame.state
         val xpPercent = (state.xpIntoLevel * 100) / DragonRules.XP_PER_LEVEL
@@ -103,8 +101,6 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
             )
         }
     }
-
-
 
     // Update equipped accessory
     // This updates the UI state immediately without waiting for Firestore
@@ -150,11 +146,14 @@ class DragonViewModel(private val dragonGame: DragonGame) : ViewModel() {
     }
 
     // Factory for constructing DragonViewModel with a DragonGame dependency
-    class Factory(private val context: Context) : androidx.lifecycle.ViewModelProvider.Factory {
+    class Factory(
+        private val context: Context,
+        private val userId: String
+    ) : androidx.lifecycle.ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            val dragonGame = DragonGameProvider.get(context)
-            return DragonViewModel(dragonGame) as T
+            val dragonGame = DragonGameProvider.get(context, userId)
+            return DragonViewModel(dragonGame, userId) as T
         }
     }
 }
