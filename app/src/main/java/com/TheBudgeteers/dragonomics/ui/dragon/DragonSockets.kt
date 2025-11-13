@@ -33,7 +33,7 @@ object DragonSockets {
 
         hornRight = AttachmentPoint(x = 87, y = -38, width = 75, height = 75),
 
-        wingLeft = AttachmentPoint(x = -140, y = -73, width = 300, height = 300),
+        wingLeft = AttachmentPoint(x = -141, y = -65, width = 300, height = 300),
 
         wingRight = AttachmentPoint(x = 35, y = -80, width = 300, height = 300)
     )
