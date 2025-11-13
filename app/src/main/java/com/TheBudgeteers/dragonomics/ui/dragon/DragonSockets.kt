@@ -33,9 +33,9 @@ object DragonSockets {
 
         hornRight = AttachmentPoint(x = 87, y = -38, width = 75, height = 75),
 
-        wingLeft = AttachmentPoint(x = -141, y = -65, width = 300, height = 300),
+        wingLeft = AttachmentPoint(x = -150, y = -67, width = 310, height = 303),
 
-        wingRight = AttachmentPoint(x = 35, y = -80, width = 300, height = 300)
+        wingRight = AttachmentPoint(x = 35, y = -80, width = 300, height = 303)
     )
 
     // sockets for teen
@@ -45,9 +45,9 @@ object DragonSockets {
 
         hornRight = AttachmentPoint(x = 83, y = -15, width = 50, height = 50),
 
-        wingLeft = AttachmentPoint(x = -140, y = -73, width = 300, height = 300),
+        wingLeft = AttachmentPoint(x = -135, y = -79, width = 300, height = 300),
 
-        wingRight = AttachmentPoint(x = 15, y = -78, width = 300, height = 300)
+        wingRight = AttachmentPoint(x = 13, y = -79, width = 300, height = 300)
     )
 
     // sockets for adult
@@ -57,8 +57,8 @@ object DragonSockets {
 
         hornRight = AttachmentPoint(x = 61, y = -12, width = 75, height = 75),
 
-        wingLeft = AttachmentPoint(x = -140, y = -73, width = 300, height = 300),
+        wingLeft = AttachmentPoint(x = -140, y = -80, width = 300, height = 313),
 
-        wingRight = AttachmentPoint(x = 25, y = -78, width = 300, height = 300)
+        wingRight = AttachmentPoint(x = 25, y = -78, width = 300, height = 313)
     )
 }

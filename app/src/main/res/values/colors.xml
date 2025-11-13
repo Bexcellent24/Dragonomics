@@ -22,18 +22,18 @@
 
     <!-- EMBER PALETTE -->
     <color name="ember_body_top">#F5FB03</color>
-    <color name="ember_body_bottom">#CA4D0B</color>
-    <color name="ember_accessory_top">#FFFF00</color>
-    <color name="ember_accessory_bottom">#FF8C00</color>
+    <color name="ember_body_bottom">#F04200</color>
+    <color name="ember_accessory_top">#FFFF6D</color>
+    <color name="ember_accessory_bottom">#CA5710</color>
 
     <!-- FOREST PALETTE  -->
-    <color name="forest_body_top">#834303</color>
-    <color name="forest_body_bottom">#2E7D32</color>
+    <color name="forest_body_top">#2E7D32</color>
+    <color name="forest_body_bottom">#834303</color>
     <color name="forest_accessory_top">#A1887F</color>
     <color name="forest_accessory_bottom">#501E01</color>
 
     <!-- CRIMSON PALETTE  -->
-    <color name="crimson_body_top">#FF1744</color>
+    <color name="crimson_body_top">#F4A8A8</color>
     <color name="crimson_body_bottom">#8B0000</color>
     <color name="crimson_accessory_top">#F4F4F4</color>
     <color name="crimson_accessory_bottom">#424242</color>
