@@ -175,6 +175,8 @@
                 android:backgroundTint="@color/FireBurst"
                 android:fontFamily="@font/aref_ruqaa"
                 android:text="Login"
+                android:textSize="18sp"
+                android:textStyle="bold"
                 app:cornerRadius="5dp" />
 
             <ProgressBar
