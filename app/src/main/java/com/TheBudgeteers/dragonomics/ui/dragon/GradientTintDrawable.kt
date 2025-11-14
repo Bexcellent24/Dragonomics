@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable
 import androidx.core.graphics.drawable.DrawableCompat
 
 /**
- * A drawable wrapper that applies a vertical( can change it if need be) gradient tint overlay to any drawable.
+ * A drawable wrapper that applies a vertical gradient tint overlay to any drawable.
  * Uses MULTIPLY to colorize while preserving details.
  * Only applies gradient to non-transparent pixels.
  *
