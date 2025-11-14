@@ -121,8 +121,9 @@
                 android:fontFamily="@font/aref_ruqaa"
                 android:text="Update"
                 android:textColor="@color/GoldenEmber"
-
-                android:textSize="16sp"  android:paddingStart="0.2dp"  android:paddingEnd="0.2dp"    />
+                android:textSize="16sp"
+                android:paddingStart="0.2dp"
+                android:paddingEnd="0.2dp"/>
 
         </LinearLayout>
     </LinearLayout>
