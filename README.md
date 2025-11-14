@@ -24,9 +24,9 @@ Draconomics was designed with three priorities in mind:
 
 1. **Engagement:** Financial management is often boring or intimidating. The game mechanics (dragon evolution, quests, and achievements) make it fun and goal-driven.
 2. **Accessibility:** The UI follows Material Design principles for intuitive navigation and visual consistency.
-3. **Scalability:** The app uses the MVVM architecture to separate data, logic, and presentation layers. This makes future development (such as cloud storage and analytics) easier to implement.
+3. **Scalability:** The app uses the MVVM architecture to separate data, logic, and presentation layers. This makes future development easier to implement.
 
-The app currently stores data locally using Room, ensuring users' financial records persist between sessions. Multi-user functionality supports individual profiles with unique progress and data.
+The app now uses Firebase for cloud based data storage which keeps user records synced across sessions and devices. Multi user functionality supports individual profiles with their own progress and data.
 
 ---
 
@@ -34,23 +34,31 @@ The app currently stores data locally using Room, ensuring users' financial reco
 
 - Custom **expense and income nests** for financial organisation
 - **Transactions** recorded with "to" and "from" nests for category tracking
-- **Dragon customisation**, growth, and mood changes based on budgeting performance
-- **Quests and achievements** (currently implemented as hardcoded placeholders)
-- **History page** showing transactions by selected time periods
+- **Dragon customisation** growth, and mood changes based on budgeting performance
+- **Quests and achievements** now fully implemented with dynamic rewards
+- **History page** showing transactions by selected time periods with built in graphs for visual data analysis
 - **Multi-user support** with login and sign-up
 - **Goal setting** with minimum and maximum monthly targets
-- **Persistent local storage** using Room database
-- **Monthly income and expense tracking**
+- **Persistent cloud storage** using Firebase
+- **Monthly income and expense tracking** supported with built in graphs for visual data analysis
 
 ---
 
-## 5. Future Features
+## 5. Custom Features
 
-- Cloud synchronisation and backup using **Firebase**
-- Fully functional **achievements and badge system**
-- Editing and deletion of existing nests
-- Automatic **monthly reset** of transaction data
-- Visual representation of user habits through **graphs and charts**
+This release introduces a set of new features that expand both the budgeting tools and the game systems.
+
+- **Custom Dragon**
+Users have a dragon with full customisation options. The dragon’s mood reflects the user’s budgeting behaviour and it gains experience as expenses are logged. As it levels up it grows through several stages which encourages continued engagement with the app.
+
+- **Nest Editing**
+Nests can now be edited at any time. Users can change nest budgets, icons, names, and colours. A nest can also be deleted if it is no longer needed which keeps the budgeting layout clean and relevant.
+
+- **Monthly Reset**
+A reset option is available on the nests page. This allows users to clear all nest data at the start of a new budgeting period with one button which makes month to month budgeting easier to manage.
+
+- **Achievements**
+The app now includes built in achievements. These award coins for completing tasks such as logging expenses, logging in regularly, and maintaining streaks. This creates reward driven progression that supports consistent financial habits.
 
 ---
 
@@ -58,7 +66,7 @@ The app currently stores data locally using Room, ensuring users' financial reco
 
 - **Language:** Kotlin
 - **Architecture:** MVVM (Model-View-ViewModel)
-- **Database:** Room (SQLite)
+- **Database:** Firebase
 - **UI Framework:** Material Design with ViewBinding
 - **Asynchronous Operations:** Kotlin Coroutines and Flow
 - **Logging:** Android Logcat used to monitor lifecycle events, data changes, and user actions
