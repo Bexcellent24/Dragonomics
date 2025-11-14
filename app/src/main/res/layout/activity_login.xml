@@ -153,6 +153,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/aref_ruqaa"
                 android:text="Remember me"
+                android:visibility= "gone"
                 android:textColor="@color/GoldenEmber" />
 
             <TextView

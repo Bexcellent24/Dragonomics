@@ -45,7 +45,40 @@ class Repository {
 
     // ---------- USER PROFILE ----------
 
-    // Get user profile as a reactive Flow.
+    // Update user profile name
+    suspend fun updateUserProfile(userId: String, firstName: String, lastName: String): Result<Unit> {
+        return try {
+            firestore.collection("users")
+                .document(userId)
+                .update(
+                    mapOf(
+                        "firstName" to firstName,
+                        "lastName" to lastName
+                    )
+                )
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e("Repository", "Error updating user profile", e)
+            Result.failure(e)
+        }
+    }
+
+    // Update profile picture URL
+    suspend fun updateProfilePicture(userId: String, profilePictureUrl: String): Result<Unit> {
+        return try {
+            firestore.collection("users")
+                .document(userId)
+                .update("profilePictureUrl", profilePictureUrl)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e("Repository", "Error updating profile picture", e)
+            Result.failure(e)
+        }
+    }
+
+    // Also update the getUserFlow and getUser methods to include the new fields:
     fun getUserFlow(userId: String): Flow<UserProfile?> = callbackFlow {
         val listener = firestore.collection("users")
             .document(userId)
@@ -61,8 +94,12 @@ class Repository {
                             userId = userId,
                             username = doc.getString("username") ?: "",
                             email = doc.getString("email") ?: "",
+                            firstName = doc.getString("firstName") ?: "",
+                            lastName = doc.getString("lastName") ?: "",
+                            profilePictureUrl = doc.getString("profilePictureUrl") ?: "",
                             minGoal = doc.getDouble("minGoal"),
-                            maxGoal = doc.getDouble("maxGoal")
+                            maxGoal = doc.getDouble("maxGoal"),
+                            gold = doc.getLong("gold")?.toInt() ?: 0
                         )
                     } else null
                 }
@@ -73,8 +110,6 @@ class Repository {
         awaitClose { listener.remove() }
     }
 
-
-    // Get user profile once (non-reactive).
     suspend fun getUser(userId: String): UserProfile? {
         return try {
             val doc = firestore.collection("users")
@@ -87,8 +122,12 @@ class Repository {
                     userId = userId,
                     username = doc.getString("username") ?: "",
                     email = doc.getString("email") ?: "",
+                    firstName = doc.getString("firstName") ?: "",
+                    lastName = doc.getString("lastName") ?: "",
+                    profilePictureUrl = doc.getString("profilePictureUrl") ?: "",
                     minGoal = doc.getDouble("minGoal"),
-                    maxGoal = doc.getDouble("maxGoal")
+                    maxGoal = doc.getDouble("maxGoal"),
+                    gold = doc.getLong("gold")?.toInt() ?: 0
                 )
             } else null
         } catch (e: Exception) {

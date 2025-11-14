@@ -4,27 +4,27 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.edit
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.TheBudgeteers.dragonomics.data.Repository
 import com.TheBudgeteers.dragonomics.data.SessionStore
 import com.TheBudgeteers.dragonomics.databinding.ActivityProfileBinding
 import com.TheBudgeteers.dragonomics.ui.adapters.QuestsAdapter
-import com.TheBudgeteers.dragonomics.ui.profile.AvatarManager
 import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import com.TheBudgeteers.dragonomics.utils.openIntent
 import com.TheBudgeteers.dragonomics.viewmodel.AchievementsViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.ProfileViewModel
 import com.TheBudgeteers.dragonomics.viewmodel.factories.ProfileViewModelFactory
+import com.bumptech.glide.Glide
 import com.google.android.material.navigation.NavigationView
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -35,9 +35,9 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
 
     /*
     Purpose:
-      - Displays and edits user profile information
-      - Orchestrates profile UI wiring and session checks.
-      - Bridges ViewModel with lightweight UI prefs
+      - Displays and edits user profile information from Firebase
+      - Orchestrates profile UI wiring and session checks
+      - Handles profile picture storage as Base64 in Firestore
     */
 
     // ViewBinding & adapters
@@ -49,16 +49,8 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
     private lateinit var session: SessionStore
     private lateinit var viewModel: ProfileViewModel
 
-    // Per-user state - Changed from Long to String for Firebase UID
+    // Per-user state - Firebase UID
     private var currentUserId: String = ""
-    private var avatarLocalUri: Uri? = null
-
-    // Jetpack Photo Picker: pick an image and persist a local copy for this user
-    private object PrefKeys {
-        const val AVATAR_LOCAL = "avatar_local_uri"
-        const val FIRST = "first_name"
-        const val LAST = "last_name"
-    }
 
     // begin code attribution
     // Pick an image with Jetpack Photo Picker and handle the result via the Activity Result API.
@@ -72,11 +64,13 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         ActivityResultContracts.PickVisualMedia()
     ) { pickerUri ->
         if (pickerUri != null) {
-            val local = AvatarManager.copyToAppStorage(this, pickerUri, currentUserId)
-                ?: return@registerForActivityResult
-            avatarLocalUri = local
-            applyAvatar(local)
-            getProfilePrefs().edit { putString(PrefKeys.AVATAR_LOCAL, local.toString()) }
+            // Show the image immediately for instant feedback
+            applyAvatar(pickerUri)
+
+            // Save to Firestore as Base64 in background
+            lifecycleScope.launch {
+                uploadProfilePicture(pickerUri)
+            }
         }
     }
     // end code attribution (Android Developers, 2023; Android Developers, 2020)
@@ -92,7 +86,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         achievementsViewModel = ViewModelProvider(this)[AchievementsViewModel::class.java]
 
         setupBottomNav()
-        setupQuestsList()  // This can stay here now that we initialize adapter first
+        setupQuestsList()
         setupHeaderActions()
 
         // Session check + bootstrap
@@ -120,17 +114,20 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
             ProfileViewModelFactory(repository, userId)
         )[ProfileViewModel::class.java]
 
-        // Observe user data from database
+        // Observe user data from Firebase
         lifecycleScope.launch {
             viewModel.user.collect { user ->
                 user?.let {
+                    // Update display name from Firebase data
+                    binding.txtUsername.text = viewModel.getDisplayName()
+
+                    // Update goals display
                     updateGoalsDisplay(it.minGoal, it.maxGoal)
 
-                    // Update display name when user data loads
-                    val prefs = getProfilePrefs()
-                    val first = prefs.getString(PrefKeys.FIRST, "") ?: ""
-                    val last = prefs.getString(PrefKeys.LAST, "") ?: ""
-                    binding.txtUsername.text = viewModel.getDisplayName(first, last)
+                    // Load profile picture if available
+                    if (it.profilePictureUrl.isNotEmpty()) {
+                        loadProfilePicture(it.profilePictureUrl)
+                    }
                 }
             }
         }
@@ -153,7 +150,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
     // Adapted from:
     // Android Developers, 2020. Create a list with RecyclerView. [online]
     // Available at: <https://developer.android.com/develop/ui/views/layout/recyclerview#kotlin> [Accessed 6 October 2025].
-    // RecyclerView + adapter: demo quests
+
     private fun setupQuestsList() {
         questsAdapter = QuestsAdapter { quest -> }
 
@@ -164,7 +161,6 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
     }
     // end code attribution (Android Developers, 2020)
 
-    // Add this new method to load quests when userId is available:
     private fun loadQuests(userId: String) {
         lifecycleScope.launch {
             try {
@@ -179,45 +175,23 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
                     }
                 }
             } catch (e: Exception) {
-                android.util.Log.e("ProfileActivity", "Error loading quests", e)
+                Log.e("ProfileActivity", "Error loading quests", e)
             }
         }
     }
 
-    // Sign out: clear UI prefs for this profile + SessionStore
+    // Sign out: clear session
     private fun setupHeaderActions() {
         binding.btnLogout.setOnClickListener {
             lifecycleScope.launch {
-                getProfilePrefs().edit { clear() }
                 session.setUser(null)
                 navigateToLogin()
             }
         }
     }
 
-    // Restore avatar/name and wire edit panel actions for this specific user
+    // Wire up edit panel actions
     private fun initPerUserUi() {
-        val prefs = getProfilePrefs()
-
-        // Restore avatar
-        prefs.getString(PrefKeys.AVATAR_LOCAL, null)?.let { saved ->
-            runCatching {
-                Uri.parse(saved)
-            }.getOrNull()?.let { local ->
-                runCatching {
-                    applyAvatar(local)
-                }.onFailure {
-                    prefs.edit { remove(PrefKeys.AVATAR_LOCAL) }
-                }
-                avatarLocalUri = local
-            }
-        }
-
-        // Name, surname from UI prefs
-        val first = prefs.getString(PrefKeys.FIRST, "") ?: ""
-        val last = prefs.getString(PrefKeys.LAST, "") ?: ""
-        binding.txtUsername.text = viewModel.getDisplayName(first, last)
-
         // Setup edit button
         binding.btnEdit.setOnClickListener {
             showEditOverlay()
@@ -232,15 +206,13 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
-    // Populate edit overlay fields and show it.
+    // Populate edit overlay fields from Firebase and show it
     private fun showEditOverlay() {
-        val prefs = getProfilePrefs()
         binding.apply {
-            etFirstName.setText(prefs.getString(PrefKeys.FIRST, "") ?: "")
-            etLastName.setText(prefs.getString(PrefKeys.LAST, "") ?: "")
-
-            // Load goals from ViewModel/database
+            // Load data from ViewModel (Firebase)
             viewModel.user.value?.let { user ->
+                etFirstName.setText(user.firstName)
+                etLastName.setText(user.lastName)
                 etMinAmount.setText(user.minGoal?.toInt()?.toString() ?: "")
                 etMaxAmount.setText(user.maxGoal?.toInt()?.toString() ?: "")
             }
@@ -249,29 +221,21 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         }
     }
 
-    // Persist name to prefs, goals via ViewModel, update the display, and close panel
+    // Save profile changes to Firebase through ViewModel
     private fun saveProfileChanges() {
-        val prefs = getProfilePrefs()
-
         binding.apply {
             val first = etFirstName.text.toString().trim()
             val last = etLastName.text.toString().trim()
             val minStr = etMinAmount.text.toString().trim()
             val maxStr = etMaxAmount.text.toString().trim()
 
-            // Save name to SharedPreferences
-            prefs.edit {
-                putString(PrefKeys.FIRST, first)
-                putString(PrefKeys.LAST, last)
-            }
+            // Save name to Firebase through ViewModel
+            viewModel.updateProfile(first, last)
 
-            // Save goals to database through ViewModel
+            // Save goals to Firebase through ViewModel
             val minGoal = minStr.toDoubleOrNull()
             val maxGoal = maxStr.toDoubleOrNull()
             viewModel.updateGoals(minGoal, maxGoal)
-
-            // Update name display immediately
-            binding.txtUsername.text = viewModel.getDisplayName(first, last)
 
             closeOverlay()
         }
@@ -288,8 +252,19 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
     }
 
     private fun applyAvatar(uri: Uri) {
-        binding.ivAvatar.setImageURI(uri)
-        binding.imgProfile.setImageURI(uri)
+        Glide.with(this)
+            .load(uri)
+            .placeholder(R.drawable.default_avatar)
+            .error(R.drawable.default_avatar)
+            .circleCrop()
+            .into(binding.ivAvatar)
+
+        Glide.with(this)
+            .load(uri)
+            .placeholder(R.drawable.default_avatar)
+            .error(R.drawable.default_avatar)
+            .circleCrop()
+            .into(binding.imgProfile)
     }
 
     private fun closeOverlay() {
@@ -316,9 +291,53 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         finish()
     }
 
-    // Profile preferences are per-user (using Firebase UID)
-    private fun getProfilePrefs() =
-        getSharedPreferences("profile_prefs_u_$currentUserId", Context.MODE_PRIVATE)
+    // Convert and save profile picture as Base64 in Firestore
+    private suspend fun uploadProfilePicture(uri: Uri) {
+        try {
+            Log.d("ProfileActivity", "Converting image to Base64 for user: $currentUserId")
+
+            // Read the image and convert to Base64
+            val inputStream = contentResolver.openInputStream(uri)
+            val bytes = inputStream?.readBytes()
+            inputStream?.close()
+
+            if (bytes == null) {
+                Toast.makeText(this, "Failed to read image", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Convert to Base64 string
+            val base64Image = android.util.Base64.encodeToString(bytes, android.util.Base64.DEFAULT)
+            val base64WithPrefix = "data:image/jpeg;base64,$base64Image"
+
+            Log.d("ProfileActivity", "Image converted, size: ${bytes.size} bytes")
+
+            // Save Base64 string to Firestore via ViewModel
+            viewModel.updateProfilePicture(base64WithPrefix)
+
+            Toast.makeText(this, "Profile picture updated!", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Log.e("ProfileActivity", "Error saving profile picture", e)
+            Toast.makeText(this, "Failed to save profile picture: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // Load profile picture from Base64 string using Glide
+    private fun loadProfilePicture(base64String: String) {
+        Glide.with(this)
+            .load(base64String)
+            .placeholder(R.drawable.default_avatar)
+            .error(R.drawable.default_avatar)
+            .circleCrop()
+            .into(binding.ivAvatar)
+
+        Glide.with(this)
+            .load(base64String)
+            .placeholder(R.drawable.default_avatar)
+            .error(R.drawable.default_avatar)
+            .circleCrop()
+            .into(binding.imgProfile)
+    }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
@@ -330,6 +349,7 @@ class ProfileActivity : AppCompatActivity(), NavigationView.OnNavigationItemSele
         return true
     }
 }
+
 // reference list
 // Android Developers, 2023. Photo Picker. [online]
 // Available at: <https://developer.android.com/training/data-storage/shared/photopicker> [Accessed 6 October 2025].
