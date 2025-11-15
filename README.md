@@ -109,8 +109,8 @@ GitHub Actions has been implemented to automatically build and test the app when
 
 A short presentation video demonstrating the app's key features, gameplay loop, and development process is available on YouTube:
 
-https://youtu.be/_9OLgA84ICY
-
+Demo Video With Background Music: https://youtu.be/awkw3RVM6Uw
+Demo Video Without Background Music: https://youtu.be/o0KbSR8_hMY
 ---
 
 ## 11. Team

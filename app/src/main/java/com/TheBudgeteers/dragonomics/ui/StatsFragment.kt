@@ -159,7 +159,7 @@ class StatsFragment : Fragment() {
         val amountsByNestId: Map<String, Double> =
             repo.getSpentAmountsInRangeOnce(userId, startMs, endMs)
 
-        // Segments 
+        // Segments
         val segments: List<GoalBarView.Segment> =
             expenseNests.map { nest ->
                 val amt = amountsByNestId[nest.id] ?: 0.0

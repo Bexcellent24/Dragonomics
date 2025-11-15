@@ -19,7 +19,7 @@ import java.util.Date
 
 class HistoryViewModel(
     private val repository: Repository,
-    private val userId: String  // Changed from Long to String for Firebase UID
+    private val userId: String
 ) : ViewModel() {
 
     private var currentYear: Int

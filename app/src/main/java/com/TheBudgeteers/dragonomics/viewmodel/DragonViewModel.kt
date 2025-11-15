@@ -16,7 +16,6 @@ import kotlinx.coroutines.launch
 
 
 // DragonViewModel - Holds UI-facing dragon state for Home/Shop screens.
-// UPDATED FOR FIREBASE: Now user-aware and loads dragon state per user.
 
 // Core progression
 data class DragonUiState(

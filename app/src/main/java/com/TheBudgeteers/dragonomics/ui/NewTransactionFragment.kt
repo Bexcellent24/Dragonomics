@@ -70,7 +70,7 @@ class NewTransactionFragment : DialogFragment() {
     private var selectedDate = Date()
     private var photoUri: Uri? = null
     private var currentPhotoPath: String? = null
-    private var currentUserId: String? = null // UPDATED: Now String
+    private var currentUserId: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -113,7 +113,7 @@ class NewTransactionFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Load current logged-in user (now String)
+        // Load current logged-in user
         lifecycleScope.launch {
             currentUserId = session.userId.firstOrNull()
             if (currentUserId != null) {

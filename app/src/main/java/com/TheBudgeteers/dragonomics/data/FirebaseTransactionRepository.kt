@@ -175,7 +175,7 @@ class FirebaseTransactionRepository {
     }
 
     // Get spent amounts grouped by nest within date range.
-    // Note: Firestore doesn't support GROUP BY, so we group client-side.
+    // Note - Firestore doesn't support "GROUP BY", so we group client-side.
     fun getSpentAmountsInRangeFlow(userId: String, start: Long, end: Long): Flow<List<NestSpent>> = callbackFlow {
         val listener = transactionsCollection(userId)
             .whereGreaterThanOrEqualTo("date", start)

@@ -87,7 +87,7 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
    // Setup bottom navigation bar with proper selection state.
     private fun setupBottomNavigation() {
         binding.bottomNavigationView.apply {
-            itemIconTintList = null  // Use original icon colors
+            itemIconTintList = null
             selectedItemId = R.id.nav_expenses  // Mark this tab as selected
             setOnItemSelectedListener { item ->
                 onNavigationItemSelected(item)
@@ -139,7 +139,7 @@ class ExpensesActivity : AppCompatActivity(), NavigationView.OnNavigationItemSel
                 .replace(R.id.fragmentContainerTransactions, TransactionFragment())
                 .commit()
 
-            // Nest cards at the bottom (start with expenses)
+            // Nest cards at the bottom
             loadNestFragment(NestType.EXPENSE)
         }
     }

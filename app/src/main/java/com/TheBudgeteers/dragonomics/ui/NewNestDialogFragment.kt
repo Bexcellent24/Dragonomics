@@ -172,14 +172,14 @@ class NewNestDialogFragment : androidx.fragment.app.DialogFragment() {
         }
 
         lifecycleScope.launch {
-            // Get userId as String (Firebase UID)
+            // Get userId as String
             val userId = session.userId.firstOrNull()
             if (userId == null) {
                 Toast.makeText(requireContext(), "Error: No user logged in", Toast.LENGTH_SHORT).show()
                 return@launch
             }
 
-            // Create nest with String userId (no ID needed - Firebase generates it)
+            // Create nest withuserId
             val nest = Nest(
                 userId = userId,
                 name = name,
