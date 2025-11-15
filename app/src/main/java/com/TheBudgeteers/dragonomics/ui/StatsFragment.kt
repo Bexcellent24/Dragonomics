@@ -10,7 +10,6 @@ import androidx.lifecycle.lifecycleScope
 import com.TheBudgeteers.dragonomics.R
 import com.TheBudgeteers.dragonomics.data.NestType
 import com.TheBudgeteers.dragonomics.data.SessionStore
-import com.TheBudgeteers.dragonomics.ui.NestUiMapper
 import com.TheBudgeteers.dragonomics.ui.widgets.GoalBarView
 import com.TheBudgeteers.dragonomics.utils.RepositoryProvider
 import kotlinx.coroutines.flow.firstOrNull
@@ -92,14 +91,25 @@ class StatsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        android.util.Log.d("StatsFragment", "onViewCreated - Setting up observers")
+
+        // Observe transactions Flow for automatic updates
+        observeTransactions()
+    }
+
+    // Observe transaction changes and automatically refresh stats
+    private fun observeTransactions() {
         val repo = RepositoryProvider.getRepository(requireContext())
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val userId = sessionStore.userId.firstOrNull() ?: return@launch
+            val userId = sessionStore.userId.firstOrNull()
+            if (userId == null) {
+                android.util.Log.e("StatsFragment", "No userId found")
+                return@launch
+            }
 
-            // Goals
-            val minGoal = repo.getUserMinGoal(userId) ?: 0.0
-            val maxGoal = repo.getUserMaxGoal(userId) ?: 0.0
+            android.util.Log.d("StatsFragment", "Starting to observe transactions for user: $userId")
 
             // Current month range
             val today = LocalDate.now()
@@ -107,55 +117,77 @@ class StatsFragment : Fragment() {
             val startMs = startOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
             val endMs = today.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
-            // Totals (income/expenses/remaining)
-            val tx = repo.getTransactionsBetweenFlow(userId, startMs, endMs).firstOrNull().orEmpty()
-            val nestsById = repo.getNests(userId).associateBy { it.id }
-            var incomeTotal = 0.0
-            var expensesTotal = 0.0
-            tx.forEach { t ->
-                when (nestsById[t.categoryId]?.type) {
-                    NestType.INCOME  -> incomeTotal += t.amount
-                    NestType.EXPENSE -> expensesTotal += t.amount
-                    else -> {}
-                }
+            // Observe transactions - this Flow will emit whenever transactions change
+            repo.getTransactionsBetweenFlow(userId, startMs, endMs).collect { transactions ->
+                android.util.Log.d("StatsFragment", "Transactions updated! Count: ${transactions.size}")
+                loadStatsWithData(userId, transactions)
             }
-            val remainingTotal = incomeTotal - expensesTotal
-
-            // Expense nests (for stacked colors)
-            val expenseNests = nestsById.values.filter { it.type == NestType.EXPENSE }
-
-            // Amount per nest in range
-            val amountsByNestId: Map<String, Double> =
-                repo.getSpentAmountsInRangeOnce(userId, startMs, endMs)
-
-            // Segments (oldest→newest) then reverse so NEWEST appears further LEFT in the bar
-            val segments: List<GoalBarView.Segment> =
-                expenseNests.map { nest ->
-                    val amt = amountsByNestId[nest.id] ?: 0.0
-                    val color = NestUiMapper.parseColorSafe(nest.colour)
-                    GoalBarView.Segment(amt, color)
-                }.filter { seg -> seg.amount > 0.0 }
-
-            val segmentsNewestLeft = segments.asReversed()
-
-            // Display numbers
-            val nf = NumberFormat.getCurrencyInstance(Locale("en", "ZA")).apply {
-                maximumFractionDigits = 0
-            }
-            valueIncome.text = nf.format(incomeTotal)
-            valueExpenses.text = nf.format(expensesTotal)
-            valueRemaining.text = nf.format(remainingTotal)
-
-            minGoalText.text = "Min Goal: " + nf.format(minGoal)
-            maxGoalText.text = "Max Goal: " + nf.format(maxGoal)
-
-            // Draw bar (expenses start from LEFT, newest further LEFT)
-            goalBar.setData(
-                maxGoal = maxGoal,
-                minGoal = minGoal,
-                expenseSegments = segmentsNewestLeft,
-                totalIncome = incomeTotal
-            )
         }
+    }
+
+    // Load and display stats with the given transaction data
+    private suspend fun loadStatsWithData(userId: String, transactions: List<com.TheBudgeteers.dragonomics.models.Transaction>) {
+        val repo = RepositoryProvider.getRepository(requireContext())
+
+        // Goals
+        val minGoal = repo.getUserMinGoal(userId) ?: 0.0
+        val maxGoal = repo.getUserMaxGoal(userId) ?: 0.0
+
+        // Current month range (for getting nest data)
+        val today = LocalDate.now()
+        val startOfMonth = today.withDayOfMonth(1)
+        val startMs = startOfMonth.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val endMs = today.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+        // Calculate totals from transaction data
+        val nestsById = repo.getNests(userId).associateBy { it.id }
+        var incomeTotal = 0.0
+        var expensesTotal = 0.0
+        transactions.forEach { t ->
+            when (nestsById[t.categoryId]?.type) {
+                NestType.INCOME  -> incomeTotal += t.amount
+                NestType.EXPENSE -> expensesTotal += t.amount
+                else -> {}
+            }
+        }
+        val remainingTotal = incomeTotal - expensesTotal
+
+        // Expense nests (for stacked colors)
+        val expenseNests = nestsById.values.filter { it.type == NestType.EXPENSE }
+
+        // Amount per nest in range
+        val amountsByNestId: Map<String, Double> =
+            repo.getSpentAmountsInRangeOnce(userId, startMs, endMs)
+
+        // Segments 
+        val segments: List<GoalBarView.Segment> =
+            expenseNests.map { nest ->
+                val amt = amountsByNestId[nest.id] ?: 0.0
+                val color = NestUiMapper.parseColorSafe(nest.colour)
+                GoalBarView.Segment(amt, color)
+            }.filter { seg -> seg.amount > 0.0 }
+
+        val segmentsNewestLeft = segments.asReversed()
+
+        // Display numbers
+        val nf = NumberFormat.getCurrencyInstance(Locale("en", "ZA")).apply {
+            maximumFractionDigits = 0
+        }
+        valueIncome.text = nf.format(incomeTotal)
+        valueExpenses.text = nf.format(expensesTotal)
+        valueRemaining.text = nf.format(remainingTotal)
+
+        minGoalText.text = "Min Goal: " + nf.format(minGoal)
+        maxGoalText.text = "Max Goal: " + nf.format(maxGoal)
+
+        // Draw bar
+        goalBar.setData(
+            maxGoal = maxGoal,
+            minGoal = minGoal,
+            expenseSegments = segmentsNewestLeft,
+            totalIncome = incomeTotal
+        )
+
+        android.util.Log.d("StatsFragment", "Stats updated: Income=$incomeTotal, Expenses=$expensesTotal")
     }
 }
