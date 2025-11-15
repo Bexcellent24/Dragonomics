@@ -30,15 +30,6 @@
             android:layout_gravity="center"/>
 
         <!-- Preview icon in center -->
-        <ImageView
-            android:id="@+id/preview"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:layout_gravity="center_horizontal"
-            android:scaleType="fitCenter"
-            android:src="@drawable/shop"/>
 
 
         <!-- Bottom bar: price chip and action button -->
@@ -73,6 +64,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="90"
+                    android:textSize="12sp"
                     android:textColor="@color/GoldenEmber"
                     android:fontFamily="@font/aref_ruqaa"/>
             </LinearLayout>

@@ -35,7 +35,7 @@ class ShopAdapter(
         val price: TextView = v.findViewById(R.id.price)
         val priceChip: View = v.findViewById(R.id.priceChip)
         val btn: MaterialButton = v.findViewById(R.id.actionBtn)
-        val preview: ImageView = v.findViewById(R.id.preview)
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
@@ -47,7 +47,7 @@ class ShopAdapter(
     override fun onBindViewHolder(h: VH, position: Int) {
         val item = getItem(position)
         h.title.text = item.name
-        h.preview.setImageResource(item.previewRes)
+
 
         // Hide price if user already owns or has equipped this item
         val owned = item.owned || item.equipped
