@@ -111,6 +111,12 @@ A short presentation video demonstrating the app's key features, gameplay loop, 
 
 Demo Video With Background Music: https://youtu.be/awkw3RVM6Uw
 Demo Video Without Background Music: https://youtu.be/o0KbSR8_hMY
+
+Assets used for the video :
+Freepik. (2022). Navy blue geometrical social banner vector | Free Vector. [online] Available at: https://www.freepik.com/free-vector/navy-blue-geometrical-social-banner-vector_36226316.htm#fromView=keyword&page=1&position=7&uuid=cfc661ee-9cdc-4e5e-a8b6-2e0772cac42a&query=Navy+blue+background+geometric+shapes [Accessed 15 Nov. 2025].
+
+lofidreams99 (2025). Lofi background music | Royalty-free Music. [online] Pixabay.com. Available at: https://pixabay.com/music/beats-lofi-background-music-326931/ 
+[Accessed 15 Nov. 2025].
 ---
 
 ## 11. Team
